@@ -1,0 +1,51 @@
+// Modelo alineado al diagrama entidad-relación de User-Service (Momento 1):
+//   ACCOUNT(id bigint PK, email, password_hash, created_at)
+//   PROFILE(id bigint PK, account_id FK, name, is_kids, created_at)
+//
+// EXTENSIÓN JUSTIFICADA: el documento indica que User-Service "consumirá de forma
+// asíncrona el evento payment.failed publicado por Billing-Service para restringir
+// progresivamente el acceso". El diagrama entregado no incluye un campo para modelar
+// ese estado, así que se agregan `status` y `failed_payment_attempts` en Account,
+// estrictamente necesarios para poder implementar esa regla de negocio.
+generator client {
+  provider      = "prisma-client-js"
+  // linux-musl-openssl-3.0.x: la imagen Docker usa node:20-alpine (musl).
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountStatus {
+  ACTIVA      // acceso normal
+  MOROSA      // 1er o 2do payment.failed: acceso restringido (ej. solo lectura de catálogo, sin reproducir)
+  SUSPENDIDA  // 3er payment.failed consecutivo: login bloqueado hasta regularizar el pago
+}
+
+model Account {
+  id                    BigInt        @id @default(autoincrement())
+  email                 String        @unique
+  passwordHash          String        @map("password_hash")
+  status                AccountStatus @default(ACTIVA)
+  failedPaymentAttempts Int           @default(0) @map("failed_payment_attempts")
+  createdAt             DateTime      @default(now()) @map("created_at")
+
+  profiles              Profile[]
+
+  @@index([email])
+  @@map("accounts")
+}
+
+model Profile {
+  id        BigInt   @id @default(autoincrement())
+  accountId BigInt   @map("account_id")
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name      String
+  isKids    Boolean  @default(false) @map("is_kids")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([accountId])
+  @@map("profiles")
+}

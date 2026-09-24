@@ -1,0 +1,399 @@
+# ============================================================================
+# MediaStream — plataforma completa
+# ============================================================================
+#
+# Levanta TODOS los microservicios juntos. Cada uno conserva:
+#   · su propia base de datos (nadie lee las tablas del otro)
+#   · su propia imagen, construida desde su propia carpeta
+#   · su propio ciclo de vida (se puede reiniciar sin tocar los demás)
+#
+# Lo ÚNICO compartido es la infraestructura de mensajería (Redis y RabbitMQ),
+# que es correcto: un broker es un canal de comunicación, no un almacén de
+# datos de dominio. Compartir el broker es lo que permite que los servicios
+# se hablen sin conocerse.
+#
+#   Servicio                   Consola               Base de datos
+#   user-service               localhost:3001        user-db      :5435
+#   catalog-service            localhost:3002        catalog-db   :5433
+#   playback-service           localhost:3003        playback-db  :5434
+#   media-processing-service   localhost:3004        media-db     :5436
+#   recommendation-service     localhost:3005        recommendation-db :5437 (pgvector)
+#   billing-service            localhost:3006        billing-db   :5438
+#
+# Uso:
+#   docker compose up -d --build                  → levanta todo
+#   docker compose up -d --build user-service     → solo uno y sus dependencias
+#   docker compose restart playback-service       → reinicia uno sin tocar el resto
+#   docker compose logs -f media-processing-service
+#
+# Para trabajar en un solo servicio de forma aislada, usa el
+# docker-compose.yml que está dentro de su propia carpeta.
+# ============================================================================
+
+services:
+
+  # ---------------------------------------------------------------- mensajería
+  # Compartidos entre servicios: son el medio de comunicación, no datos.
+  #   Redis     → playback.progress / playback.completed (tolera pérdida),
+  #               de Playback a Recommendation
+  #   RabbitMQ  → media.ready, media.processing.failed, payment.failed
+  #               (no pueden perderse: persistencia + ack + reintento)
+
+  redis:
+    image: redis:7-alpine
+    container_name: mediastream-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: mediastream-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # UI de administración (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  # --------------------------------------------------------------- user-service
+  # Identidad, autenticación y perfiles. Consume payment.failed (RabbitMQ),
+  # que publica Billing, para restringir el acceso de forma progresiva.
+
+  user-db:
+    image: postgres:16-alpine
+    container_name: user-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user_service
+      POSTGRES_PASSWORD: user_service
+      POSTGRES_DB: user_service_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_service -d user_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DATABASE_URL: "postgresql://user_service:user_service@user-db:5432/user_service_db?schema=public"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      JWT_ACCESS_SECRET: "dev-access-secret"
+      JWT_REFRESH_SECRET: "dev-refresh-secret"
+      JWT_ACCESS_TTL: "15m"
+      JWT_REFRESH_TTL: "7d"
+      CORS_ORIGINS: "*"
+    depends_on:
+      user-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+  # ------------------------------------------------------------ catalog-service
+  # Base de datos PROPIA. Ningún otro servicio se conecta a ella.
+  # Consume media.ready / media.processing.failed (RabbitMQ).
+
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: catalog-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DATABASE_URL: "postgresql://catalog_user:catalog_pass@catalog-db:5432/catalog_db?schema=public"
+      REDIS_URL: "redis://redis:6379"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      CORS_ORIGINS: "*"
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+  # ----------------------------------------------------------- playback-service
+  # Base de datos PROPIA y separada de la del catálogo. Cuando Playback
+  # necesita saber si un título está disponible, PREGUNTA por REST — no
+  # consulta la tabla del otro servicio.
+
+  playback-db:
+    image: postgres:16-alpine
+    container_name: playback-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: playback_user
+      POSTGRES_PASSWORD: playback_pass
+      POSTGRES_DB: playback_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - playback_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U playback_user -d playback_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  playback-service:
+    build:
+      context: ./playback-service
+      dockerfile: Dockerfile
+    container_name: playback-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DATABASE_URL: "postgresql://playback_user:playback_pass@playback-db:5432/playback_db?schema=public"
+      REDIS_URL: "redis://redis:6379"
+      # Se resuelve por nombre de contenedor dentro de la red compartida.
+      # Playback NO conoce la base de datos del catálogo, solo su API pública.
+      CATALOG_SERVICE_URL: "http://catalog-service:3002"
+      # Sección 4.5–4.7: timeout ~2 s, 2 reintentos con backoff y circuit breaker.
+      CATALOG_TIMEOUT_MS: 2000
+      CATALOG_RETRIES: 2
+      CATALOG_CB_FAILURE_THRESHOLD: 3
+      CATALOG_CB_OPEN_MS: 30000
+      DRM_JWT_SECRET: "dev-drm-secret-cambiar-en-produccion"
+      DRM_TOKEN_TTL_SECONDS: 300
+      CDN_BASE_URL: "https://cdn.mediastream.local"
+      CORS_ORIGINS: "*"
+    depends_on:
+      playback-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      # NOTA: deliberadamente NO depende de catalog-service.
+      # Playback arranca aunque el catálogo esté caído; solo se degrada la
+      # emisión de tokens. Eso es tolerancia a fallos, y es la diferencia
+      # entre microservicios y un monolito distribuido.
+    networks:
+      - mediastream-net
+
+  # --------------------------------------------------- media-processing-service
+  # Transcodifica el vídeo maestro (FFmpeg) y publica media.ready en
+  # RabbitMQ. NO llama a Catalog-Service ni conoce su base de datos: solo
+  # publica el evento, y Catalog reacciona marcando el título AVAILABLE.
+
+  media-db:
+    image: postgres:16-alpine
+    container_name: media-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: media_user
+      POSTGRES_PASSWORD: media_pass
+      POSTGRES_DB: media_processing_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - media_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U media_user -d media_processing_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  media-processing-service:
+    build:
+      context: ./media-processing-service
+      dockerfile: Dockerfile
+    container_name: media-processing-service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      DATABASE_URL: "postgresql+psycopg2://media_user:media_pass@media-db:5432/media_processing_db"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      # Contrato con Catalog-Service: mismo exchange y routing keys que escucha.
+      RABBITMQ_EXCHANGE: media.events
+      MEDIA_READY_ROUTING_KEY: media.ready
+      MEDIA_FAILED_ROUTING_KEY: media.processing.failed
+      WORK_DIR: /tmp/media-processing
+      CDN_BASE_URL: "https://cdn.mediastream.local"
+      CORS_ORIGINS: "*"
+    depends_on:
+      media-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      # Tampoco depende de catalog-service: si el catálogo está caído, los
+      # eventos esperan en RabbitMQ y se entregan cuando vuelva.
+    networks:
+      - mediastream-net
+
+  # ----------------------------------------------------- recommendation-service
+  # Python/FastAPI + PostgreSQL con pgvector. Se suscribe a Redis para
+  # actualizar el modelo de cada perfil y le pide a Catalog (REST) los
+  # metadatos de los títulos. No depende de ningún otro servicio para
+  # arrancar ni para responder: si Catalog o Redis caen, sigue
+  # recomendando con los vectores que ya tiene.
+
+  recommendation-db:
+    image: pgvector/pgvector:pg16
+    container_name: recommendation-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: reco_user
+      POSTGRES_PASSWORD: reco_pass
+      POSTGRES_DB: recommendation_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - recommendation_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reco_user -d recommendation_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  recommendation-service:
+    build:
+      context: ./recommendation-service
+      dockerfile: Dockerfile
+    container_name: recommendation-service
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    environment:
+      PORT: 3005
+      DATABASE_URL: "postgresql+psycopg2://reco_user:reco_pass@recommendation-db:5432/recommendation_db"
+      REDIS_URL: "redis://redis:6379"
+      CATALOG_SERVICE_URL: "http://catalog-service:3002"
+      CATALOG_SYNC_REGIONS: "CO,MX,GLOBAL"
+      CATALOG_SYNC_INTERVAL_SECONDS: 60
+      CONTENT_WEIGHT: 0.6
+      CORS_ORIGINS: "*"
+    depends_on:
+      recommendation-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      # Deliberadamente NO depende de playback-service ni de catalog-service.
+    networks:
+      - mediastream-net
+
+  # ------------------------------------------------------------ billing-service
+  # Suscripciones y pagos (pasarela Stripe simulada). Cuando un cobro es
+  # rechazado publica payment.failed en la cola user_service.payment_failed
+  # del RabbitMQ compartido: User-Service la consume y restringe la cuenta.
+  # Billing no llama a User ni conoce su base de datos (account_id es solo
+  # una referencia lógica).
+
+  billing-db:
+    image: postgres:16-alpine
+    container_name: billing-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: billing_service
+      POSTGRES_PASSWORD: billing_service
+      POSTGRES_DB: billing_service_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - billing_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U billing_service -d billing_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  billing-service:
+    build:
+      context: ./billing-service
+      dockerfile: Dockerfile
+    container_name: billing-service
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: 3006
+      DATABASE_URL: "postgresql://billing_service:billing_service@billing-db:5432/billing_service_db?schema=public"
+      # El MISMO RabbitMQ que consume User-Service: así le llega payment.failed.
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      STRIPE_SECRET_KEY: "sk_test_no_usada_en_esta_simulacion"
+      CORS_ORIGINS: "*"
+    depends_on:
+      billing-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      # NO depende de user-service: si User está caído, payment.failed
+      # espera en la cola y se procesa cuando vuelva.
+    networks:
+      - mediastream-net
+
+volumes:
+  user_db_data:
+  catalog_db_data:
+  playback_db_data:
+  media_db_data:
+  recommendation_db_data:
+  billing_db_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

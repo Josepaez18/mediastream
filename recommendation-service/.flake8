@@ -1,0 +1,4 @@
+# Flake8 (sección 7 del documento: el lint es obligatorio en el pipeline de CI).
+[flake8]
+max-line-length = 120
+exclude = .venv,venv,__pycache__,.pytest_cache

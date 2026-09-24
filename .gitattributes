@@ -1,0 +1,7 @@
+# Finales de línea LF en el repositorio (los contenedores y el pipeline corren en Linux).
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.mp4 binary
+*.png binary
+*.jpg binary

@@ -1,0 +1,79 @@
+// Catalog-Service - schema.prisma
+// Base de datos independiente (database-per-service), 3FN según el documento
+// "Arquitectura Plataforma Tecnológicas - Momento 1"
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TitleType {
+  MOVIE
+  SERIES
+}
+
+enum TitleStatus {
+  PENDING      // subido pero aún no transcodificado
+  AVAILABLE    // media.ready recibido, listo para reproducir
+  UNAVAILABLE  // retirado o falló la transcodificación
+}
+
+model Title {
+  id             BigInt         @id @default(autoincrement())
+  name           String
+  synopsis       String?
+  type           TitleType
+  status         TitleStatus    @default(PENDING)
+  category       String?
+  ageRating      String?        @map("age_rating")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  seasons        Season[]
+  availabilities Availability[]
+
+  @@index([status])
+  @@map("title")
+}
+
+model Season {
+  id           BigInt @id @default(autoincrement())
+  titleId      BigInt @map("title_id")
+  seasonNumber Int    @map("season_number")
+
+  title    Title     @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  episodes Episode[]
+
+  @@index([titleId])
+  @@map("season")
+}
+
+model Episode {
+  id              BigInt @id @default(autoincrement())
+  seasonId        BigInt @map("season_id")
+  episodeNumber   Int    @map("episode_number")
+  durationSeconds Int?   @map("duration_seconds")
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@index([seasonId])
+  @@map("episode")
+}
+
+model Availability {
+  id             BigInt    @id @default(autoincrement())
+  titleId        BigInt    @map("title_id")
+  region         String
+  availableFrom  DateTime  @map("available_from")
+  availableUntil DateTime? @map("available_until")
+
+  title Title @relation(fields: [titleId], references: [id], onDelete: Cascade)
+
+  @@index([titleId, region])
+  @@map("availability")
+}

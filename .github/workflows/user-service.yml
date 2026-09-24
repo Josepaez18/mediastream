@@ -1,0 +1,36 @@
+# User-Service: lint → tests → imagen Docker → GHCR → Render.
+# Solo corre cuando cambia algo de este microservicio (sección 7: "tests del
+# servicio modificado"). También se puede lanzar a mano desde la pestaña Actions.
+name: User-Service
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "user-service/**"
+      - ".github/workflows/user-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  pull_request:
+    branches: [develop]
+    paths:
+      - "user-service/**"
+      - ".github/workflows/user-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: user-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline-servicio.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      service: user-service
+      runtime: node
+      secret_suffix: USER
+      database: user_service_db
+    secrets: inherit

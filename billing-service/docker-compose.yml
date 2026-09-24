@@ -1,0 +1,76 @@
+# Stack de desarrollo AISLADO de Billing-Service.
+#
+# Levanta el servicio solo, con su propia base de datos y su propio RabbitMQ,
+# para trabajar en él sin el resto de la plataforma. Aquí el evento
+# payment.failed queda guardado en la cola user_service.payment_failed (nadie
+# lo consume). Para ver a User-Service reaccionar, levanta TODA la plataforma
+# con el docker-compose.yml de la carpeta padre: ahí ambos comparten el mismo
+# RabbitMQ.
+#
+# Puertos distintos a los de la plataforma para que puedan convivir.
+
+services:
+  billing-db:
+    image: postgres:16-alpine
+    container_name: billing-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: billing_service
+      POSTGRES_PASSWORD: billing_service
+      POSTGRES_DB: billing_service_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - billing_service_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U billing_service -d billing_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  billing-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: billing-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5674:5672"   # protocolo AMQP
+      - "15674:15672" # panel de administración (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  billing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: billing-service
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      PORT: 3006
+      DATABASE_URL: "postgresql://billing_service:billing_service@billing-db:5432/billing_service_db?schema=public"
+      RABBITMQ_URL: "amqp://guest:guest@billing-rabbitmq:5672"
+      STRIPE_SECRET_KEY: "sk_test_no_usada_en_esta_simulacion"
+      CORS_ORIGINS: "*"
+    depends_on:
+      billing-db:
+        condition: service_healthy
+      billing-rabbitmq:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+volumes:
+  billing_service_pg_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

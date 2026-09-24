@@ -1,0 +1,85 @@
+
+# Stack de desarrollo de Playback-Service.
+#
+# El servicio tiene su propia base de datos (database-per-service). Redis se
+# usa para cache de sesiones y para publicar playback.progress / playback.completed.
+#
+# NOTA: Playback depende de Catalog-Service para validar la disponibilidad
+# regional antes de emitir un token. Levanta primero catalog-service con su
+# propio docker-compose; este stack se conecta a él por la red compartida
+# "mediastream-net" (ver README, sección "Uniendo los microservicios").
+
+services:
+  playback-db:
+    image: postgres:16-alpine
+    container_name: playback-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: playback_user
+      POSTGRES_PASSWORD: playback_pass
+      POSTGRES_DB: playback_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - playback_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U playback_user -d playback_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  playback-redis:
+    image: redis:7-alpine
+    container_name: playback-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  playback-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: playback-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DATABASE_URL: "postgresql://playback_user:playback_pass@playback-db:5432/playback_db?schema=public"
+      REDIS_URL: "redis://playback-redis:6379"
+      # Si catalog-service corre en otro compose, se resuelve por nombre de
+      # contenedor gracias a la red compartida mediastream-net.
+      CATALOG_SERVICE_URL: "http://catalog-service:3002"
+      # Sección 4.5–4.7: timeout ~2 s, 2 reintentos con backoff y circuit breaker.
+      CATALOG_TIMEOUT_MS: 2000
+      CATALOG_RETRIES: 2
+      CATALOG_CB_FAILURE_THRESHOLD: 3
+      CATALOG_CB_OPEN_MS: 30000
+      DRM_JWT_SECRET: "dev-drm-secret-cambiar-en-produccion"
+      DRM_TOKEN_TTL_SECONDS: 300
+      CDN_BASE_URL: "https://cdn.mediastream.local"
+      CORS_ORIGINS: "*"
+    depends_on:
+      playback-db:
+        condition: service_healthy
+      playback-redis:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+volumes:
+  playback_db_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

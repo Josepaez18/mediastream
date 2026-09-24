@@ -1,0 +1,74 @@
+# Stack de desarrollo AISLADO de User-Service.
+#
+# Levanta el servicio solo, con su propia base de datos y un RabbitMQ, para
+# trabajar en él sin el resto de la plataforma. Para levantar TODA la
+# plataforma junta, usa el docker-compose.yml de la carpeta padre.
+
+services:
+  user-db:
+    image: postgres:16-alpine
+    container_name: user-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user_service
+      POSTGRES_PASSWORD: user_service
+      POSTGRES_DB: user_service_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - user_service_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_service -d user_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  user-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: user-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # protocolo AMQP
+      - "15672:15672" # panel de administración (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DATABASE_URL: "postgresql://user_service:user_service@user-db:5432/user_service_db?schema=public"
+      RABBITMQ_URL: "amqp://guest:guest@user-rabbitmq:5672"
+      JWT_ACCESS_SECRET: "dev-access-secret"
+      JWT_REFRESH_SECRET: "dev-refresh-secret"
+      JWT_ACCESS_TTL: "15m"
+      JWT_REFRESH_TTL: "7d"
+      CORS_ORIGINS: "*"
+    depends_on:
+      user-db:
+        condition: service_healthy
+      user-rabbitmq:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+volumes:
+  user_service_pg_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

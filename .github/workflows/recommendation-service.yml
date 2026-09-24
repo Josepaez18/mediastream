@@ -1,0 +1,36 @@
+# Recommendation-Service: lint → tests → imagen Docker → GHCR → Render.
+# Solo corre cuando cambia algo de este microservicio (sección 7: "tests del
+# servicio modificado"). También se puede lanzar a mano desde la pestaña Actions.
+name: Recommendation-Service
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "recommendation-service/**"
+      - ".github/workflows/recommendation-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  pull_request:
+    branches: [develop]
+    paths:
+      - "recommendation-service/**"
+      - ".github/workflows/recommendation-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: recommendation-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline-servicio.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      service: recommendation-service
+      runtime: python
+      secret_suffix: RECOMMENDATION
+      postgres_image: pgvector/pgvector:pg16
+    secrets: inherit

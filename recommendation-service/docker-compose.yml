@@ -1,0 +1,77 @@
+# Stack de desarrollo AISLADO de Recommendation-Service.
+#
+# Levanta el servicio solo, con su propia base de datos (PostgreSQL con la
+# extensión pgvector) y un Redis. Para levantar TODA la plataforma junta,
+# usa el docker-compose.yml de la carpeta padre.
+#
+# Sin Catalog-Service la sincronización de títulos falla y se reintenta sola;
+# el servicio arranca y responde igual. Si Catalog corre en su propio
+# compose, se alcanza por la red compartida mediastream-net.
+
+services:
+  recommendation-db:
+    image: pgvector/pgvector:pg16
+    container_name: recommendation-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: reco_user
+      POSTGRES_PASSWORD: reco_pass
+      POSTGRES_DB: recommendation_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - recommendation_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reco_user -d recommendation_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  recommendation-redis:
+    image: redis:7-alpine
+    container_name: recommendation-redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: recommendation-service
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    environment:
+      PORT: 3005
+      DATABASE_URL: "postgresql+psycopg2://reco_user:reco_pass@recommendation-db:5432/recommendation_db"
+      REDIS_URL: "redis://recommendation-redis:6379"
+      CATALOG_SERVICE_URL: "http://catalog-service:3002"
+      CATALOG_SYNC_REGIONS: "CO,MX,GLOBAL"
+      CATALOG_SYNC_INTERVAL_SECONDS: 60
+      CONTENT_WEIGHT: 0.6
+      CORS_ORIGINS: "*"
+    depends_on:
+      recommendation-db:
+        condition: service_healthy
+      recommendation-redis:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+volumes:
+  recommendation_db_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

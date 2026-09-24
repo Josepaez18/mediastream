@@ -1,0 +1,35 @@
+// Playback-Service - schema.prisma
+// Base de datos independiente (database-per-service), en 3FN.
+// Almacena el progreso de reproducción de cada perfil sobre cada título.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Progreso de reproducción de un perfil sobre un título (o episodio puntual
+/// si el título es una serie). La combinación perfil + título + episodio es
+/// única: un perfil tiene un solo punto de continuación por episodio.
+model WatchProgress {
+  id              BigInt   @id @default(autoincrement())
+  profileId       String   @map("profile_id")
+  titleId         BigInt   @map("title_id")
+  episodeId       BigInt?  @map("episode_id")
+  positionSeconds Int      @map("position_seconds")
+  durationSeconds Int?     @map("duration_seconds")
+  completed       Boolean  @default(false)
+  deviceId        String?  @map("device_id")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Un perfil solo puede tener un registro por título+episodio.
+  @@unique([profileId, titleId, episodeId], name: "profile_title_episode")
+  @@index([profileId, updatedAt])
+  @@index([titleId])
+  @@map("watch_progress")
+}

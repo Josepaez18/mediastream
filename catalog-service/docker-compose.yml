@@ -1,0 +1,82 @@
+
+services:
+  catalog-db:
+    image: postgres:16-alpine
+    container_name: catalog-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: catalog_pass
+      POSTGRES_DB: catalog_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - catalog_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  catalog-redis:
+    image: redis:7-alpine
+    container_name: catalog-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  catalog-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: catalog-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # UI de administración (usuario/clave: guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  catalog-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: catalog-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DATABASE_URL: "postgresql://catalog_user:catalog_pass@catalog-db:5432/catalog_db?schema=public"
+      REDIS_URL: "redis://catalog-redis:6379"
+      RABBITMQ_URL: "amqp://guest:guest@catalog-rabbitmq:5672"
+      CORS_ORIGINS: "*"
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+      catalog-redis:
+        condition: service_healthy
+      catalog-rabbitmq:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+volumes:
+  catalog_db_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

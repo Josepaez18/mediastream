@@ -1,0 +1,75 @@
+# Stack de desarrollo AISLADO de Media-Processing-Service.
+#
+# Levanta el servicio solo, con su propia base de datos y un RabbitMQ, para
+# trabajar en él sin el resto de la plataforma. Para levantar TODA la
+# plataforma junta, usa el docker-compose.yml de la carpeta padre.
+
+services:
+  media-db:
+    image: postgres:16-alpine
+    container_name: media-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: media_user
+      POSTGRES_PASSWORD: media_pass
+      POSTGRES_DB: media_processing_db
+    ports:
+      - "5436:5432"
+    volumes:
+      - media_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U media_user -d media_processing_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  media-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: media-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # UI de administración (usuario/clave: guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  media-processing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: media-processing-service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      DATABASE_URL: "postgresql+psycopg2://media_user:media_pass@media-db:5432/media_processing_db"
+      RABBITMQ_URL: "amqp://guest:guest@media-rabbitmq:5672/"
+      RABBITMQ_EXCHANGE: media.events
+      MEDIA_READY_ROUTING_KEY: media.ready
+      MEDIA_FAILED_ROUTING_KEY: media.processing.failed
+      WORK_DIR: /tmp/media-processing
+      CDN_BASE_URL: "https://cdn.mediastream.example.com"
+      CORS_ORIGINS: "*"
+    depends_on:
+      media-db:
+        condition: service_healthy
+      media-rabbitmq:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+volumes:
+  media_db_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

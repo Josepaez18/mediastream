@@ -1,0 +1,86 @@
+// Modelo alineado al diagrama entidad-relación de Billing-Service (Momento 1,
+// sección "6. Billing-Service"):
+//   SUBSCRIPTION(id bigint PK, account_id, plan, status, next_billing_date)
+//     -> genera -> PAYMENT(id bigint PK, subscription_id FK, amount, status, paid_at)
+//
+// El documento aclara explícitamente que account_id es una referencia lógica
+// hacia User-Service, NO una llave foránea real: cada microservicio tiene su
+// propia base de datos y está prohibido hacer join entre ellas (sección
+// "Cómo se mantiene la integridad sin joins entre servicios"). Por eso
+// accountId se guarda como un BigInt normal, sin relación de Prisma.
+generator client {
+  provider = "prisma-client-js"
+  // "native" para correrlo en tu máquina; linux-musl-openssl-3.0.x para la
+  // imagen Docker (node:20-alpine), igual que el resto de servicios Node.
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  BASICO
+  ESTANDAR
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVA         // el último cobro fue exitoso
+  PAGO_FALLIDO   // la pasarela de pago rechazó el último cobro (dispara payment.failed)
+  PAGO_PENDIENTE // la pasarela no respondió a tiempo; NO se trata como un rechazo (sección 4.5)
+}
+
+enum PaymentStatus {
+  EXITOSO
+  FALLIDO
+  PENDIENTE
+}
+
+model Subscription {
+  id   BigInt @id @default(autoincrement())
+
+  // Referencia lógica a Account.id en User-Service (ver comentario arriba).
+  accountId BigInt @map("account_id")
+
+  plan   Plan
+  status SubscriptionStatus @default(PAGO_PENDIENTE)
+
+  // Siempre se define (NOT NULL): en un pago fallido o pendiente representa
+  // la próxima fecha en que se reintentará el cobro, no solo la renovación
+  // de una suscripción activa.
+  nextBillingDate DateTime @map("next_billing_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  payments Payment[]
+
+  // Índice explícito sobre account_id (documento, sección 6): es el campo
+  // por el que se filtra en GET /api/billing/history/{account_id}.
+  @@index([accountId])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id BigInt @id @default(autoincrement())
+
+  subscriptionId BigInt       @map("subscription_id")
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  // Float es suficiente para esta demo académica; un sistema de facturación
+  // real usaría un tipo Decimal para evitar errores de redondeo.
+  amount Float
+
+  status PaymentStatus
+
+  // Nullable a propósito: solo tiene sentido una fecha de pago cuando el
+  // cobro fue EXITOSO. Un pago FALLIDO o PENDIENTE todavía no fue pagado.
+  paidAt DateTime? @map("paid_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Índice explícito sobre subscription_id (documento, sección 6).
+  @@index([subscriptionId])
+  @@map("payments")
+}

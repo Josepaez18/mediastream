@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaStream · Playback Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14161c; --panel:#1c1f28; --panel-2:#22252f; --line:#2c303c;
+    --ink:#f3f1ea; --ink-dim:#a6aab8; --ink-faint:#6d7180;
+    --accent:#6aa9e0; --accent-2:#4d7fa8;
+    --ok:#6fcf97; --warn:#e8b858; --off:#e2635b;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;display:flex}
+  ::selection{background:var(--accent-2);color:var(--ink)}
+  h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-.01em}
+  .mono{font-family:'IBM Plex Mono',monospace}
+
+  .sidebar{width:236px;flex-shrink:0;background:#101217;border-right:1px solid var(--line);
+    padding:28px 20px;display:flex;flex-direction:column;gap:32px;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{width:26px;height:26px;border:1.5px solid var(--accent);border-radius:50%;position:relative;flex-shrink:0}
+  .brand-mark::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-40%,-50%);
+    border-left:9px solid var(--accent);border-top:6px solid transparent;border-bottom:6px solid transparent}
+  .brand-name{font-size:16.5px}
+  .brand-sub{font-size:11px;color:var(--ink-faint);margin-top:2px}
+
+  nav{display:flex;flex-direction:column;gap:4px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);
+    color:var(--ink-dim);cursor:pointer;font-size:14px;border:1px solid transparent;transition:background .12s,color .12s}
+  .nav-item:hover{background:var(--panel);color:var(--ink)}
+  .nav-item.active{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .nav-icon{width:16px;height:16px;flex-shrink:0;opacity:.85}
+
+  .sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:14px}
+  .conn-row{font-size:11px;color:var(--ink-faint);display:flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);flex-shrink:0}
+  .dot.up{background:var(--ok)} .dot.down{background:var(--off)}
+  .mini-field{display:flex;flex-direction:column;gap:6px}
+  .mini-field label{font-size:10.5px;color:var(--ink-faint)}
+  .mini-field input{background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    font-size:12px;padding:7px 8px;border-radius:var(--radius);font-family:'IBM Plex Mono',monospace;width:100%}
+  .mini-field input:focus{outline:none;border-color:var(--accent-2)}
+
+  main{flex:1;min-width:0;padding:40px 48px 80px}
+  .view{display:none}
+  .view.active{display:block;animation:rise .28s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+    margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+  .page-head h1{font-size:28px}
+  .page-head p{color:var(--ink-dim);font-size:13.5px;margin-top:6px;max-width:52ch;line-height:1.55}
+  code.inline{font-family:'IBM Plex Mono',monospace;background:var(--panel-2);padding:1px 6px;
+    border-radius:3px;font-size:12px;color:var(--accent)}
+
+  .card-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;max-width:720px}
+  .form-row{margin-bottom:16px;display:flex;flex-direction:column;gap:6px}
+  .form-row label{font-size:12.5px;color:var(--ink-dim)}
+  .form-row .hint{font-size:11px;color:var(--ink-faint)}
+  .form-row input,.form-row select{background:var(--bg);border:1px solid var(--line);color:var(--ink);
+    padding:10px 12px;border-radius:var(--radius);font-size:13.5px;font-family:'Inter',sans-serif;width:100%}
+  .form-row input:focus,.form-row select:focus{outline:none;border-color:var(--accent-2)}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  /* Títulos reproducibles en la región: los pide ESTA CONSOLA a Catalog.
+     El servicio Playback no cambia: verifica igual con Catalog al emitir. */
+  .pick-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:2px 0 8px}
+  .pick-head span{font-size:12px;color:var(--ink-dim)}
+  .pick-head button{background:none;border:none;color:var(--accent);font-size:11.5px;cursor:pointer;padding:0}
+  .pick-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .pick{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;border:1px solid var(--line);
+    background:var(--bg);color:var(--ink-dim);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .12s,color .12s}
+  .pick:hover{border-color:var(--accent-2);color:var(--ink)}
+  .pick.sel{border-color:var(--accent);color:var(--ink);background:rgba(106,169,224,.1)}
+  .pick .pid{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint)}
+  .pick-empty{font-size:12px;color:var(--ink-faint);line-height:1.5}
+  .id-preview{font-size:12px;line-height:1.5;color:var(--ink-dim);margin-top:2px}
+  .id-preview:empty{display:none}
+  .id-preview b{color:var(--ink);font-weight:600}
+  .id-preview.warn{color:var(--warn)} .id-preview.bad{color:var(--off)}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+  .btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:10px 18px;border-radius:var(--radius);
+    border:1px solid var(--line);background:var(--panel-2);color:var(--ink);cursor:pointer;transition:border-color .12s,background .12s}
+  .btn:hover{border-color:var(--accent-2)}
+  .btn-accent{background:var(--accent);color:#0c1620;border-color:var(--accent)}
+  .btn-accent:hover{background:#7db8ea;border-color:#7db8ea}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .actions{display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap}
+  .msg{font-size:13px}.msg.ok{color:var(--ok)}.msg.err{color:var(--off)}
+
+  .result-box{margin-top:22px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .result-head{background:var(--panel-2);padding:10px 14px;font-size:12px;color:var(--ink-dim);
+    display:flex;justify-content:space-between;align-items:center}
+  .result-body{padding:16px;background:var(--bg)}
+  pre{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-dim);
+    white-space:pre-wrap;word-break:break-all;line-height:1.6;max-height:340px;overflow:auto}
+
+  .token-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13px;margin-bottom:16px}
+  .token-grid dt{color:var(--ink-faint);font-size:12px}
+  .token-grid dd{color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;word-break:break-all}
+  .countdown{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--warn)}
+  .countdown.expired{color:var(--off)}
+
+  /* Player simulator */
+  .player{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px 26px;max-width:720px}
+  .player-stage{aspect-ratio:16/9;background:linear-gradient(150deg,var(--panel-2),#15171e);
+    border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:10px;margin-bottom:18px;position:relative;overflow:hidden}
+  .player-stage .ttl{font-family:'Fraunces',serif;font-size:22px;color:var(--ink)}
+  .player-stage .sub{font-size:12px;color:var(--ink-faint)}
+  .player-stage.playing::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 50% 50%,rgba(106,169,224,.07),transparent 65%);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+  .scrubber{height:5px;background:var(--panel-2);border-radius:3px;overflow:hidden;margin-bottom:8px}
+  .scrubber-fill{height:100%;background:var(--accent);width:0%;transition:width .3s linear}
+  .time-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-faint);
+    font-family:'IBM Plex Mono',monospace;margin-bottom:16px}
+  .player-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .event-log{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  .event-log h4{font-size:11px;color:var(--ink-faint);font-family:'Inter',sans-serif;font-weight:600;margin-bottom:10px}
+  .log-line{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-dim);
+    padding:4px 0;border-bottom:1px solid rgba(44,48,60,.5)}
+  .log-line .ch{color:var(--accent)}
+  .log-line .ch.done{color:var(--ok)}
+
+  /* Resume list */
+  .resume-item{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:15px 17px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+  .resume-main{flex:1;min-width:0}
+  .resume-title{font-size:14px;font-weight:600;margin-bottom:5px}
+  .resume-meta{font-size:11.5px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace}
+  .resume-bar{height:4px;background:var(--panel-2);border-radius:3px;margin-top:9px;overflow:hidden}
+  .resume-bar-fill{height:100%;background:var(--accent)}
+  .pill{font-size:10.5px;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  .pill.done{background:rgba(111,207,151,.15);color:var(--ok)}
+  .pill.live{background:rgba(106,169,224,.15);color:var(--accent)}
+
+  .empty-state,.error-state{padding:52px 20px;text-align:center;border:1px dashed var(--line);
+    border-radius:var(--radius);color:var(--ink-dim)}
+  .empty-state h3,.error-state h3{font-size:17px;margin-bottom:8px;color:var(--ink)}
+  .empty-state p,.error-state p{font-size:13px;max-width:48ch;margin:0 auto;line-height:1.6}
+  .error-state{border-color:rgba(226,99,91,.4)}.error-state h3{color:var(--off)}
+
+  .health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:720px}
+  .health-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .health-card .label{font-size:12px;color:var(--ink-faint);margin-bottom:8px}
+  .health-card .status-line{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600}
+  .health-card pre{margin-top:14px;background:var(--bg);padding:10px;border-radius:3px;max-height:170px}
+  /* ---------- Selector de servicios ----------
+     Idéntico en todas las consolas. Cada una lo trae copiado en su propio
+     archivo: los microservicios no comparten código, ni siquiera el frontend. */
+  .svc-switch{ display:flex; flex-direction:column; gap:2px; }
+  .svc-switch-title{ font-size:11px; color:var(--ink-faint); padding:0 10px 6px; }
+  .svc{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 10px 7px 8px;
+    border-left:2px solid transparent;
+    border-radius:var(--radius);
+    color:var(--ink-dim); font-size:13px; text-decoration:none;
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .svc:hover{ background:var(--panel); color:var(--ink); border-left-color:var(--svc); }
+  .svc[aria-current="page"]{ background:var(--panel); color:var(--ink); border-left-color:var(--svc); }
+  .svc:focus-visible{ outline:2px solid var(--svc); outline-offset:1px; }
+  .svc-name{ flex:1; }
+  .svc-port{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .svc-state{ width:7px; height:7px; border-radius:50%; background:var(--ink-faint); opacity:.5; flex-shrink:0; }
+  .svc-state.up{ background:var(--ok); opacity:1; }
+  .svc-state.down{ background:var(--off); opacity:1; }
+  @media (max-width: 760px){ .svc-switch{ display:none; } }
+
+  @media(max-width:760px){
+    body{flex-direction:column}
+    .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:16px 18px}
+    nav{flex-direction:row}.sidebar-foot{display:none}
+    main{padding:24px 20px 60px}
+    .two-col,.three-col{grid-template-columns:1fr}
+  }
+</style>
+<!-- URLs de los demás servicios cuando cada uno vive en su propio dominio
+     (Render). Si no existe (local o abierto como archivo) no pasa nada. -->
+<script src="config.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-name display">MediaStream</div>
+      <div class="brand-sub">Playback Console</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-item active" data-view="token">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Token DRM
+    </div>
+    <div class="nav-item" data-view="player">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Reproductor
+    </div>
+    <div class="nav-item" data-view="resume">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      Seguir viendo
+    </div>
+    <div class="nav-item" data-view="health">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 8 4-16 2 8h6"/></svg>
+      Salud
+    </div>
+  </nav>
+
+  <nav class="svc-switch" aria-label="Servicios de MediaStream">
+    <div class="svc-switch-title">Servicios</div>
+    <a class="svc" data-port="3001" style="--svc:#a393e6" href="http://localhost:3001/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">User</span><span class="svc-port">:3001</span></a>
+    <a class="svc" data-port="3002" style="--svc:#d6a756" href="http://localhost:3002/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Catalog</span><span class="svc-port">:3002</span></a>
+    <a class="svc" data-port="3003" style="--svc:#6aa9e0" href="http://localhost:3003/" aria-current="page"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Playback</span><span class="svc-port">:3003</span></a>
+    <a class="svc" data-port="3004" style="--svc:#de8fae" href="http://localhost:3004/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Media Processing</span><span class="svc-port">:3004</span></a>
+    <a class="svc" data-port="3005" style="--svc:#5cc2b4" href="http://localhost:3005/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Recommendation</span><span class="svc-port">:3005</span></a>
+    <a class="svc" data-port="3006" style="--svc:#b9cc63" href="http://localhost:3006/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Billing</span><span class="svc-port">:3006</span></a>
+  </nav>
+
+  <div class="sidebar-foot">
+    <div class="conn-row"><span class="dot" id="connDot"></span><span id="connLabel">Sin verificar</span></div>
+    <div class="mini-field">
+      <label>URL del Playback-Service</label>
+      <input type="text" id="baseUrlInput" spellcheck="false">
+    </div>
+    <div class="mini-field">
+      <label>Perfil activo (ID en User)</label>
+      <input type="text" id="globalProfile" value="1" spellcheck="false">
+    </div>
+    <div class="mini-field">
+      <label for="catalogUrlInput">Catalog-Service (lista de títulos)</label>
+      <input type="text" id="catalogUrlInput" spellcheck="false" placeholder="http://localhost:3002">
+    </div>
+  </div>
+</aside>
+
+<main>
+
+  <!-- ===== TOKEN ===== -->
+  <section class="view active" id="view-token">
+    <div class="page-head">
+      <div>
+        <h1>Token DRM</h1>
+        <p>Solicita un token de corta duración vía <code class="inline">GET /api/playback/token/{title_id}</code>. Antes de emitirlo, el servicio consulta al Catalog-Service para verificar que el título esté disponible en tu región.</p>
+      </div>
+    </div>
+
+    <div class="card-panel">
+      <div class="pick-head"><span id="pickTitle">Se pueden ver en CO</span><button type="button" id="pickReload">Actualizar</button></div>
+      <div class="pick-list" id="pickList"><span class="pick-empty">Consultando Catalog…</span></div>
+      <div class="form-row">
+        <label>ID del título <span class="hint">(elige uno de arriba o escríbelo)</span></label>
+        <input type="text" id="t_titleId" placeholder="p. ej. 1" inputmode="numeric" autocomplete="off">
+        <div class="id-preview" id="idPreview" aria-live="polite"></div>
+      </div>
+      <div class="two-col">
+        <div class="form-row">
+          <label>Región</label>
+          <input type="text" id="t_region" value="CO" placeholder="CO">
+        </div>
+        <div class="form-row">
+          <label>Dispositivo <span class="hint">(opcional)</span></label>
+          <input type="text" id="t_deviceId" placeholder="smart-tv-samsung-01">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-accent" id="btnGetToken">Solicitar token</button>
+        <span class="msg" id="tokenMsg"></span>
+      </div>
+      <div id="tokenResult"></div>
+    </div>
+  </section>
+
+  <!-- ===== PLAYER ===== -->
+  <section class="view" id="view-player">
+    <div class="page-head">
+      <div>
+        <h1>Reproductor simulado</h1>
+        <p>Simula una sesión real: avanza la posición y reporta a <code class="inline">POST /api/playback/progress</code> cada pocos segundos, igual que haría el reproductor. Al pasar el 95% marca el contenido como completado y dispara <code class="inline">playback.completed</code>.</p>
+      </div>
+    </div>
+
+    <div class="player">
+      <div class="player-stage" id="playerStage">
+        <div class="ttl" id="playerTitle">Sin contenido cargado</div>
+        <div class="sub" id="playerSub">Solicita un token primero, o escribe un ID de título abajo</div>
+      </div>
+
+      <div class="scrubber"><div class="scrubber-fill" id="scrubFill"></div></div>
+      <div class="time-row">
+        <span id="timeCurrent">00:00</span>
+        <span id="timePercent">0%</span>
+        <span id="timeTotal">00:00</span>
+      </div>
+
+      <div class="three-col">
+        <div class="form-row">
+          <label>ID del título</label>
+          <input type="text" id="p_titleId" placeholder="p. ej. 1">
+        </div>
+        <div class="form-row">
+          <label>ID episodio <span class="hint">(opcional)</span></label>
+          <input type="text" id="p_episodeId" placeholder="">
+        </div>
+        <div class="form-row">
+          <label>Duración (seg)</label>
+          <input type="number" id="p_duration" value="600" min="1">
+        </div>
+      </div>
+
+      <div class="player-controls">
+        <button class="btn btn-accent" id="btnPlay">Reproducir</button>
+        <button class="btn" id="btnPause" disabled>Pausar</button>
+        <button class="btn" id="btnSkip">Saltar +60s</button>
+        <button class="btn" id="btnReset">Reiniciar</button>
+        <span class="msg" id="playerMsg"></span>
+      </div>
+
+      <div class="event-log">
+        <h4>Eventos enviados al servicio</h4>
+        <div id="eventLog"><div class="log-line" style="color:var(--ink-faint)">Sin actividad todavía.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RESUME ===== -->
+  <section class="view" id="view-resume">
+    <div class="page-head">
+      <div>
+        <h1>Seguir viendo</h1>
+        <p>Puntos de continuación del perfil, vía <code class="inline">GET /api/playback/resume/{profile_id}</code>.</p>
+      </div>
+      <button class="btn" id="btnLoadResume">Actualizar</button>
+    </div>
+    <div class="actions" style="margin-top:0;margin-bottom:22px">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-dim);cursor:pointer">
+        <input type="checkbox" id="r_includeCompleted" style="width:auto"> Incluir contenido ya terminado
+      </label>
+    </div>
+    <div id="resumeResults"></div>
+  </section>
+
+  <!-- ===== HEALTH ===== -->
+  <section class="view" id="view-health">
+    <div class="page-head">
+      <div>
+        <h1>Salud del servicio</h1>
+        <p>Verifica <code class="inline">/health</code> y <code class="inline">/health/ready</code>. El readiness exige Postgres y Redis; además informa si Catalog-Service responde y el estado del circuit breaker hacia él (<code class="inline">catalogCircuit</code>).</p>
+      </div>
+      <button class="btn" id="btnHealth">Verificar ahora</button>
+    </div>
+    <div class="health-grid">
+      <div class="health-card">
+        <div class="label">GET /health</div>
+        <div class="status-line"><span class="dot" id="hDot1"></span><span id="hText1">—</span></div>
+        <pre id="hBody1">Sin datos aún.</pre>
+      </div>
+      <div class="health-card">
+        <div class="label">GET /health/ready</div>
+        <div class="status-line"><span class="dot" id="hDot2"></span><span id="hText2">—</span></div>
+        <pre id="hBody2">Sin datos aún.</pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const $ = (s,r=document)=>r.querySelector(s);
+  const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+
+  // Si la consola se sirve desde el propio backend usamos ese origen.
+  (function initBase(){
+    const input = $('#baseUrlInput');
+    input.value = (location.protocol.startsWith('http') && location.host)
+      ? location.origin : 'http://localhost:3003';
+  })();
+
+  const base = () => $('#baseUrlInput').value.trim().replace(/\/+$/,'') || location.origin;
+  const profile = () => $('#globalProfile').value.trim() || '1';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtTime = s => {
+    const m = Math.floor(s/60), sec = Math.floor(s%60);
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  };
+  // Los errores de Nest pueden venir anidados: { message: { message, error, statusCode } }.
+  // Desanidamos hasta encontrar el texto legible en vez de mostrar el JSON crudo.
+  const errText = b => {
+    let m = b;
+    for(let i=0; i<4 && m && typeof m === 'object'; i++){
+      if(Array.isArray(m)) return m.join(', ');
+      if(typeof m.message !== 'undefined'){ m = m.message; continue; }
+      if(typeof m.error !== 'undefined'){ m = m.error; continue; }
+      break;
+    }
+    if(Array.isArray(m)) return m.join(', ');
+    if(m && typeof m === 'object') return JSON.stringify(m);
+    return m ? String(m) : 'Error desconocido';
+  };
+
+  /* nav */
+  $$('.nav-item').forEach(it=>{
+    it.addEventListener('click',()=>{
+      $$('.nav-item').forEach(n=>n.classList.remove('active'));
+      it.classList.add('active');
+      $$('.view').forEach(v=>v.classList.remove('active'));
+      $('#view-'+it.dataset.view).classList.add('active');
+      if(it.dataset.view==='health') checkHealth();
+      if(it.dataset.view==='resume') loadResume();
+    });
+  });
+
+  /* connectivity */
+  async function ping(){
+    const d=$('#connDot'), l=$('#connLabel');
+    try{
+      const r = await fetch(base()+'/health');
+      d.className = r.ok?'dot up':'dot down';
+      l.textContent = r.ok?'Conectado':('Respuesta '+r.status);
+    }catch{ d.className='dot down'; l.textContent='Sin conexión'; }
+  }
+  $('#baseUrlInput').addEventListener('change',ping);
+  ping();
+
+  /* ===== Títulos desde Catalog (solo la consola) =====
+     La consola le pregunta a la API pública de Catalog qué títulos se pueden
+     ver en la región, para no tener que adivinar IDs. El servicio Playback
+     no cambia: al pedir el token vuelve a verificar con Catalog. */
+  (function initCatalogUrl(){
+    const served = location.protocol.startsWith('http') && location.hostname;
+    $('#catalogUrlInput').value = (window.MEDIASTREAM_SERVICES || {}).catalog
+      || (served ? location.protocol + '//' + location.hostname : 'http://localhost') + ':3002';
+  })();
+  const catalogBase = () => $('#catalogUrlInput').value.trim().replace(/\/+$/,'');
+  const regionNow = () => ($('#t_region').value.trim() || 'CO').toUpperCase();
+  let regionTitles = [];
+
+  async function catalogGet(path){
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    try{
+      const r = await fetch(catalogBase() + path, { cache:'no-store', signal: ctrl.signal });
+      return r;
+    } finally { clearTimeout(timer); }
+  }
+
+  async function loadPickList(){
+    const list = $('#pickList'), region = regionNow();
+    $('#pickTitle').textContent = 'Se pueden ver en ' + region;
+    list.innerHTML = '<span class="pick-empty">Consultando Catalog…</span>';
+    try{
+      const r = await catalogGet('/api/catalog/titles?region=' + encodeURIComponent(region));
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      regionTitles = await r.json();
+      if(!regionTitles.length){
+        list.innerHTML = `<span class="pick-empty">Ningún título está AVAILABLE en ${esc(region)}. En Catalog, revisa la región del título, y que Media ya lo haya procesado.</span>`;
+      } else {
+        list.innerHTML = regionTitles.map(t =>
+          `<button type="button" class="pick" data-id="${esc(t.id)}">${esc(t.name)} <span class="pid">#${esc(t.id)}</span></button>`).join('');
+        $$('.pick', list).forEach(b => b.addEventListener('click', () => {
+          $('#t_titleId').value = b.dataset.id; previewId(); $('#t_titleId').focus();
+        }));
+      }
+    }catch(e){
+      regionTitles = [];
+      list.innerHTML = '<span class="pick-empty">Catalog no responde: escribe el ID a mano. El token también fallará hasta que Catalog vuelva (Playback necesita su respuesta).</span>';
+    }
+    previewId();
+  }
+
+  let previewTimer = null;
+  function previewId(){
+    clearTimeout(previewTimer);
+    const box = $('#idPreview'), id = $('#t_titleId').value.trim();
+    box.className = 'id-preview';
+    $$('#pickList .pick').forEach(b => b.classList.toggle('sel', b.dataset.id === id));
+    if(!id){ box.innerHTML = ''; return; }
+    if(!/^\d+$/.test(id)){ box.classList.add('bad'); box.textContent = 'El ID del título es un número (el que aparece como #ID en Catalog).'; return; }
+    const known = regionTitles.find(t => String(t.id) === id);
+    if(known){ box.innerHTML = `<b>${esc(known.name)}</b> · AVAILABLE en ${esc(regionNow())}`; return; }
+    previewTimer = setTimeout(async () => {
+      try{
+        const r = await catalogGet('/api/catalog/titles/' + encodeURIComponent(id));
+        if($('#t_titleId').value.trim() !== id) return;
+        if(r.status === 404){ box.classList.add('bad'); box.innerHTML = `No existe un título <b>#${esc(id)}</b> en Catalog.`; return; }
+        if(!r.ok) throw new Error();
+        const t = await r.json();
+        box.classList.add('warn');
+        box.innerHTML = t.status !== 'AVAILABLE'
+          ? `<b>${esc(t.name)}</b> está en <b>${esc(t.status)}</b>: todavía no se puede reproducir (Media debe procesarlo primero).`
+          : `<b>${esc(t.name)}</b> está AVAILABLE, pero no tiene licencia vigente en <b>${esc(regionNow())}</b>.`;
+      }catch(e){ /* Catalog no responde: ya lo dice la lista */ }
+    }, 300);
+  }
+
+  $('#t_titleId').addEventListener('input', previewId);
+  $('#t_region').addEventListener('change', loadPickList);
+  $('#pickReload').addEventListener('click', loadPickList);
+  $('#catalogUrlInput').addEventListener('change', loadPickList);
+  loadPickList();
+
+  /* ===== TOKEN ===== */
+  let countdownTimer = null;
+
+  $('#btnGetToken').addEventListener('click', async ()=>{
+    const msg=$('#tokenMsg'), out=$('#tokenResult');
+    const titleId = $('#t_titleId').value.trim();
+    msg.textContent=''; msg.className='msg';
+    if(!titleId){ msg.textContent='Indica el ID del título.'; msg.className='msg err'; return; }
+
+    const params = new URLSearchParams({ profileId: profile(), region: $('#t_region').value.trim() || 'CO' });
+    const dev = $('#t_deviceId').value.trim(); if(dev) params.set('deviceId', dev);
+
+    out.innerHTML=''; msg.textContent='Solicitando...';
+    try{
+      const res = await fetch(`${base()}/api/playback/token/${encodeURIComponent(titleId)}?${params}`);
+      const body = await res.json();
+      if(!res.ok) throw new Error(errText(body));
+
+      msg.textContent='Token emitido.'; msg.className='msg ok';
+      renderToken(body);
+      // Precarga el reproductor con este título.
+      $('#p_titleId').value = titleId;
+      $('#playerTitle').textContent = body.titleName;
+      $('#playerSub').textContent = 'Listo para reproducir';
+    }catch(err){
+      msg.textContent=''; 
+      out.innerHTML = `<div class="error-state" style="margin-top:20px"><h3>No se pudo emitir el token</h3><p>${esc(err.message)}</p></div>`;
+    }
+  });
+
+  // De dónde salió la verificación de licencia (secciones 4.5–4.7).
+  const CHECK_LABEL = {
+    LIVE: 'Catalog respondió ahora',
+    CACHE: 'caché de Catalog (menos de 60 s)',
+    LAST_KNOWN: 'última información conocida: Catalog no responde',
+  };
+
+  function renderToken(b){
+    const out=$('#tokenResult');
+    out.innerHTML = `
+      <div class="result-box">
+        <div class="result-head">
+          <span>Token DRM activo</span>
+          <span class="countdown" id="tokenCountdown">—</span>
+        </div>
+        <div class="result-body">
+          <dl class="token-grid">
+            <dt>Título</dt><dd>${esc(b.titleName)} (id ${esc(b.titleId)})</dd>
+            <dt>Sesión</dt><dd>${esc(b.sessionId)}</dd>
+            <dt>Expira</dt><dd>${esc(b.expiresAt)}</dd>
+            <dt>Manifest</dt><dd>${esc(b.manifestUrl)}</dd>
+            ${b.catalogCheck ? `<dt>Verificación</dt><dd>${esc(CHECK_LABEL[b.catalogCheck.source] || b.catalogCheck.source)} · circuito ${esc(b.catalogCheck.circuit)}</dd>` : ''}
+          </dl>
+          <div style="font-size:11px;color:var(--ink-faint);margin-bottom:6px">JWT</div>
+          <pre>${esc(b.token)}</pre>
+        </div>
+      </div>`;
+
+    if(countdownTimer) clearInterval(countdownTimer);
+    const expiry = new Date(b.expiresAt).getTime();
+    const tick = ()=>{
+      const el = $('#tokenCountdown'); if(!el){ clearInterval(countdownTimer); return; }
+      const left = Math.round((expiry - Date.now())/1000);
+      if(left <= 0){ el.textContent='Expirado'; el.className='countdown expired'; clearInterval(countdownTimer); }
+      else { el.textContent = `Expira en ${fmtTime(left)}`; el.className='countdown'; }
+    };
+    tick(); countdownTimer = setInterval(tick, 1000);
+  }
+
+  /* ===== PLAYER ===== */
+  const player = { pos:0, timer:null, playing:false };
+
+  function updatePlayerUI(){
+    const dur = parseInt($('#p_duration').value,10) || 600;
+    const pct = Math.min(100, Math.round((player.pos/dur)*100));
+    $('#scrubFill').style.width = pct+'%';
+    $('#timeCurrent').textContent = fmtTime(player.pos);
+    $('#timeTotal').textContent = fmtTime(dur);
+    $('#timePercent').textContent = pct+'%';
+  }
+
+  function logEvent(text, done){
+    const log = $('#eventLog');
+    if(log.children.length===1 && log.children[0].style.color) log.innerHTML='';
+    const line = document.createElement('div');
+    line.className='log-line';
+    line.innerHTML = `<span class="ch${done?' done':''}">${done?'playback.completed':'playback.progress'}</span> · ${esc(text)}`;
+    log.prepend(line);
+    while(log.children.length > 12) log.removeChild(log.lastChild);
+  }
+
+  async function reportProgress(){
+    const titleId = $('#p_titleId').value.trim();
+    const msg = $('#playerMsg');
+    if(!titleId){ msg.textContent='Indica el ID del título.'; msg.className='msg err'; stopPlayback(); return; }
+
+    const payload = {
+      profileId: profile(),
+      titleId,
+      positionSeconds: player.pos,
+      durationSeconds: parseInt($('#p_duration').value,10) || 600,
+      deviceId: 'consola-web'
+    };
+    const ep = $('#p_episodeId').value.trim(); if(ep) payload.episodeId = ep;
+
+    try{
+      const res = await fetch(base()+'/api/playback/progress',{
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+      const body = await res.json();
+      if(!res.ok) throw new Error(errText(body));
+      msg.textContent=''; msg.className='msg';
+      logEvent(`posición ${body.positionSeconds}s · ${body.percentWatched}%`, body.completed);
+      if(body.completed){
+        stopPlayback();
+        $('#playerSub').textContent = 'Contenido completado';
+        msg.textContent='Completado. Evento playback.completed publicado.'; msg.className='msg ok';
+      }
+    }catch(err){
+      msg.textContent = 'Error: '+err.message; msg.className='msg err';
+      stopPlayback();
+    }
+  }
+
+  function startPlayback(){
+    if(player.playing) return;
+    player.playing = true;
+    $('#btnPlay').disabled = true; $('#btnPause').disabled = false;
+    $('#playerStage').classList.add('playing');
+    $('#playerSub').textContent = 'Reproduciendo…';
+    reportProgress();
+    player.timer = setInterval(()=>{
+      const dur = parseInt($('#p_duration').value,10) || 600;
+      player.pos = Math.min(dur, player.pos + 15); // 15s de contenido por tick
+      updatePlayerUI();
+      reportProgress();
+      if(player.pos >= dur) stopPlayback();
+    }, 2000);
+  }
+
+  function stopPlayback(){
+    player.playing = false;
+    if(player.timer){ clearInterval(player.timer); player.timer=null; }
+    $('#btnPlay').disabled = false; $('#btnPause').disabled = true;
+    $('#playerStage').classList.remove('playing');
+  }
+
+  $('#btnPlay').addEventListener('click', startPlayback);
+  $('#btnPause').addEventListener('click', ()=>{ stopPlayback(); $('#playerSub').textContent='En pausa'; });
+  $('#btnSkip').addEventListener('click', ()=>{
+    const dur = parseInt($('#p_duration').value,10) || 600;
+    player.pos = Math.min(dur, player.pos + 60);
+    updatePlayerUI(); reportProgress();
+  });
+  $('#btnReset').addEventListener('click', ()=>{
+    stopPlayback(); player.pos = 0; updatePlayerUI();
+    $('#playerSub').textContent='Reiniciado'; $('#eventLog').innerHTML='<div class="log-line" style="color:var(--ink-faint)">Sin actividad todavía.</div>';
+  });
+  $('#p_duration').addEventListener('change', updatePlayerUI);
+  updatePlayerUI();
+
+  /* ===== RESUME ===== */
+  async function loadResume(){
+    const out = $('#resumeResults');
+    out.innerHTML = '<p style="color:var(--ink-faint);font-size:13px">Cargando…</p>';
+    const inc = $('#r_includeCompleted').checked;
+    try{
+      const res = await fetch(`${base()}/api/playback/resume/${encodeURIComponent(profile())}?includeCompleted=${inc}`);
+      const body = await res.json();
+      if(!res.ok) throw new Error(errText(body));
+      renderResume(Array.isArray(body) ? body : (body ? [body] : []));
+    }catch(err){
+      out.innerHTML = `<div class="error-state"><h3>No se pudo cargar</h3><p>${esc(err.message)}</p></div>`;
+    }
+  }
+
+  function renderResume(rows){
+    const out = $('#resumeResults');
+    if(!rows.length){
+      out.innerHTML = `<div class="empty-state">
+        <h3>Nada que continuar</h3>
+        <p>Este perfil no tiene progreso registrado. Usa el reproductor simulado para generar algunos puntos de continuación.</p>
+      </div>`;
+      return;
+    }
+    out.innerHTML = rows.map(r=>{
+      const pct = r.percentWatched ?? 0;
+      return `<div class="resume-item">
+        <div class="resume-main">
+          <div class="resume-title">Título ${esc(r.titleId)}${r.episodeId?` · episodio ${esc(r.episodeId)}`:''}</div>
+          <div class="resume-meta">${fmtTime(r.positionSeconds)}${r.durationSeconds?' / '+fmtTime(r.durationSeconds):''} · ${esc(new Date(r.updatedAt).toLocaleString('es-CO'))}</div>
+          <div class="resume-bar"><div class="resume-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <span class="pill ${r.completed?'done':'live'}">${r.completed?'terminado':pct+'%'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  $('#btnLoadResume').addEventListener('click', loadResume);
+  $('#r_includeCompleted').addEventListener('change', loadResume);
+
+  /* ===== HEALTH ===== */
+  async function checkOne(path,dotId,textId,bodyId){
+    const d=$('#'+dotId), t=$('#'+textId), b=$('#'+bodyId);
+    d.className='dot'; t.textContent='Verificando…';
+    try{
+      const r = await fetch(base()+path);
+      const j = await r.json().catch(()=>({}));
+      d.className = 'dot '+(r.ok?'up':'down');
+      t.textContent = r.ok?('OK · '+r.status):('Error · '+r.status);
+      b.textContent = JSON.stringify(j,null,2);
+    }catch(e){
+      d.className='dot down'; t.textContent='Sin respuesta'; b.textContent=String(e.message);
+    }
+  }
+  function checkHealth(){
+    checkOne('/health','hDot1','hText1','hBody1');
+    checkOne('/health/ready','hDot2','hText2','hBody2');
+  }
+  $('#btnHealth').addEventListener('click', checkHealth);
+})();
+</script>
+
+<script>
+// Selector de servicios: arma los enlaces a las otras consolas y muestra si
+// cada servicio responde. Usa fetch en modo no-cors: solo le interesa saber
+// si el servicio contesta, no leer su respuesta, así que no depende de la
+// configuración CORS de cada uno. Si apagas un contenedor, su punto se pone
+// rojo en todas las consolas a los pocos segundos.
+(function(){
+  "use strict";
+  const host = (location.protocol.startsWith('http') && location.hostname)
+    ? location.protocol + '//' + location.hostname
+    : 'http://localhost';
+  // En Render cada servicio vive en su propio dominio, sin puertos: las URLs
+  // llegan en config.js (lo sirve este mismo servicio a partir de las
+  // variables PUBLIC_*_URL). En local no hay config y se usa host:puerto.
+  const cfg = window.MEDIASTREAM_SERVICES || {};
+  const KEY = { 3001:'user', 3002:'catalog', 3003:'playback', 3004:'media', 3005:'recommendation', 3006:'billing' };
+  const urlOf = a => cfg[KEY[a.dataset.port]] || (host + ':' + a.dataset.port);
+  const links = Array.from(document.querySelectorAll('.svc-switch .svc'));
+  links.forEach(a => {
+    a.href = urlOf(a) + '/';
+    const port = a.querySelector('.svc-port');
+    if (cfg[KEY[a.dataset.port]] && port) port.textContent = '';
+  });
+
+  async function probe(a){
+    const dot = a.querySelector('.svc-state');
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    try{
+      await fetch(urlOf(a) + '/health', { mode:'no-cors', cache:'no-store', signal: ctrl.signal });
+      dot.className = 'svc-state up';
+      dot.title = 'Respondiendo';
+    } catch(e){
+      dot.className = 'svc-state down';
+      // En Render (plan gratis) un servicio dormido tarda ~1 minuto en
+      // despertar; esta misma consulta lo despierta.
+      dot.title = Object.keys(cfg).length ? 'Sin respuesta (si estaba dormido en Render, despierta en ~1 min)' : 'Sin respuesta';
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  const probeAll = () => links.forEach(probe);
+  probeAll();
+  setInterval(probeAll, 8000);
+})();
+</script>
+</body>
+</html>

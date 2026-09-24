@@ -1,0 +1,36 @@
+# Media-Processing-Service: lint → tests → imagen Docker → GHCR → Render.
+# Solo corre cuando cambia algo de este microservicio (sección 7: "tests del
+# servicio modificado"). También se puede lanzar a mano desde la pestaña Actions.
+name: Media-Processing-Service
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "media-processing-service/**"
+      - ".github/workflows/media-processing-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  pull_request:
+    branches: [develop]
+    paths:
+      - "media-processing-service/**"
+      - ".github/workflows/media-processing-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: media-processing-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline-servicio.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      service: media-processing-service
+      runtime: python
+      secret_suffix: MEDIA
+      ffmpeg: true
+    secrets: inherit

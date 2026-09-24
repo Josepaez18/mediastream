@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaStream · User Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14161c;
+    --panel: #1c1f28;
+    --panel-2: #22252f;
+    --line: #2c303c;
+    --ink: #f3f1ea;
+    --ink-dim: #a6aab8;
+    --ink-faint: #6d7180;
+    --accent: #a393e6;
+    --accent-dim: #655b8f;
+    --ok: #6fcf97;
+    --pending: #e8b858;
+    --off: #e2635b;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+  }
+  ::selection{ background: var(--accent-dim); color: var(--ink); }
+
+  h1,h2,h3, .display{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- Layout ---------- */
+  .sidebar{
+    width: 232px;
+    flex-shrink:0;
+    background: #101217;
+    border-right: 1px solid var(--line);
+    padding: 28px 20px;
+    display:flex;
+    flex-direction:column;
+    gap: 34px;
+    position: sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand-mark{
+    width:26px; height:26px;
+    border: 1.5px solid var(--accent);
+    border-radius:50%;
+    position:relative;
+    flex-shrink:0;
+  }
+  /* Marca de User: una persona dentro del anillo. */
+  .brand-mark{ overflow:hidden; }
+  .brand-mark::before{
+    content:"";
+    position:absolute; top:4px; left:50%;
+    width:7px; height:7px; margin-left:-3.5px;
+    border-radius:50%;
+    background: var(--accent);
+  }
+  .brand-mark::after{
+    content:"";
+    position:absolute; bottom:-4px; left:50%;
+    width:15px; height:10px; margin-left:-7.5px;
+    border-radius:50% 50% 0 0;
+    background: var(--accent);
+    opacity:.85;
+  }
+  .brand-name{ font-size:16.5px; }
+  .brand-sub{ font-size:11px; color:var(--ink-faint); margin-top:2px; letter-spacing:.02em; }
+
+  nav{ display:flex; flex-direction:column; gap:4px; }
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px;
+    border-radius: var(--radius);
+    color: var(--ink-dim);
+    cursor:pointer;
+    font-size:14px;
+    border:1px solid transparent;
+    transition: background .12s ease, color .12s ease;
+  }
+  .nav-item:hover{ background: var(--panel); color: var(--ink); }
+  .nav-item.active{ background: var(--panel); color: var(--ink); border-color: var(--line); }
+  .nav-icon{ width:16px; height:16px; opacity:.85; flex-shrink:0; }
+
+  .sidebar-foot{ margin-top:auto; display:flex; flex-direction:column; gap:16px; }
+  .conn-row{
+    font-size:11px; color: var(--ink-faint);
+    display:flex; align-items:center; gap:7px;
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background: var(--ink-faint); flex-shrink:0; }
+  .dot.up{ background: var(--ok); }
+  .dot.down{ background: var(--off); }
+  .base-url-field{
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .base-url-field label{ font-size:10.5px; color:var(--ink-faint); letter-spacing:.03em; }
+  .base-url-field input{
+    background: var(--panel);
+    border:1px solid var(--line);
+    color: var(--ink);
+    font-size:12px;
+    padding:7px 8px;
+    border-radius: var(--radius);
+    font-family:'IBM Plex Mono', monospace;
+    width:100%;
+  }
+  .base-url-field input:focus{ outline:none; border-color: var(--accent-dim); }
+
+  .session-box{
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding:12px 13px;
+    background: var(--panel);
+  }
+  .session-box .empty{ font-size:11.5px; color: var(--ink-faint); line-height:1.5; }
+  .session-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .session-row:last-child{ margin-bottom:0; }
+  .session-label{ font-size:10.5px; color: var(--ink-faint); letter-spacing:.02em; }
+  .session-value{ font-size:12px; font-family:'IBM Plex Mono', monospace; color: var(--ink); }
+  .session-logout{
+    font-size:11px; color: var(--ink-faint); background:none; border:none;
+    cursor:pointer; text-decoration:underline; padding:0; margin-top:8px;
+  }
+  .session-logout:hover{ color: var(--off); }
+
+  main{
+    flex:1;
+    min-width:0;
+    padding: 40px 48px 80px;
+  }
+  .view{ display:none; }
+  .view.active{ display:block; animation: rise .28s ease; }
+  @keyframes rise{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
+
+  .page-head{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:24px;
+    margin-bottom: 30px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .page-head h1{ font-size: 28px; }
+  .page-head p{ color: var(--ink-dim); font-size:13.5px; margin-top:6px; max-width:52ch; line-height:1.5; }
+
+  /* ---------- Filters / fields ---------- */
+  .filters{
+    display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap;
+    margin-bottom: 26px;
+  }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field label{ font-size:11.5px; color: var(--ink-faint); }
+  .field input[type=text], .field select{
+    background: var(--panel);
+    border:1px solid var(--line);
+    color: var(--ink);
+    padding:9px 11px;
+    border-radius: var(--radius);
+    font-size:13.5px;
+    min-width:160px;
+    font-family:'Inter',sans-serif;
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--accent-dim); }
+  .toggle-field{ display:flex; align-items:center; gap:9px; padding-bottom:9px; }
+  .switch{
+    width:34px; height:19px; border-radius:20px; background:var(--panel);
+    border:1px solid var(--line); position:relative; cursor:pointer; flex-shrink:0;
+    transition: background .15s;
+  }
+  .switch::after{
+    content:""; position:absolute; top:2px; left:2px;
+    width:13px; height:13px; border-radius:50%; background:var(--ink-faint);
+    transition: transform .15s, background .15s;
+  }
+  .switch.on{ background: rgba(163,147,230,.18); border-color: var(--accent-dim); }
+  .switch.on::after{ transform: translateX(15px); background: var(--accent); }
+  .toggle-field span{ font-size:13px; color: var(--ink-dim); }
+
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-size:13px; font-weight:600;
+    padding:9px 16px;
+    border-radius: var(--radius);
+    border:1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    cursor:pointer;
+    transition: border-color .12s, background .12s;
+  }
+  .btn:hover{ border-color: var(--accent-dim); }
+  .btn-accent{
+    background: var(--accent);
+    color: #17122b;
+    border-color: var(--accent);
+  }
+  .btn-accent:hover{ background:#b5a8ee; border-color:#b5a8ee; }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  /* ---------- Grid / cards (perfiles) ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
+  }
+  .card{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    overflow:hidden;
+  }
+  .card-art{
+    aspect-ratio: 3/2;
+    background: linear-gradient(160deg, var(--panel-2), #191b23 70%);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    border-bottom:1px solid var(--line);
+  }
+  .card-art .initial{
+    font-family:'Fraunces', serif;
+    font-size: 40px;
+    color: var(--accent-dim);
+    opacity:.7;
+  }
+  .badge{
+    position:absolute; top:9px; left:9px;
+    font-size:9.5px; letter-spacing:.04em;
+    padding:3px 7px; border-radius:20px;
+    background: rgba(20,22,28,.85);
+    border:1px solid var(--line);
+    color: var(--ink-dim);
+  }
+  .card-body{ padding: 12px 13px 14px; }
+  .card-body h3{ font-size:14.5px; line-height:1.3; margin-bottom:4px; }
+  .card-meta{ font-size:11.5px; color: var(--ink-faint); }
+
+  .empty-state, .error-state{
+    padding: 60px 20px;
+    text-align:center;
+    border:1px dashed var(--line);
+    border-radius: var(--radius);
+    color: var(--ink-dim);
+  }
+  .empty-state h3, .error-state h3{ font-size:17px; margin-bottom:8px; color: var(--ink); }
+  .empty-state p, .error-state p{ font-size:13px; max-width:50ch; margin:0 auto; line-height:1.6; }
+  .error-state{ border-color: rgba(226,99,91,.4); }
+  .error-state h3{ color: var(--off); }
+  code.inline{
+    font-family:'IBM Plex Mono', monospace;
+    background: var(--panel-2);
+    padding:1px 6px; border-radius:3px;
+    font-size:12px; color: var(--accent);
+  }
+
+  /* ---------- Form ---------- */
+  .form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:22px; align-items:start; }
+  @media (max-width: 900px){ .form-grid{ grid-template-columns: 1fr; } }
+  .form-card{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+  }
+  .form-card h2{ font-size:17px; margin-bottom: 4px; }
+  .form-card .sub{ font-size:12px; color: var(--ink-faint); margin-bottom:20px; }
+  .form-row{ margin-bottom: 16px; display:flex; flex-direction:column; gap:6px; }
+  .form-row label{ font-size:12.5px; color: var(--ink-dim); }
+  .form-row input, .form-row select{
+    background: var(--bg);
+    border:1px solid var(--line);
+    color: var(--ink);
+    padding:10px 12px;
+    border-radius: var(--radius);
+    font-size:13.5px;
+    font-family:'Inter',sans-serif;
+    width:100%;
+  }
+  .form-row input:focus, .form-row select:focus{ outline:none; border-color:var(--accent-dim); }
+  .form-actions{ display:flex; align-items:center; gap:14px; margin-top: 20px; }
+  .form-msg{ font-size:13px; line-height:1.5; }
+  .form-msg.ok{ color: var(--ok); }
+  .form-msg.err{ color: var(--off); }
+
+  /* ---------- Estado / pills ---------- */
+  .pill{
+    font-size:10.5px; padding:2px 9px; border-radius:20px;
+    display:inline-flex; align-items:center; gap:5px; font-weight:600; letter-spacing:.02em;
+  }
+  .pill .dot{ width:6px; height:6px; }
+  .pill.status-ACTIVA{ background: rgba(111,207,151,.15); color: var(--ok); }
+  .pill.status-ACTIVA .dot{ background: var(--ok); }
+  .pill.status-MOROSA{ background: rgba(232,184,88,.15); color: var(--pending); }
+  .pill.status-MOROSA .dot{ background: var(--pending); }
+  .pill.status-SUSPENDIDA{ background: rgba(226,99,91,.15); color: var(--off); }
+  .pill.status-SUSPENDIDA .dot{ background: var(--off); }
+
+  .result-card{
+    border:1px solid var(--line); border-radius: var(--radius);
+    background: var(--panel); padding:20px 22px; max-width:460px; margin-top:22px;
+  }
+  .result-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-top:1px solid var(--line); }
+  .result-row:first-child{ border-top:none; }
+  .result-label{ font-size:12.5px; color: var(--ink-faint); }
+  .result-value{ font-size:13px; font-family:'IBM Plex Mono', monospace; }
+
+  .callout{
+    border:1px solid var(--line); border-left:2.5px solid var(--accent-dim);
+    background: var(--panel); border-radius: var(--radius);
+    padding:14px 16px; font-size:12.5px; color: var(--ink-dim); line-height:1.6;
+    max-width:600px; margin-bottom:24px;
+  }
+
+  /* ---------- Health ---------- */
+  .health-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; max-width:700px; }
+  .health-card{
+    background: var(--panel); border:1px solid var(--line); border-radius: var(--radius);
+    padding:20px;
+  }
+  .health-card .label{ font-size:12px; color: var(--ink-faint); margin-bottom:8px; }
+  .health-card .status-line{ display:flex; align-items:center; gap:9px; font-size:15px; font-weight:600; }
+  .health-card pre{
+    margin-top:14px; font-size:11px; color: var(--ink-dim);
+    background: var(--bg); padding:10px; border-radius:3px; overflow-x:auto;
+    font-family:'IBM Plex Mono', monospace; max-height:160px;
+  }
+
+  .skeleton{ background: linear-gradient(90deg, var(--panel) 25%, var(--panel-2) 50%, var(--panel) 75%); background-size:200% 100%; animation: shimmer 1.3s infinite; }
+  @keyframes shimmer{ from{background-position:200% 0;} to{background-position:-200% 0;} }
+  .skel-card{ aspect-ratio:3/2.6; border-radius: var(--radius); }
+  /* ---------- Selector de servicios ----------
+     Idéntico en todas las consolas. Cada una lo trae copiado en su propio
+     archivo: los microservicios no comparten código, ni siquiera el frontend. */
+  .svc-switch{ display:flex; flex-direction:column; gap:2px; }
+  .svc-switch-title{ font-size:11px; color:var(--ink-faint); padding:0 10px 6px; }
+  .svc{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 10px 7px 8px;
+    border-left:2px solid transparent;
+    border-radius:var(--radius);
+    color:var(--ink-dim); font-size:13px; text-decoration:none;
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .svc:hover{ background:var(--panel); color:var(--ink); border-left-color:var(--svc); }
+  .svc[aria-current="page"]{ background:var(--panel); color:var(--ink); border-left-color:var(--svc); }
+  .svc:focus-visible{ outline:2px solid var(--svc); outline-offset:1px; }
+  .svc-name{ flex:1; }
+  .svc-port{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .svc-state{ width:7px; height:7px; border-radius:50%; background:var(--ink-faint); opacity:.5; flex-shrink:0; }
+  .svc-state.up{ background:var(--ok); opacity:1; }
+  .svc-state.down{ background:var(--off); opacity:1; }
+  @media (max-width: 760px){ .svc-switch{ display:none; } }
+
+  @media (max-width: 760px){
+    body{ flex-direction:column; }
+    .sidebar{ width:100%; height:auto; position:relative; flex-direction:row; align-items:center; padding:16px 18px; flex-wrap:wrap; }
+    nav{ flex-direction:row; }
+    .sidebar-foot{ display:none; }
+    main{ padding: 24px 20px 60px; }
+  }
+</style>
+<!-- URLs de los demás servicios cuando cada uno vive en su propio dominio
+     (Render). Si no existe (local o abierto como archivo) no pasa nada. -->
+<script src="config.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-name display">MediaStream</div>
+      <div class="brand-sub">User Console</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-item active" data-view="account">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      Cuenta
+    </div>
+    <div class="nav-item" data-view="profiles">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="7" height="7" rx="1"/><rect x="14" y="4" width="7" height="7" rx="1"/><rect x="3" y="13" width="7" height="7" rx="1"/><rect x="14" y="13" width="7" height="7" rx="1"/></svg>
+      Perfiles
+    </div>
+    <div class="nav-item" data-view="restriction">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg>
+      Restricción de acceso
+    </div>
+    <div class="nav-item" data-view="health">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2 8 4-16 2 8h6"/></svg>
+      Salud del servicio
+    </div>
+  </nav>
+
+  <nav class="svc-switch" aria-label="Servicios de MediaStream">
+    <div class="svc-switch-title">Servicios</div>
+    <a class="svc" data-port="3001" style="--svc:#a393e6" href="http://localhost:3001/" aria-current="page"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">User</span><span class="svc-port">:3001</span></a>
+    <a class="svc" data-port="3002" style="--svc:#d6a756" href="http://localhost:3002/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Catalog</span><span class="svc-port">:3002</span></a>
+    <a class="svc" data-port="3003" style="--svc:#6aa9e0" href="http://localhost:3003/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Playback</span><span class="svc-port">:3003</span></a>
+    <a class="svc" data-port="3004" style="--svc:#de8fae" href="http://localhost:3004/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Media Processing</span><span class="svc-port">:3004</span></a>
+    <a class="svc" data-port="3005" style="--svc:#5cc2b4" href="http://localhost:3005/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Recommendation</span><span class="svc-port">:3005</span></a>
+    <a class="svc" data-port="3006" style="--svc:#b9cc63" href="http://localhost:3006/"><span class="svc-state" title="Sin verificar"></span><span class="svc-name">Billing</span><span class="svc-port">:3006</span></a>
+  </nav>
+
+  <div class="sidebar-foot">
+    <div class="session-box" id="sessionBox">
+      <div class="empty">Sin sesión iniciada. Regístrate o inicia sesión en la pestaña "Cuenta".</div>
+    </div>
+    <div>
+      <div class="conn-row" style="margin-bottom:10px;">
+        <span class="dot" id="connDot"></span>
+        <span id="connLabel">Sin verificar</span>
+      </div>
+      <div class="base-url-field">
+        <label>URL base de la API</label>
+        <input type="text" id="baseUrlInput" value="" spellcheck="false" placeholder="http://localhost:3001">
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main>
+
+  <!-- ================= CUENTA ================= -->
+  <section class="view active" id="view-account">
+    <div class="page-head">
+      <div>
+        <h1>Cuenta</h1>
+        <p>Registra una cuenta nueva o inicia sesión para acceder a las demás secciones.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-card">
+        <h2>Registrar cuenta</h2>
+        <div class="sub">Crea la cuenta junto con su primer perfil.</div>
+        <form id="registerForm">
+          <div class="form-row">
+            <label>Correo</label>
+            <input type="email" id="r_email" required placeholder="usuario@correo.com">
+          </div>
+          <div class="form-row">
+            <label>Contraseña</label>
+            <input type="password" id="r_password" required minlength="8" placeholder="mínimo 8 caracteres">
+          </div>
+          <div class="form-row">
+            <label>Nombre del primer perfil</label>
+            <input type="text" id="r_profileName" required placeholder="Carlos">
+          </div>
+          <div class="toggle-field" style="padding-bottom:16px;">
+            <div class="switch" id="r_isKids"></div>
+            <span>Es un perfil infantil</span>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-accent" id="submitRegister">Registrar</button>
+            <span class="form-msg" id="registerMsg"></span>
+          </div>
+        </form>
+      </div>
+
+      <div class="form-card">
+        <h2>Iniciar sesión</h2>
+        <div class="sub">Accede con tu correo y contraseña.</div>
+        <form id="loginForm">
+          <div class="form-row">
+            <label>Correo</label>
+            <input type="email" id="l_email" required placeholder="usuario@correo.com">
+          </div>
+          <div class="form-row">
+            <label>Contraseña</label>
+            <input type="password" id="l_password" required placeholder="••••••••">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-accent" id="submitLogin">Iniciar sesión</button>
+            <span class="form-msg" id="loginMsg"></span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PERFILES ================= -->
+  <section class="view" id="view-profiles">
+    <div class="page-head">
+      <div>
+        <h1>Perfiles</h1>
+        <p>Consulta los perfiles asociados a una cuenta. Necesitas haber iniciado sesión.</p>
+      </div>
+      <button class="btn" id="refreshProfiles">Actualizar</button>
+    </div>
+
+    <div class="filters">
+      <div class="field">
+        <label>ID de cuenta</label>
+        <input type="text" id="profilesAccountId" placeholder="p. ej. 1">
+      </div>
+      <button class="btn btn-accent" id="loadProfilesBtn">Consultar</button>
+    </div>
+
+    <div id="profilesResults">
+      <div class="empty-state">
+        <h3>Aún no hay perfiles cargados</h3>
+        <p>Inicia sesión en la pestaña "Cuenta" y presiona "Consultar" para ver los perfiles de esa cuenta.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESTRICCIÓN DE ACCESO ================= -->
+  <section class="view" id="view-restriction">
+    <div class="page-head">
+      <div>
+        <h1>Restricción de acceso</h1>
+        <p>Billing-Service (<span class="mono">:3006</span>) publica los pagos rechazados por RabbitMQ; aquí también puedes simular uno. Tras 3 fallos consecutivos, la cuenta queda suspendida.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      El flujo real llega por <strong>RabbitMQ</strong> desde Billing-Service (cola <code class="inline">user_service.payment_failed</code>), sin que User-Service dependa directamente de Billing-Service — comunicación asíncrona desacoplada. El botón de abajo llama a un endpoint de demostración (<code class="inline">POST /api/users/debug/payment-failed</code>) que ejecuta exactamente la misma lógica que el consumidor de la cola, para poder verla en vivo desde esta consola.
+    </div>
+
+    <div class="filters">
+      <div class="field">
+        <label>ID de cuenta</label>
+        <input type="text" id="restrictionAccountId" placeholder="p. ej. 1">
+      </div>
+      <button class="btn btn-accent" id="simulateFailureBtn">Simular pago fallido</button>
+    </div>
+
+    <div id="restrictionResult"></div>
+  </section>
+
+  <!-- ================= HEALTH ================= -->
+  <section class="view" id="view-health">
+    <div class="page-head">
+      <div>
+        <h1>Salud del servicio</h1>
+        <p>Verifica que el servicio y su conexión a la base de datos estén funcionando.</p>
+      </div>
+      <button class="btn" id="refreshHealth">Verificar ahora</button>
+    </div>
+    <div class="health-grid">
+      <div class="health-card">
+        <div class="label">GET /health</div>
+        <div class="status-line"><span class="dot" id="healthDot1"></span><span id="healthText1">—</span></div>
+        <pre id="healthBody1">Sin datos aún.</pre>
+      </div>
+      <div class="health-card">
+        <div class="label">GET /health/ready</div>
+        <div class="status-line"><span class="dot" id="healthDot2"></span><span id="healthText2">—</span></div>
+        <pre id="healthBody2">Sin datos aún.</pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  function getBaseUrl(){
+    const v = $('#baseUrlInput').value.trim().replace(/\/+$/,'');
+    return v || window.location.origin;
+  }
+
+  // Si la consola se sirve desde el propio backend (mismo origen), usamos
+  // ese origen por defecto; si no, caemos a localhost:3001.
+  (function initBaseUrl(){
+    const input = $('#baseUrlInput');
+    if(window.location.protocol.startsWith('http') && window.location.host){
+      input.value = window.location.origin;
+    } else {
+      input.value = 'http://localhost:3001';
+    }
+  })();
+
+  const state = { accessToken: null, accountId: null, accountStatus: null, email: null };
+
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ---------- Navigation ---------- */
+  $$('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      $$('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+      $$('.view').forEach(v => v.classList.remove('active'));
+      $('#view-' + item.dataset.view).classList.add('active');
+      if(item.dataset.view === 'health') checkHealth();
+    });
+  });
+
+  /* ---------- Connectivity ping ---------- */
+  async function pingConnection(){
+    const dot = $('#connDot'), label = $('#connLabel');
+    try{
+      const res = await fetch(getBaseUrl() + '/health', { method:'GET' });
+      if(res.ok){
+        dot.className = 'dot up'; label.textContent = 'Conectado';
+      } else {
+        dot.className = 'dot down'; label.textContent = 'Respuesta ' + res.status;
+      }
+    } catch(e){
+      dot.className = 'dot down'; label.textContent = 'Sin conexión';
+    }
+  }
+  $('#baseUrlInput').addEventListener('change', pingConnection);
+  pingConnection();
+
+  /* ---------- Session box ---------- */
+  function renderSession(){
+    const box = $('#sessionBox');
+    if(!state.accessToken){
+      box.innerHTML = '<div class="empty">Sin sesión iniciada. Regístrate o inicia sesión en la pestaña "Cuenta".</div>';
+      return;
+    }
+    box.innerHTML = `
+      <div class="session-row"><span class="session-label">Cuenta</span><span class="session-value">#${escapeHtml(state.accountId)}</span></div>
+      <div class="session-row"><span class="session-label">Correo</span><span class="session-value">${escapeHtml(state.email || '—')}</span></div>
+      <div class="session-row"><span class="session-label">Estado</span>
+        <span class="pill status-${state.accountStatus}"><span class="dot"></span>${state.accountStatus}</span>
+      </div>
+      <button class="session-logout" id="logoutBtn">Cerrar sesión</button>
+    `;
+    $('#logoutBtn').addEventListener('click', () => {
+      state.accessToken = null; state.accountId = null; state.accountStatus = null; state.email = null;
+      renderSession();
+    });
+  }
+
+  /* ================= REGISTRO ================= */
+  $('#r_isKids').addEventListener('click', () => $('#r_isKids').classList.toggle('on'));
+
+  $('#registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('#registerMsg'); msg.textContent = ''; msg.className = 'form-msg';
+    const btn = $('#submitRegister'); btn.disabled = true;
+
+    const payload = {
+      email: $('#r_email').value.trim(),
+      password: $('#r_password').value,
+      profileName: $('#r_profileName').value.trim(),
+      isKids: $('#r_isKids').classList.contains('on'),
+    };
+
+    try{
+      const res = await fetch(getBaseUrl() + '/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const body = await res.json().catch(() => null);
+      if(!res.ok){
+        const detail = body && (body.message || body.error) ? (Array.isArray(body.message) ? body.message.join(', ') : body.message) : ('HTTP ' + res.status);
+        throw new Error(detail);
+      }
+      msg.textContent = `Cuenta #${body.account.id} creada con el perfil "${body.profile.name}". Ya puedes iniciar sesión.`;
+      msg.className = 'form-msg ok';
+      $('#l_email').value = payload.email;
+      e.target.reset();
+    } catch(err){
+      msg.textContent = 'No se pudo registrar: ' + err.message;
+      msg.className = 'form-msg err';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* ================= LOGIN ================= */
+  $('#loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('#loginMsg'); msg.textContent = ''; msg.className = 'form-msg';
+    const btn = $('#submitLogin'); btn.disabled = true;
+
+    const email = $('#l_email').value.trim();
+    const password = $('#l_password').value;
+
+    try{
+      const res = await fetch(getBaseUrl() + '/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await res.json().catch(() => null);
+      if(!res.ok){
+        const detail = body && (body.message || body.error) ? (Array.isArray(body.message) ? body.message.join(', ') : body.message) : ('HTTP ' + res.status);
+        throw new Error(detail);
+      }
+
+      state.accessToken = body.accessToken;
+      state.accountStatus = body.accountStatus;
+      state.email = email;
+      // El JWT no expone el id en el body de login; se decodifica del propio
+      // AccessToken (parte central, base64url) solo para mostrarlo en la consola.
+      try{
+        const payloadPart = body.accessToken.split('.')[1];
+        const decoded = JSON.parse(atob(payloadPart.replace(/-/g,'+').replace(/_/g,'/')));
+        state.accountId = decoded.sub;
+      } catch(_){ state.accountId = null; }
+
+      $('#profilesAccountId').value = state.accountId || '';
+      $('#restrictionAccountId').value = state.accountId || '';
+      renderSession();
+
+      msg.textContent = `Sesión iniciada (estado de cuenta: ${state.accountStatus}).`;
+      msg.className = 'form-msg ok';
+    } catch(err){
+      msg.textContent = 'No se pudo iniciar sesión: ' + err.message;
+      msg.className = 'form-msg err';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* ================= PERFILES ================= */
+  function skeletonGrid(n=4){
+    return '<div class="grid">' + Array.from({length:n}).map(()=>'<div class="skeleton skel-card"></div>').join('') + '</div>';
+  }
+
+  async function loadProfiles(){
+    const results = $('#profilesResults');
+    const accountId = $('#profilesAccountId').value.trim();
+
+    if(!accountId){
+      results.innerHTML = '<div class="empty-state"><h3>Falta el ID de cuenta</h3><p>Escribe un ID de cuenta o inicia sesión para completarlo automáticamente.</p></div>';
+      return;
+    }
+    if(!state.accessToken){
+      results.innerHTML = '<div class="error-state"><h3>Sin sesión</h3><p>Esta sección requiere haber iniciado sesión. Ve primero a la pestaña "Cuenta".</p></div>';
+      return;
+    }
+
+    results.innerHTML = skeletonGrid();
+    try{
+      const res = await fetch(getBaseUrl() + '/api/users/profiles/' + encodeURIComponent(accountId), {
+        headers: { Authorization: 'Bearer ' + state.accessToken },
+      });
+      const body = await res.json().catch(() => null);
+      if(!res.ok){
+        const detail = body && (body.message || body.error) ? (Array.isArray(body.message) ? body.message.join(', ') : body.message) : ('HTTP ' + res.status);
+        throw new Error(detail);
+      }
+      renderProfiles(body);
+    } catch(err){
+      results.innerHTML = `<div class="error-state"><h3>No se pudo cargar</h3><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  }
+
+  function renderProfiles(profiles){
+    const results = $('#profilesResults');
+    if(!profiles.length){
+      results.innerHTML = '<div class="empty-state"><h3>Sin perfiles</h3><p>Esta cuenta no tiene perfiles registrados.</p></div>';
+      return;
+    }
+    results.innerHTML = '<div class="grid">' + profiles.map(p => `
+      <div class="card">
+        <div class="card-art">
+          ${p.isKids ? '<span class="badge">INFANTIL</span>' : ''}
+          <span class="initial">${escapeHtml((p.name||'?').trim().charAt(0).toUpperCase())}</span>
+        </div>
+        <div class="card-body">
+          <h3>${escapeHtml(p.name)}</h3>
+          <div class="card-meta">Perfil #${escapeHtml(p.id)} · cuenta #${escapeHtml(p.accountId)}</div>
+        </div>
+      </div>`).join('') + '</div>';
+  }
+
+  $('#loadProfilesBtn').addEventListener('click', loadProfiles);
+  $('#refreshProfiles').addEventListener('click', loadProfiles);
+  $('#profilesAccountId').addEventListener('keydown', e => { if(e.key === 'Enter') loadProfiles(); });
+
+  /* ================= RESTRICCIÓN DE ACCESO ================= */
+  async function simulateFailure(){
+    const accountId = $('#restrictionAccountId').value.trim();
+    const resultBox = $('#restrictionResult');
+    const btn = $('#simulateFailureBtn');
+
+    if(!accountId){
+      resultBox.innerHTML = '<div class="empty-state"><h3>Falta el ID de cuenta</h3><p>Escribe un ID de cuenta o inicia sesión para completarlo automáticamente.</p></div>';
+      return;
+    }
+
+    btn.disabled = true;
+    try{
+      const res = await fetch(getBaseUrl() + '/api/users/debug/payment-failed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+      const body = await res.json().catch(() => null);
+      if(!res.ok){
+        const detail = body && (body.message || body.error) ? (Array.isArray(body.message) ? body.message.join(', ') : body.message) : ('HTTP ' + res.status);
+        throw new Error(detail);
+      }
+      resultBox.innerHTML = `
+        <div class="result-card">
+          <div class="result-row"><span class="result-label">Cuenta</span><span class="result-value">#${escapeHtml(body.accountId)}</span></div>
+          <div class="result-row"><span class="result-label">Intentos fallidos acumulados</span><span class="result-value">${body.attempts}</span></div>
+          <div class="result-row"><span class="result-label">Nuevo estado</span>
+            <span class="pill status-${body.status}"><span class="dot"></span>${body.status}</span>
+          </div>
+        </div>`;
+      if(state.accountId === accountId){ state.accountStatus = body.status; renderSession(); }
+    } catch(err){
+      resultBox.innerHTML = `<div class="error-state"><h3>No se pudo simular</h3><p>${escapeHtml(err.message)}</p></div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  $('#simulateFailureBtn').addEventListener('click', simulateFailure);
+
+  /* ================= HEALTH ================= */
+  async function checkOne(path, dotId, textId, bodyId){
+    const dot = $('#'+dotId), text = $('#'+textId), body = $('#'+bodyId);
+    dot.className = 'dot'; text.textContent = 'Verificando…';
+    try{
+      const res = await fetch(getBaseUrl() + path);
+      const json = await res.json().catch(() => ({}));
+      dot.className = 'dot ' + (res.ok ? 'up' : 'down');
+      text.textContent = res.ok ? ('OK · ' + res.status) : ('Error · ' + res.status);
+      body.textContent = JSON.stringify(json, null, 2);
+    } catch(err){
+      dot.className = 'dot down';
+      text.textContent = 'Sin respuesta';
+      body.textContent = String(err.message);
+    }
+  }
+  function checkHealth(){
+    checkOne('/health', 'healthDot1', 'healthText1', 'healthBody1');
+    checkOne('/health/ready', 'healthDot2', 'healthText2', 'healthBody2');
+  }
+  $('#refreshHealth').addEventListener('click', checkHealth);
+
+  /* ---------- init ---------- */
+  renderSession();
+})();
+</script>
+
+<script>
+// Selector de servicios: arma los enlaces a las otras consolas y muestra si
+// cada servicio responde. Usa fetch en modo no-cors: solo le interesa saber
+// si el servicio contesta, no leer su respuesta, así que no depende de la
+// configuración CORS de cada uno. Si apagas un contenedor, su punto se pone
+// rojo en todas las consolas a los pocos segundos.
+(function(){
+  "use strict";
+  const host = (location.protocol.startsWith('http') && location.hostname)
+    ? location.protocol + '//' + location.hostname
+    : 'http://localhost';
+  // En Render cada servicio vive en su propio dominio, sin puertos: las URLs
+  // llegan en config.js (lo sirve este mismo servicio a partir de las
+  // variables PUBLIC_*_URL). En local no hay config y se usa host:puerto.
+  const cfg = window.MEDIASTREAM_SERVICES || {};
+  const KEY = { 3001:'user', 3002:'catalog', 3003:'playback', 3004:'media', 3005:'recommendation', 3006:'billing' };
+  const urlOf = a => cfg[KEY[a.dataset.port]] || (host + ':' + a.dataset.port);
+  const links = Array.from(document.querySelectorAll('.svc-switch .svc'));
+  links.forEach(a => {
+    a.href = urlOf(a) + '/';
+    const port = a.querySelector('.svc-port');
+    if (cfg[KEY[a.dataset.port]] && port) port.textContent = '';
+  });
+
+  async function probe(a){
+    const dot = a.querySelector('.svc-state');
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    try{
+      await fetch(urlOf(a) + '/health', { mode:'no-cors', cache:'no-store', signal: ctrl.signal });
+      dot.className = 'svc-state up';
+      dot.title = 'Respondiendo';
+    } catch(e){
+      dot.className = 'svc-state down';
+      // En Render (plan gratis) un servicio dormido tarda ~1 minuto en
+      // despertar; esta misma consulta lo despierta.
+      dot.title = Object.keys(cfg).length ? 'Sin respuesta (si estaba dormido en Render, despierta en ~1 min)' : 'Sin respuesta';
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  const probeAll = () => links.forEach(probe);
+  probeAll();
+  setInterval(probeAll, 8000);
+})();
+</script>
+</body>
+</html>

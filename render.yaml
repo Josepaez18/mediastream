@@ -1,0 +1,258 @@
+# =============================================================================
+# MediaStream — Blueprint de Render (sección 8.2 del documento)
+#
+#  · Cada microservicio es un Web Service independiente en Render, con sus
+#    propias variables de entorno.
+#  · Render NO construye nada: despliega la imagen Docker que el pipeline de
+#    GitHub Actions construyó, probó y publicó en GitHub Container Registry
+#    (ghcr.io). Es exactamente la misma imagen (sección 8.2).
+#  · Plan gratuito: una instancia de Render Postgres con una base propia por
+#    servicio dentro de ella (database-per-service), una instancia de Render
+#    Key Value (Redis) y RabbitMQ en CloudAMQP (Render no ofrece RabbitMQ).
+#
+# Usuario de GitHub configurado: josepaez18.
+# =============================================================================
+
+# URLs públicas de los seis servicios. Todas las consolas las leen desde
+# /config.js para enlazarse entre sí, y cada servicio las usa como lista de
+# orígenes permitidos por CORS (sección 10). Playback y Recommendation llaman
+# a Catalog por PUBLIC_CATALOG_URL (en el plan gratis los servicios no
+# reciben tráfico por la red privada de Render).
+# Si Render le asigna a un servicio una URL distinta (porque el nombre ya
+# estaba tomado), corrígela AQUÍ y haz push: Render sincroniza el Blueprint.
+# Un cambio hecho solo en Dashboard → Env Groups se pierde en la próxima
+# sincronización.
+envVarGroups:
+  - name: mediastream-urls
+    envVars:
+      - key: PUBLIC_USER_URL
+        value: https://mediastream-user.onrender.com
+      - key: PUBLIC_CATALOG_URL
+        value: https://mediastream-catalog.onrender.com
+      - key: PUBLIC_PLAYBACK_URL
+        value: https://mediastream-playback.onrender.com
+      - key: PUBLIC_MEDIA_URL
+        value: https://mediastream-media.onrender.com
+      - key: PUBLIC_RECOMMENDATION_URL
+        value: https://mediastream-recommendation.onrender.com
+      - key: PUBLIC_BILLING_URL
+        value: https://mediastream-billing.onrender.com
+
+databases:
+  # Una sola instancia (el plan gratis permite una por cuenta). Cada servicio
+  # usa su propia base dentro de ella (DATABASE_NAME) y la crea al arrancar
+  # si no existe; ningún servicio lee la base de otro.
+  - name: mediastream-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: "16"
+    databaseName: mediastream
+    user: mediastream
+    ipAllowList: [] # solo conexiones internas de Render
+
+services:
+  # Redis: caché de Catalog y Playback + Pub/Sub de playback.progress y
+  # playback.completed hacia Recommendation.
+  - type: keyvalue
+    name: mediastream-redis
+    plan: free
+    region: virginia
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: [] # solo conexiones internas de Render
+
+  # ---------------------------------------------------------------- User
+  - type: web
+    name: mediastream-user
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-user-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3001"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediastream-db
+          property: connectionString
+      - key: DATABASE_NAME
+        value: user_service_db
+      - key: RABBITMQ_URL
+        sync: false # URL AMQP de CloudAMQP (se pide al crear el Blueprint)
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d
+
+  # ------------------------------------------------------------- Catalog
+  - type: web
+    name: mediastream-catalog
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-catalog-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3002"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediastream-db
+          property: connectionString
+      - key: DATABASE_NAME
+        value: catalog_db
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: mediastream-redis
+          property: connectionString
+      - key: RABBITMQ_URL
+        sync: false # URL AMQP de CloudAMQP
+
+  # ------------------------------------------------------------ Playback
+  - type: web
+    name: mediastream-playback
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-playback-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3003"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediastream-db
+          property: connectionString
+      - key: DATABASE_NAME
+        value: playback_db
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: mediastream-redis
+          property: connectionString
+      # Resiliencia hacia Catalog (secciones 4.5–4.7).
+      - key: CATALOG_TIMEOUT_MS
+        value: "2000"
+      - key: CATALOG_RETRIES
+        value: "2"
+      - key: CATALOG_CB_FAILURE_THRESHOLD
+        value: "3"
+      - key: CATALOG_CB_OPEN_MS
+        value: "30000"
+      - key: DRM_JWT_SECRET
+        generateValue: true
+      - key: DRM_TOKEN_TTL_SECONDS
+        value: "300"
+
+  # ---------------------------------------------------- Media Processing
+  - type: web
+    name: mediastream-media
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-media-processing-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3004"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediastream-db
+          property: connectionString
+      - key: DATABASE_NAME
+        value: media_processing_db
+      - key: RABBITMQ_URL
+        sync: false # URL AMQP de CloudAMQP
+
+  # ------------------------------------------------------ Recommendation
+  - type: web
+    name: mediastream-recommendation
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-recommendation-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3005"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediastream-db
+          property: connectionString
+      - key: DATABASE_NAME
+        value: recommendation_db
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: mediastream-redis
+          property: connectionString
+
+  # ------------------------------------------------------------- Billing
+  - type: web
+    name: mediastream-billing
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-billing-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3006"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediastream-db
+          property: connectionString
+      - key: DATABASE_NAME
+        value: billing_service_db
+      - key: RABBITMQ_URL
+        sync: false # URL AMQP de CloudAMQP
+      # Pasarela simulada: no se usa una clave real de Stripe (ver README).
+      - key: STRIPE_SECRET_KEY
+        value: sk_test_no_usada_en_esta_simulacion

@@ -1,0 +1,187 @@
+# =============================================================================
+# Pipeline CI/CD común a todos los microservicios (sección 7 del documento).
+#
+#   1. Trigger        → lo define cada workflow de servicio (push a main/develop,
+#                       Pull Request hacia develop, o manual).
+#   2. Dependencias   → npm ci (Node.js) / pip install -r requirements (Python).
+#   3. Lint           → ESLint (Node.js) / Flake8 (Python).
+#   4. Tests          → unitarios + integración contra un PostgreSQL real.
+#   5. Build Docker   → imagen del servicio desde su propio Dockerfile.
+#   6. Push registry  → GitHub Container Registry, etiquetada con el SHA.
+#   7. Deploy Render  → deploy hook del servicio con ESA imagen (sin reconstruir).
+#
+# Si el lint o los tests fallan, el pipeline se corta ahí: no se construye ni
+# se despliega nada (el "punto de corte" de la figura del documento).
+# En Pull Requests solo corren los pasos 2–4.
+# =============================================================================
+name: Pipeline de un microservicio
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: Carpeta del microservicio (p. ej. user-service)
+        required: true
+        type: string
+      runtime:
+        description: node | python
+        required: true
+        type: string
+      secret_suffix:
+        description: Sufijo del secreto con el deploy hook (USER, CATALOG, …)
+        required: true
+        type: string
+      database:
+        description: Base de datos para las pruebas de integración
+        required: false
+        type: string
+        default: ci_db
+      postgres_image:
+        description: Imagen de PostgreSQL para las pruebas de integración
+        required: false
+        type: string
+        default: postgres:16-alpine
+      ffmpeg:
+        description: Instalar FFmpeg para las pruebas (Media-Processing)
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  ci:
+    name: Lint y tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.service }}
+    services:
+      postgres:
+        image: ${{ inputs.postgres_image }}
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------------------------------------------------------- Node.js
+      - name: Node.js 20
+        if: inputs.runtime == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ inputs.service }}/package-lock.json
+      - name: Instalar dependencias (npm ci)
+        if: inputs.runtime == 'node'
+        run: npm ci
+      - name: Generar el cliente de Prisma
+        if: inputs.runtime == 'node'
+        run: npx prisma generate
+      - name: Lint (ESLint)
+        if: inputs.runtime == 'node'
+        run: npm run lint
+      - name: Tests unitarios (Jest)
+        if: inputs.runtime == 'node'
+        run: npm test -- --ci
+      - name: Migraciones contra PostgreSQL real (Prisma)
+        if: inputs.runtime == 'node'
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/${{ inputs.database }}?schema=public
+        run: npx prisma migrate deploy
+
+      # ----------------------------------------------------------- Python
+      - name: Python 3.12
+        if: inputs.runtime == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ${{ inputs.service }}/requirements*.txt
+      - name: Instalar dependencias (pip)
+        if: inputs.runtime == 'python'
+        run: pip install -r requirements-dev.txt
+      - name: Lint (Flake8)
+        if: inputs.runtime == 'python'
+        run: flake8 .
+      - name: Instalar FFmpeg
+        if: inputs.runtime == 'python' && inputs.ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
+      - name: Tests unitarios y de integración (pytest)
+        if: inputs.runtime == 'python'
+        env:
+          TEST_ADMIN_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: pytest -v
+
+  imagen:
+    name: Build Docker y push a GHCR
+    needs: ci
+    # Solo en push/manual sobre main (producción) o develop (staging).
+    if: github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'develop')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.nombre.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Nombre de la imagen
+        id: nombre
+        # ghcr.io exige el dueño del repositorio en minúsculas.
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/mediastream-${{ inputs.service }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - name: Iniciar sesión en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Construir y publicar la imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.service }}
+          push: true
+          # SHA del commit (para desplegar y hacer rollback) + nombre de la rama.
+          tags: |
+            ${{ steps.nombre.outputs.image }}:${{ github.sha }}
+            ${{ steps.nombre.outputs.image }}:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=${{ inputs.service }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.service }}
+
+  deploy:
+    name: Deploy a Render
+    needs: imagen
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar el deploy hook con la imagen ${{ github.sha }}
+        env:
+          # Secretos a nivel de repositorio (sección 7, "Secrets management").
+          PROD_HOOK: ${{ secrets[format('RENDER_DEPLOY_HOOK_{0}', inputs.secret_suffix)] }}
+          STAGING_HOOK: ${{ secrets[format('RENDER_STAGING_DEPLOY_HOOK_{0}', inputs.secret_suffix)] }}
+          IMAGE: ${{ needs.imagen.outputs.image }}:${{ github.sha }}
+          SERVICE: ${{ inputs.service }}
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            HOOK="$PROD_HOOK";    SECRET="RENDER_DEPLOY_HOOK_${{ inputs.secret_suffix }}";   ENTORNO="producción"
+          else
+            HOOK="$STAGING_HOOK"; SECRET="RENDER_STAGING_DEPLOY_HOOK_${{ inputs.secret_suffix }}"; ENTORNO="staging"
+          fi
+          if [ -z "$HOOK" ]; then
+            echo "::notice title=Deploy omitido::No existe el secreto $SECRET: la imagen quedó publicada pero no se desplegó $SERVICE en $ENTORNO."
+            exit 0
+          fi
+          # Render despliega EXACTAMENTE esta imagen (imgURL va codificada en la URL).
+          ENCODED=$(jq -rn --arg v "$IMAGE" '$v|@uri')
+          curl -fsS -X POST "${HOOK}&imgURL=${ENCODED}" -o /dev/null
+          echo "Deploy de $SERVICE en $ENTORNO solicitado con la imagen $IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
