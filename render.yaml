@@ -26,17 +26,17 @@ envVarGroups:
   - name: mediastream-urls
     envVars:
       - key: PUBLIC_USER_URL
-        value: https://mediastream-user.onrender.com
+        value: https://mediastream-user-3um7.onrender.com
       - key: PUBLIC_CATALOG_URL
-        value: https://mediastream-catalog.onrender.com
+        value: https://mediastream-catalog-t9f9.onrender.com
       - key: PUBLIC_PLAYBACK_URL
-        value: https://mediastream-playback.onrender.com
+        value: https://mediastream-playback-0ciy.onrender.com
       - key: PUBLIC_MEDIA_URL
-        value: https://mediastream-media.onrender.com
+        value: https://mediastream-media-zadq.onrender.com
       - key: PUBLIC_RECOMMENDATION_URL
-        value: https://mediastream-recommendation.onrender.com
+        value: https://mediastream-recommendation-rvk4.onrender.com
       - key: PUBLIC_BILLING_URL
-        value: https://mediastream-billing.onrender.com
+        value: https://mediastream-billing-c7bf.onrender.com
 
 databases:
   # Una sola instancia (el plan gratis permite una por cuenta). Cada servicio
