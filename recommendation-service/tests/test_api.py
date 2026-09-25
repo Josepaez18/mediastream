@@ -21,7 +21,10 @@ def test_config_js_para_la_consola():
     assert r.text.startswith("window.MEDIASTREAM_SERVICES = ")
 
 
-def test_la_consola_se_sirve_en_la_raiz():
+def test_la_pagina_de_aviso_se_sirve_en_la_raiz():
+    # Ya no hay consola interactiva por servicio (un solo frontend la
+    # reemplaza): la raíz sirve un aviso estático que enlaza a /docs y a la
+    # app unificada.
     r = client.get("/")
     assert r.status_code == 200
-    assert "<script src=\"config.js\"></script>" in r.text
+    assert "Este microservicio es solo backend" in r.text
