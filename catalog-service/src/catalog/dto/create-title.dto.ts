@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsInt,
@@ -95,4 +96,13 @@ export class CreateTitleDto {
   @ValidateNested({ each: true })
   @Type(() => AvailabilityInputDto)
   availabilities?: AvailabilityInputDto[];
+
+  @ApiPropertyOptional({
+    example: false,
+    description:
+      'Si es true, el título se crea como AVAILABLE de inmediato, sin esperar el evento media.ready. Por defecto queda PENDING.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  publishImmediately?: boolean;
 }

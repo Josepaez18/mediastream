@@ -81,6 +81,31 @@ describe('CatalogService', () => {
     await expect(service.getTitleById(BigInt(999))).rejects.toThrow(NotFoundException);
   });
 
+  it('createTitle crea el título como PENDING por defecto', async () => {
+    prismaMock.title.create.mockResolvedValue({ ...mockTitle, status: TitleStatus.PENDING });
+
+    await service.createTitle({ name: 'Nueva', type: TitleType.MOVIE } as any);
+
+    expect(prismaMock.title.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: TitleStatus.PENDING }) }),
+    );
+    expect(redisMock.invalidateByPrefix).toHaveBeenCalled();
+  });
+
+  it('createTitle crea el título como AVAILABLE si publishImmediately es true', async () => {
+    prismaMock.title.create.mockResolvedValue({ ...mockTitle, status: TitleStatus.AVAILABLE });
+
+    await service.createTitle({
+      name: 'Nueva',
+      type: TitleType.MOVIE,
+      publishImmediately: true,
+    } as any);
+
+    expect(prismaMock.title.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: TitleStatus.AVAILABLE }) }),
+    );
+  });
+
   it('markTitleAsAvailable actualiza el status e invalida cache', async () => {
     prismaMock.title.update.mockResolvedValue({ ...mockTitle, status: TitleStatus.AVAILABLE });
 

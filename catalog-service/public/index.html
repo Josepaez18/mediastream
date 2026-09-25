@@ -517,6 +517,12 @@
           <label>Categoría</label>
           <input type="text" id="f_category" placeholder="Acción">
         </div>
+        <div class="form-row">
+          <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+            <input type="checkbox" id="f_publishImmediately" style="width:auto;">
+            Publicar de inmediato (AVAILABLE), sin esperar procesamiento del video
+          </label>
+        </div>
 
         <div id="seasonsWrap" style="display:none;">
           <h4 style="margin-top:26px;">Temporadas y episodios</h4>
@@ -867,6 +873,7 @@
     if(category) payload.category = category;
     const ageRating = $('#f_ageRating').value.trim();
     if(ageRating) payload.ageRating = ageRating;
+    if($('#f_publishImmediately').checked) payload.publishImmediately = true;
 
     if(payload.type === 'SERIES'){
       const seasonBlocks = $$('#seasonsList .repeat-block');

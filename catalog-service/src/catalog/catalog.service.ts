@@ -116,7 +116,7 @@ export class CatalogService {
         type: dto.type,
         category: dto.category,
         ageRating: dto.ageRating,
-        status: TitleStatus.PENDING,
+        status: dto.publishImmediately ? TitleStatus.AVAILABLE : TitleStatus.PENDING,
         seasons: dto.seasons
           ? {
               create: dto.seasons.map((s) => ({
