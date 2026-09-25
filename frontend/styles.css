@@ -1,0 +1,158 @@
+:root{
+  --bg: #14161c;
+  --panel: #1c1f28;
+  --panel-2: #22252f;
+  --line: #2c303c;
+  --ink: #f3f1ea;
+  --ink-dim: #a6aab8;
+  --ink-faint: #6d7180;
+  --accent: #a393e6;
+  --accent-dim: #655b8f;
+  --ok: #6fcf97;
+  --pending: #e8b858;
+  --off: #e2635b;
+  --radius: 4px;
+
+  --c-user: #a393e6;
+  --c-catalog: #e8b858;
+  --c-playback: #7ab8e8;
+  --c-media: #e693c0;
+  --c-recommendation: #5fc9b8;
+  --c-billing: #c5e05a;
+}
+
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+h1,h2,h3{ font-family: 'Fraunces', serif; font-weight: 600; margin: 0 0 8px; }
+.mono{ font-family: 'IBM Plex Mono', monospace; }
+a{ color: var(--accent); }
+code.inline{ font-family:'IBM Plex Mono', monospace; background:var(--panel-2); padding:1px 5px; border-radius:3px; font-size:12px; }
+
+.app{ display:flex; min-height:100vh; }
+
+/* -------- Sidebar -------- */
+.sidebar{
+  width: 220px; flex-shrink:0; background: var(--panel);
+  border-right:1px solid var(--line); display:flex; flex-direction:column;
+  padding: 20px 0;
+}
+.brand{ padding: 0 20px 20px; border-bottom:1px solid var(--line); margin-bottom:12px; }
+.brand h1{ font-size:20px; margin:0; }
+.brand .sub{ color:var(--ink-faint); font-size:12px; margin-top:4px; }
+
+.nav{ display:flex; flex-direction:column; gap:2px; padding: 0 10px; }
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius: var(--radius);
+  color: var(--ink-dim); cursor:pointer; border:1px solid transparent; background:none;
+  font-family:'Inter',sans-serif; font-size:13px; text-align:left; width:100%;
+}
+.nav-item:hover{ background: var(--panel-2); color:var(--ink); }
+.nav-item.active{ background: var(--panel-2); color:var(--ink); border-color: var(--line); }
+.nav-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+.session-box{ margin-top:auto; padding: 14px 16px; border-top:1px solid var(--line); font-size:12px; }
+.session-box .label{ color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; font-size:10px; }
+.session-value{ font-family:'IBM Plex Mono', monospace; color: var(--ink); word-break:break-all; margin: 2px 0 8px; }
+.btn-clear-session{ font-size:11px; color: var(--off); background:none; border:none; cursor:pointer; padding:0; }
+
+/* -------- Main -------- */
+.main{ flex:1; padding: 32px 40px; max-width: 980px; }
+.section{ display:none; }
+.section.active{ display:block; }
+.section-header{ margin-bottom: 24px; }
+.section-header h2{ font-size: 26px; }
+.section-header .desc{ color: var(--ink-dim); font-size: 13px; max-width: 640px; }
+
+.card{
+  background: var(--panel); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 20px;
+}
+.card h3{ font-size: 15px; margin-bottom: 14px; color: var(--ink); }
+.card.accent-top{ border-top: 3px solid var(--accent); }
+
+.two-col{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row{ margin-bottom: 12px; }
+.form-row label{ display:block; font-size:12px; color: var(--ink-dim); margin-bottom: 5px; }
+.form-row .hint{ color: var(--ink-faint); font-weight: normal; }
+input[type=text], input[type=email], input[type=password], input[type=number],
+input[type=datetime-local], select, textarea{
+  width:100%; padding: 9px 10px; background: var(--panel-2); border:1px solid var(--line);
+  border-radius: var(--radius); color: var(--ink); font-family:'Inter',sans-serif; font-size:13px;
+}
+input:focus, select:focus, textarea:focus{ outline: 1px solid var(--accent); border-color: var(--accent); }
+input[type=checkbox]{ width:auto; }
+textarea{ resize: vertical; min-height: 60px; }
+
+button.btn{
+  background: var(--accent); color: #14161c; border:none; padding: 9px 16px;
+  border-radius: var(--radius); font-size:13px; font-weight:600; cursor:pointer;
+  font-family:'Inter',sans-serif;
+}
+button.btn:hover{ opacity:.9; }
+button.btn:disabled{ opacity:.5; cursor:not-allowed; }
+button.btn-outline{
+  background:none; border:1px solid var(--line); color: var(--ink);
+}
+button.btn-danger{ background: var(--off); color:#14161c; }
+button.btn-sm{ padding:5px 10px; font-size:12px; }
+
+.form-msg{ margin-top:10px; font-size:12px; }
+.form-msg.ok{ color: var(--ok); }
+.form-msg.err{ color: var(--off); }
+
+.result-box{
+  background: var(--panel-2); border:1px solid var(--line); border-radius: var(--radius);
+  padding:12px; font-family:'IBM Plex Mono', monospace; font-size:12px; white-space:pre-wrap;
+  max-height: 320px; overflow:auto; margin-top: 10px;
+}
+
+/* -------- Status dots (home) -------- */
+.status-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.status-card{
+  background: var(--panel); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; display:flex; align-items:center; gap:10px;
+}
+.dot{ width:10px; height:10px; border-radius:50%; background: var(--ink-faint); flex-shrink:0; }
+.dot.ok{ background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.dot.off{ background: var(--off); box-shadow: 0 0 6px var(--off); }
+.status-card .name{ font-weight:600; font-size:13px; }
+.status-card .url{ color: var(--ink-faint); font-size:11px; font-family:'IBM Plex Mono', monospace; }
+
+/* -------- Catalog grid -------- */
+.title-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 14px; margin-top: 10px; }
+.title-card{
+  background: var(--panel-2); border:1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; cursor:pointer;
+}
+.title-card:hover{ border-color: var(--c-catalog); }
+.title-card .name{ font-weight:600; font-size:13px; margin-bottom:4px; }
+.title-card .meta{ color: var(--ink-faint); font-size:11px; }
+.badge{
+  display:inline-block; font-size:10px; padding:2px 6px; border-radius:10px;
+  background: var(--panel); border:1px solid var(--line); color: var(--ink-dim); margin-right:4px;
+}
+.badge.status-AVAILABLE{ color: var(--ok); border-color: var(--ok); }
+.badge.status-PENDING{ color: var(--pending); border-color: var(--pending); }
+.badge.status-UNAVAILABLE{ color: var(--off); border-color: var(--off); }
+
+.repeat-block{ position:relative; background: var(--panel-2); border:1px solid var(--line); border-radius:var(--radius); padding:12px; margin-bottom:10px; }
+.remove-btn{ position:absolute; top:8px; right:8px; background:none; border:none; color: var(--ink-faint); cursor:pointer; font-size:16px; }
+
+.toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom: 14px; }
+.toolbar .form-row{ margin-bottom:0; min-width:140px; }
+
+@media (max-width: 800px){
+  .app{ flex-direction:column; }
+  .sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:10px; }
+  .brand, .session-box{ display:none; }
+  .nav{ flex-direction:row; }
+  .main{ padding: 20px; }
+  .two-col, .status-grid{ grid-template-columns:1fr; }
+}

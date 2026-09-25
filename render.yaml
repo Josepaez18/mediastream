@@ -37,6 +37,11 @@ envVarGroups:
         value: https://mediastream-recommendation-rvk4.onrender.com
       - key: PUBLIC_BILLING_URL
         value: https://mediastream-billing-c7bf.onrender.com
+      # Único frontend de la aplicación (Static Site, más abajo). Es el único
+      # origen que necesita permiso de CORS: ya no hay una consola por
+      # servicio, así que nada más llama a estas APIs desde el navegador.
+      - key: CORS_ORIGINS
+        value: https://mediastream-app.onrender.com
 
 databases:
   # Una sola instancia (el plan gratis permite una por cuenta). Cada servicio
@@ -51,6 +56,16 @@ databases:
     ipAllowList: [] # solo conexiones internas de Render
 
 services:
+  # ----------------------------------------------------- Frontend (único)
+  # Static Site sin build step: un solo HTML/CSS/JS que consume los 6
+  # microservicios directo por su URL pública (fetch desde el navegador).
+  # No hay una consola por microservicio; esta es la única UI de la app.
+  - type: web
+    name: mediastream-app
+    runtime: static
+    staticPublishPath: ./frontend
+    buildCommand: "true"
+
   # Redis: caché de Catalog y Playback + Pub/Sub de playback.progress y
   # playback.completed hacia Recommendation.
   - type: keyvalue

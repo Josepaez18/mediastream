@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaStream</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>MediaStream</h1>
+      <div class="sub">Frontend único · consume los 6 microservicios</div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-section="home"><span class="nav-dot" style="background:var(--ink-faint)"></span> Estado general</button>
+      <button class="nav-item" data-section="account"><span class="nav-dot" style="background:var(--c-user)"></span> Cuenta (User)</button>
+      <button class="nav-item" data-section="catalog"><span class="nav-dot" style="background:var(--c-catalog)"></span> Catálogo</button>
+      <button class="nav-item" data-section="playback"><span class="nav-dot" style="background:var(--c-playback)"></span> Reproducción</button>
+      <button class="nav-item" data-section="media"><span class="nav-dot" style="background:var(--c-media)"></span> Media Processing</button>
+      <button class="nav-item" data-section="recommendation"><span class="nav-dot" style="background:var(--c-recommendation)"></span> Recomendaciones</button>
+      <button class="nav-item" data-section="billing"><span class="nav-dot" style="background:var(--c-billing)"></span> Facturación</button>
+    </nav>
+    <div class="session-box">
+      <div class="label">Sesión actual</div>
+      <div class="session-value" id="sessAccount">sin cuenta</div>
+      <div class="label">Perfil activo</div>
+      <div class="session-value" id="sessProfile">sin perfil</div>
+      <button class="btn-clear-session" id="clearSession">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ===================== HOME / ESTADO ===================== -->
+    <section class="section active" id="sec-home">
+      <div class="section-header">
+        <h2>Estado de la plataforma</h2>
+        <div class="desc">Este es el único frontend de MediaStream. Cada tarjeta llama directo al <code class="inline">/health/ready</code> del microservicio correspondiente — no hay un gateway intermedio.</div>
+      </div>
+      <div class="status-grid" id="statusGrid"></div>
+    </section>
+
+    <!-- ===================== ACCOUNT (USER) ===================== -->
+    <section class="section" id="sec-account">
+      <div class="section-header">
+        <h2>Cuenta</h2>
+        <div class="desc">Habla directo con User-Service (<span id="userUrlLabel" class="mono"></span>).</div>
+      </div>
+
+      <div class="two-col">
+        <div class="card accent-top" style="--accent:var(--c-user)">
+          <h3>Registrarse</h3>
+          <form id="registerForm">
+            <div class="form-row"><label>Email</label><input type="email" id="r_email" required></div>
+            <div class="form-row"><label>Contraseña (mín. 8)</label><input type="password" id="r_password" required minlength="8"></div>
+            <div class="form-row"><label>Nombre del primer perfil</label><input type="text" id="r_profileName" required></div>
+            <div class="form-row"><label><input type="checkbox" id="r_isKids"> Perfil infantil</label></div>
+            <button class="btn" type="submit">Crear cuenta</button>
+            <div class="form-msg" id="registerMsg"></div>
+          </form>
+        </div>
+
+        <div class="card accent-top" style="--accent:var(--c-user)">
+          <h3>Iniciar sesión</h3>
+          <form id="loginForm">
+            <div class="form-row"><label>Email</label><input type="email" id="l_email" required></div>
+            <div class="form-row"><label>Contraseña</label><input type="password" id="l_password" required></div>
+            <button class="btn" type="submit">Iniciar sesión</button>
+            <div class="form-msg" id="loginMsg"></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Perfiles de la cuenta activa</h3>
+        <button class="btn btn-outline btn-sm" id="loadProfiles">Cargar perfiles</button>
+        <div class="result-box" id="profilesResult" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== CATALOG ===================== -->
+    <section class="section" id="sec-catalog">
+      <div class="section-header">
+        <h2>Catálogo</h2>
+        <div class="desc">Habla directo con Catalog-Service (<span id="catalogUrlLabel" class="mono"></span>).</div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="form-row"><label>Región</label><input type="text" id="c_region" value="CO" style="width:90px;"></div>
+          <div class="form-row"><label>Categoría</label><input type="text" id="c_category" placeholder="(todas)" style="width:140px;"></div>
+          <div class="form-row"><label><input type="checkbox" id="c_isKids"> Solo infantil</label></div>
+          <button class="btn btn-sm" id="loadCatalog">Buscar</button>
+        </div>
+        <div class="title-grid" id="titleGrid"></div>
+      </div>
+
+      <div class="card" id="titleDetailCard" style="display:none;">
+        <h3>Detalle del título</h3>
+        <div class="result-box" id="titleDetail"></div>
+      </div>
+
+      <div class="card accent-top" style="--accent:var(--c-catalog)">
+        <h3>Crear título (uso administrativo)</h3>
+        <form id="createTitleForm">
+          <div class="two-col">
+            <div class="form-row"><label>Nombre</label><input type="text" id="t_name" required></div>
+            <div class="form-row"><label>Tipo</label>
+              <select id="t_type"><option value="MOVIE">MOVIE</option><option value="SERIES">SERIES</option></select>
+            </div>
+          </div>
+          <div class="form-row"><label>Sinopsis</label><textarea id="t_synopsis"></textarea></div>
+          <div class="two-col">
+            <div class="form-row"><label>Categoría</label><input type="text" id="t_category" placeholder="Acción"></div>
+            <div class="form-row"><label>Clasificación</label><input type="text" id="t_ageRating" placeholder="PG-13"></div>
+          </div>
+          <div class="form-row"><label>Región de disponibilidad</label><input type="text" id="t_region" value="CO" style="width:120px;"></div>
+          <div class="form-row">
+            <label><input type="checkbox" id="t_publishImmediately"> Publicar de inmediato (AVAILABLE), sin esperar Media Processing</label>
+          </div>
+          <button class="btn" type="submit">Crear título</button>
+          <div class="form-msg" id="createTitleMsg"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================== PLAYBACK ===================== -->
+    <section class="section" id="sec-playback">
+      <div class="section-header">
+        <h2>Reproducción</h2>
+        <div class="desc">Habla directo con Playback-Service (<span id="playbackUrlLabel" class="mono"></span>). Playback valida disponibilidad contra Catalog por su cuenta.</div>
+      </div>
+
+      <div class="card accent-top" style="--accent:var(--c-playback)">
+        <h3>Obtener token DRM</h3>
+        <div class="two-col">
+          <div class="form-row"><label>Id del título</label><input type="text" id="p_titleId" placeholder="3"></div>
+          <div class="form-row"><label>Id del perfil</label><input type="text" id="p_profileId" placeholder="9001"></div>
+        </div>
+        <div class="form-row"><label>Región</label><input type="text" id="p_region" value="CO" style="width:120px;"></div>
+        <button class="btn" id="getToken">Generar token</button>
+        <div class="result-box" id="tokenResult" style="display:none;"></div>
+      </div>
+
+      <div class="card accent-top" style="--accent:var(--c-playback)">
+        <h3>Registrar progreso</h3>
+        <div class="two-col">
+          <div class="form-row"><label>Posición (segundos)</label><input type="number" id="pr_position" value="1200"></div>
+          <div class="form-row"><label>Duración total (segundos)</label><input type="number" id="pr_duration" value="5400"></div>
+        </div>
+        <button class="btn btn-outline" id="saveProgress">Guardar progreso</button>
+        <div class="form-msg" id="progressMsg"></div>
+      </div>
+
+      <div class="card">
+        <h3>Seguir viendo (resume)</h3>
+        <button class="btn btn-outline btn-sm" id="loadResume">Consultar</button>
+        <div class="result-box" id="resumeResult" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== MEDIA PROCESSING ===================== -->
+    <section class="section" id="sec-media">
+      <div class="section-header">
+        <h2>Media Processing</h2>
+        <div class="desc">Habla directo con Media-Processing-Service (<span id="mediaUrlLabel" class="mono"></span>). Sube un video maestro y lo transcodifica; al terminar publica <code class="inline">media.ready</code> y Catalog marca el título AVAILABLE.</div>
+      </div>
+      <div class="card accent-top" style="--accent:var(--c-media)">
+        <h3>Nuevo ingest</h3>
+        <div class="form-row"><label>Id del título (debe existir en Catalog, estado PENDING)</label><input type="text" id="m_titleId" placeholder="1"></div>
+        <div class="form-row"><label>Archivo de video</label><input type="file" id="m_file" accept="video/*"></div>
+        <button class="btn" id="submitIngest">Subir y procesar</button>
+        <div class="form-msg" id="ingestMsg"></div>
+      </div>
+      <div class="card">
+        <h3>Consultar estado de un job</h3>
+        <div class="form-row"><label>Job id</label><input type="text" id="m_jobId" placeholder="uuid del job"></div>
+        <button class="btn btn-outline btn-sm" id="checkJob">Consultar</button>
+        <div class="result-box" id="jobResult" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== RECOMMENDATION ===================== -->
+    <section class="section" id="sec-recommendation">
+      <div class="section-header">
+        <h2>Recomendaciones</h2>
+        <div class="desc">Habla directo con Recommendation-Service (<span id="recommendationUrlLabel" class="mono"></span>). Combina filtrado por contenido (pgvector) y colaborativo.</div>
+      </div>
+      <div class="card accent-top" style="--accent:var(--c-recommendation)">
+        <h3>Sugerencias para un perfil</h3>
+        <div class="two-col">
+          <div class="form-row"><label>Id del perfil</label><input type="text" id="rc_profileId" placeholder="9001"></div>
+          <div class="form-row"><label>Región (opcional)</label><input type="text" id="rc_region" value="CO"></div>
+        </div>
+        <div class="form-row"><label><input type="checkbox" id="rc_isKids"> Solo apto para infantil</label></div>
+        <button class="btn" id="getRecommendations">Ver recomendaciones</button>
+        <div id="recommendationCards" class="title-grid"></div>
+      </div>
+      <div class="card">
+        <h3>Títulos parecidos a uno dado</h3>
+        <div class="form-row"><label>Id del título</label><input type="text" id="rc_titleId" placeholder="3" style="width:140px;"></div>
+        <button class="btn btn-outline btn-sm" id="getSimilar">Buscar parecidos</button>
+        <div class="result-box" id="similarResult" style="display:none;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== BILLING ===================== -->
+    <section class="section" id="sec-billing">
+      <div class="section-header">
+        <h2>Facturación</h2>
+        <div class="desc">Habla directo con Billing-Service (<span id="billingUrlLabel" class="mono"></span>). Pasarela de pago simulada, sin Stripe real.</div>
+      </div>
+
+      <div class="card accent-top" style="--accent:var(--c-billing)">
+        <h3>Suscribirse</h3>
+        <div class="two-col">
+          <div class="form-row"><label>Id de cuenta</label><input type="text" id="b_accountId" placeholder="Usa la de la sesión actual"></div>
+          <div class="form-row"><label>Plan</label>
+            <select id="b_plan"><option value="BASICO">BASICO ($7.99)</option><option value="ESTANDAR" selected>ESTANDAR ($12.99)</option><option value="PREMIUM">PREMIUM ($17.99)</option></select>
+          </div>
+        </div>
+        <div class="form-row"><label>Número de tarjeta</label>
+          <input type="text" id="b_card" value="4242424242424242">
+          <div class="hint" style="margin-top:4px;">4242 4242 4242 4242 → éxito &nbsp;·&nbsp; 4000 0000 0000 0002 → rechazada</div>
+        </div>
+        <button class="btn" id="subscribe">Suscribirse</button>
+        <div class="result-box" id="subscribeResult" style="display:none;"></div>
+      </div>
+
+      <div class="card">
+        <h3>Simular aviso de pago (webhook)</h3>
+        <div class="two-col">
+          <div class="form-row"><label>Id de suscripción</label><input type="text" id="w_subscriptionId" placeholder="se llena solo al suscribirte"></div>
+          <div class="form-row"><label>Evento</label>
+            <select id="w_eventType"><option value="payment_failed">payment_failed</option><option value="payment_succeeded">payment_succeeded</option></select>
+          </div>
+        </div>
+        <button class="btn btn-outline" id="sendWebhook">Enviar webhook</button>
+        <div class="form-msg" id="webhookMsg"></div>
+        <p class="hint" style="color:var(--ink-faint); font-size:12px;">Dos <code class="inline">payment_failed</code> marcan la cuenta MOROSA en User-Service; el tercero la SUSPENDE. Verifícalo volviendo a iniciar sesión en la pestaña Cuenta.</p>
+      </div>
+
+      <div class="card">
+        <h3>Historial de una cuenta</h3>
+        <button class="btn btn-outline btn-sm" id="loadHistory">Cargar historial</button>
+        <div class="result-box" id="historyResult" style="display:none;"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
