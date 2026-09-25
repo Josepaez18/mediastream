@@ -8,7 +8,7 @@
 #   4. Tests          → unitarios + integración contra un PostgreSQL real.
 #   5. Build Docker   → imagen del servicio desde su propio Dockerfile.
 #   6. Push registry  → GitHub Container Registry, etiquetada con el SHA.
-#   7. Deploy Render  → deploy hook del servicio con ESA imagen (sin reconstruir).
+#   7. Deploy Render  → API de Render (POST /services/{id}/deploys) con ESA imagen (sin reconstruir).
 #
 # Si el lint o los tests fallan, el pipeline se corta ahí: no se construye ni
 # se despliega nada (el "punto de corte" de la figura del documento).
@@ -164,24 +164,28 @@ jobs:
     needs: imagen
     runs-on: ubuntu-latest
     steps:
-      - name: Disparar el deploy hook con la imagen ${{ github.sha }}
+      # Los servicios se crearon vía Blueprint + API de Render (no hay deploy
+      # hooks por dashboard en este setup), así que el deploy se dispara con
+      # la API de Render: POST /services/{id}/deploys con la imagen exacta.
+      - name: Disparar deploy en Render con la imagen ${{ github.sha }}
         env:
-          # Secretos a nivel de repositorio (sección 7, "Secrets management").
-          PROD_HOOK: ${{ secrets[format('RENDER_DEPLOY_HOOK_{0}', inputs.secret_suffix)] }}
-          STAGING_HOOK: ${{ secrets[format('RENDER_STAGING_DEPLOY_HOOK_{0}', inputs.secret_suffix)] }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          PROD_SERVICE_ID: ${{ secrets[format('RENDER_SERVICE_ID_{0}', inputs.secret_suffix)] }}
+          STAGING_SERVICE_ID: ${{ secrets[format('RENDER_STAGING_SERVICE_ID_{0}', inputs.secret_suffix)] }}
           IMAGE: ${{ needs.imagen.outputs.image }}:${{ github.sha }}
           SERVICE: ${{ inputs.service }}
         run: |
           if [ "$GITHUB_REF_NAME" = "main" ]; then
-            HOOK="$PROD_HOOK";    SECRET="RENDER_DEPLOY_HOOK_${{ inputs.secret_suffix }}";   ENTORNO="producción"
+            TARGET_ID="$PROD_SERVICE_ID"; SECRET="RENDER_SERVICE_ID_${{ inputs.secret_suffix }}"; ENTORNO="producción"
           else
-            HOOK="$STAGING_HOOK"; SECRET="RENDER_STAGING_DEPLOY_HOOK_${{ inputs.secret_suffix }}"; ENTORNO="staging"
+            TARGET_ID="$STAGING_SERVICE_ID"; SECRET="RENDER_STAGING_SERVICE_ID_${{ inputs.secret_suffix }}"; ENTORNO="staging"
           fi
-          if [ -z "$HOOK" ]; then
-            echo "::notice title=Deploy omitido::No existe el secreto $SECRET: la imagen quedó publicada pero no se desplegó $SERVICE en $ENTORNO."
+          if [ -z "$TARGET_ID" ] || [ -z "$RENDER_API_KEY" ]; then
+            echo "::notice title=Deploy omitido::Falta RENDER_API_KEY o el secreto $SECRET: la imagen quedó publicada pero no se desplegó $SERVICE en $ENTORNO."
             exit 0
           fi
-          # Render despliega EXACTAMENTE esta imagen (imgURL va codificada en la URL).
-          ENCODED=$(jq -rn --arg v "$IMAGE" '$v|@uri')
-          curl -fsS -X POST "${HOOK}&imgURL=${ENCODED}" -o /dev/null
+          curl -fsS -X POST "https://api.render.com/v1/services/${TARGET_ID}/deploys" \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"imageUrl\": \"${IMAGE}\"}" -o /dev/null
           echo "Deploy de $SERVICE en $ENTORNO solicitado con la imagen $IMAGE" | tee -a "$GITHUB_STEP_SUMMARY"
