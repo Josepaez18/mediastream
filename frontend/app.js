@@ -58,8 +58,16 @@
   }
   function errMsg(data, status) {
     if (!data) return `HTTP ${status}`;
-    if (Array.isArray(data.message)) return data.message.join(', ');
-    return data.message || data.detail || data.error || `HTTP ${status}`;
+    // Los servicios Node (AllExceptionsFilter) anidan el error de Nest bajo
+    // `message`: { statusCode, message: { message: [...], error, statusCode } }.
+    // Los servicios Python (FastAPI) usan `detail` directo, sin anidar.
+    let m = data.message ?? data.detail ?? data.error;
+    if (m && typeof m === 'object' && !Array.isArray(m)) {
+      m = m.message ?? m.detail ?? m.error ?? m;
+    }
+    if (Array.isArray(m)) return m.join(', ');
+    if (typeof m === 'string') return m;
+    return `HTTP ${status}`;
   }
   function showMsg(el, text, ok) {
     el.textContent = text;
