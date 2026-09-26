@@ -213,9 +213,12 @@
     if (!titles.length) { grid.innerHTML = '<p style="color:var(--ink-faint)">Sin resultados.</p>'; return; }
     grid.innerHTML = titles.map((t) => `
       <div class="title-card" data-id="${t.id}">
-        <div class="name">${t.name}</div>
-        <div class="meta">${t.type} · ${t.category || 's/c'} · ${t.ageRating || 's/r'}</div>
-        <span class="badge status-${t.status}">${t.status}</span>
+        <img class="poster" loading="lazy" src="${posterUrl(t)}" alt="Póster de ${escapeHtml(t.name)}">
+        <div class="body">
+          <div class="name">${t.name}</div>
+          <div class="meta">${t.type} · ${t.category || 's/c'} · ${t.ageRating || 's/r'}</div>
+          <span class="badge status-${t.status}">${t.status}</span>
+        </div>
       </div>`).join('');
     $$('.title-card', grid).forEach((card) => {
       card.addEventListener('click', () => showTitleDetail(card.dataset.id));
@@ -229,6 +232,25 @@
   function fmtDate(iso) {
     try { return new Date(iso).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' }); }
     catch { return iso; }
+  }
+
+  /* -------- Pósters generados (no hay campo de imagen en Catalog) -------- */
+  // Catalog no tiene un campo de imagen y estos títulos son ficticios (sin
+  // pósters reales), así que se genera uno con el nombre sobre un color por
+  // categoría, consistente con la paleta del resto de la app.
+  const CATEGORY_COLORS = {
+    'acción': 'e2635b', 'accion': 'e2635b',
+    'ciencia ficción': '7ab8e8', 'ciencia ficcion': '7ab8e8',
+    'drama': 'a393e6',
+    'documental': '5fc9b8',
+    'comedia': 'c5e05a',
+    'animación': 'e693c0', 'animacion': 'e693c0',
+    'infantil': 'e8b858',
+  };
+  function posterUrl(title) {
+    const key = (title.category || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    const bg = CATEGORY_COLORS[key] || '2c303c';
+    return `https://placehold.co/300x450/${bg}/14161c?font=playfair-display&text=${encodeURIComponent(title.name)}`;
   }
   function renderTitleDetail(title, availability) {
     let seasonsHtml = '';
@@ -263,15 +285,18 @@
     }
 
     return `
-      <h3>${escapeHtml(title.name)}</h3>
-      <div class="detail-tags">
-        <span class="tag" title="Úsalo en Reproducción y Media Processing">ID ${escapeHtml(title.id)}</span>
-        <span class="tag">${title.type}</span>
-        <span class="tag">${title.status}</span>
-        ${title.category ? `<span class="tag">${escapeHtml(title.category)}</span>` : ''}
-        ${title.ageRating ? `<span class="tag">${escapeHtml(title.ageRating)}</span>` : ''}
+      <div class="detail-body">
+        <img class="detail-poster" src="${posterUrl(title)}" alt="Póster de ${escapeHtml(title.name)}">
+        <h3>${escapeHtml(title.name)}</h3>
+        <div class="detail-tags">
+          <span class="tag" title="Úsalo en Reproducción y Media Processing">ID ${escapeHtml(title.id)}</span>
+          <span class="tag">${title.type}</span>
+          <span class="tag">${title.status}</span>
+          ${title.category ? `<span class="tag">${escapeHtml(title.category)}</span>` : ''}
+          ${title.ageRating ? `<span class="tag">${escapeHtml(title.ageRating)}</span>` : ''}
+        </div>
+        <p class="detail-synopsis ${title.synopsis ? '' : 'empty'}">${escapeHtml(title.synopsis || 'Sin sinopsis registrada.')}</p>
       </div>
-      <p class="detail-synopsis ${title.synopsis ? '' : 'empty'}">${escapeHtml(title.synopsis || 'Sin sinopsis registrada.')}</p>
       ${seasonsHtml}
       ${availHtml}
     `;
@@ -361,11 +386,11 @@
     );
     if (!ok) return showError(box, errMsg(data, status));
     if (!data.length) { box.innerHTML = '<p class="empty-note">Sin progreso guardado para este perfil.</p>'; return; }
-    const names = await resolveTitleNames(data.map((r) => r.titleId));
+    const titles = await resolveTitles(data.map((r) => r.titleId));
     box.innerHTML = `<div class="item-list">${data.map((r) => `
       <div class="item-card">
         <div class="item-head">
-          <span class="item-title">${escapeHtml(names[r.titleId])}</span>
+          <span class="item-title">${escapeHtml(titles[r.titleId].name)}</span>
           ${r.completed ? '<span class="tag">visto</span>' : `<span class="tag">${r.percentWatched ?? 0}%</span>`}
         </div>
         <div class="item-meta">${r.positionSeconds}s${r.durationSeconds ? ' / ' + r.durationSeconds + 's' : ''} · actualizado ${fmtDate(r.updatedAt)}</div>
@@ -406,11 +431,11 @@
   });
 
   /* ================= RECOMMENDATION ================= */
-  async function resolveTitleNames(ids) {
+  async function resolveTitles(ids) {
     const out = {};
     await Promise.all(ids.map(async (id) => {
       const { ok, data } = await api(CFG.CATALOG, `/api/catalog/titles/${id}`);
-      out[id] = ok ? data.name : `título ${id}`;
+      out[id] = ok ? data : { id, name: `título ${id}` };
     }));
     return out;
   }
@@ -423,11 +448,14 @@
     if ($('#rc_isKids').checked) params.set('isKids', 'true');
     const { ok, status, data } = await api(CFG.RECOMMENDATION, `/api/recommendations/${profileId}?${params}`);
     if (!ok) { grid.innerHTML = `<p style="color:var(--off)">${errMsg(data, status)}</p>`; return; }
-    const names = await resolveTitleNames(data.items.map((i) => i.titleId));
+    const titles = await resolveTitles(data.items.map((i) => i.titleId));
     grid.innerHTML = data.items.map((i) => `
       <div class="title-card">
-        <div class="name">${names[i.titleId]}</div>
-        <div class="meta">score ${i.score.toFixed(3)} · ${i.reason.kind}</div>
+        <img class="poster" loading="lazy" src="${posterUrl(titles[i.titleId])}" alt="Póster de ${escapeHtml(titles[i.titleId].name)}">
+        <div class="body">
+          <div class="name">${escapeHtml(titles[i.titleId].name)}</div>
+          <div class="meta">score ${i.score.toFixed(3)} · ${i.reason.kind}</div>
+        </div>
       </div>`).join('') || '<p style="color:var(--ink-faint)">Sin recomendaciones todavía.</p>';
   });
 
@@ -437,10 +465,10 @@
     const { ok, status, data } = await api(CFG.RECOMMENDATION, `/api/recommendations/titles/${titleId}/similar`);
     if (!ok) return showError(box, errMsg(data, status));
     if (!data.length) { box.innerHTML = '<p class="empty-note">Sin títulos parecidos todavía (falta sincronizar embeddings).</p>'; return; }
-    const names = await resolveTitleNames(data.map((i) => i.titleId));
+    const titles = await resolveTitles(data.map((i) => i.titleId));
     box.innerHTML = `<div class="item-list">${data.map((i) => `
       <div class="item-card">
-        <div class="item-head"><span class="item-title">${escapeHtml(names[i.titleId])}</span></div>
+        <div class="item-head"><span class="item-title">${escapeHtml(titles[i.titleId].name)}</span></div>
         <div class="item-meta">similitud ${(i.similarity * 100).toFixed(1)}%</div>
       </div>`).join('')}</div>`;
   });
