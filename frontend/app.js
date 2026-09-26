@@ -185,15 +185,73 @@
       card.addEventListener('click', () => showTitleDetail(card.dataset.id));
     });
   }
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+  function fmtDate(iso) {
+    try { return new Date(iso).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' }); }
+    catch { return iso; }
+  }
+  function renderTitleDetail(title, availability) {
+    let seasonsHtml = '';
+    if (title.seasons && title.seasons.length) {
+      seasonsHtml = '<div class="detail-section-title">Temporadas</div>' + title.seasons.map((s) => `
+        <div class="season-block">
+          <div class="season-head">Temporada ${s.seasonNumber}</div>
+          ${(s.episodes || []).map((e) => `
+            <div class="episode-row">
+              <span>Episodio ${e.episodeNumber}</span>
+              <span>${e.durationSeconds ? Math.round(e.durationSeconds / 60) + ' min' : 'Duración sin registrar'}</span>
+            </div>`).join('') || '<div class="episode-row"><span>Sin episodios cargados</span></div>'}
+        </div>`).join('');
+    }
+
+    const now = new Date();
+    let availHtml = '<div class="detail-section-title">Disponibilidad regional</div>';
+    if (availability && availability.length) {
+      availHtml += availability.map((a) => {
+        const isNow = a.isAvailableNow ?? (new Date(a.availableFrom) <= now && (!a.availableUntil || new Date(a.availableUntil) >= now));
+        return `
+        <div class="avail-row">
+          <div>
+            <div class="avail-region">${escapeHtml(a.region)}</div>
+            <div class="avail-dates">${fmtDate(a.availableFrom)} → ${a.availableUntil ? fmtDate(a.availableUntil) : 'sin fecha límite'}</div>
+          </div>
+          <span class="pill ${isNow ? 'now' : 'not-now'}">${isNow ? 'vigente' : 'no vigente'}</span>
+        </div>`;
+      }).join('');
+    } else {
+      availHtml += '<p class="empty-note">Este título no tiene disponibilidad regional configurada.</p>';
+    }
+
+    return `
+      <h3>${escapeHtml(title.name)}</h3>
+      <div class="detail-tags">
+        <span class="tag" title="Úsalo en Reproducción y Media Processing">ID ${escapeHtml(title.id)}</span>
+        <span class="tag">${title.type}</span>
+        <span class="tag">${title.status}</span>
+        ${title.category ? `<span class="tag">${escapeHtml(title.category)}</span>` : ''}
+        ${title.ageRating ? `<span class="tag">${escapeHtml(title.ageRating)}</span>` : ''}
+      </div>
+      <p class="detail-synopsis ${title.synopsis ? '' : 'empty'}">${escapeHtml(title.synopsis || 'Sin sinopsis registrada.')}</p>
+      ${seasonsHtml}
+      ${availHtml}
+    `;
+  }
   async function showTitleDetail(id) {
     const detailCard = $('#titleDetailCard');
     const box = $('#titleDetail');
     detailCard.style.display = 'block';
+    box.innerHTML = '<p class="empty-note">Cargando…</p>';
     const [title, avail] = await Promise.all([
       api(CFG.CATALOG, `/api/catalog/titles/${id}`),
       api(CFG.CATALOG, `/api/catalog/titles/${id}/availability`),
     ]);
-    showResult(box, { title: title.data, availability: avail.data });
+    box.innerHTML = title.ok
+      ? renderTitleDetail(title.data, avail.data)
+      : `<p style="color:var(--off)">${errMsg(title.data, title.status)}</p>`;
     $('#p_titleId').value = id;
     $('#m_titleId').value = id;
     $('#rc_titleId').value = id;
