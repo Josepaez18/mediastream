@@ -73,9 +73,27 @@
     el.textContent = text;
     el.className = 'form-msg ' + (ok ? 'ok' : 'err');
   }
-  function showResult(el, data) {
-    el.style.display = 'block';
-    el.textContent = JSON.stringify(data, null, 2);
+  function showError(el, message) {
+    el.innerHTML = `<p style="color:var(--off); font-size:13px; margin-top:10px;">${escapeHtml(message)}</p>`;
+  }
+  function kv(rows) {
+    return `<div class="kv-card">${rows
+      .filter((r) => r)
+      .map(([label, value, cls]) => `
+        <div class="kv-row">
+          <span class="kv-label">${label}</span>
+          <span class="kv-value ${cls || ''}">${value}</span>
+        </div>`).join('')}</div>`;
+  }
+  function statusPillClass(status) {
+    const good = ['ACTIVA', 'EXITOSO', 'AVAILABLE', 'completed', 'COMPLETED'];
+    const bad = ['PAGO_FALLIDO', 'FALLIDO', 'UNAVAILABLE', 'error', 'ERROR'];
+    if (good.includes(status)) return 'good';
+    if (bad.includes(status)) return 'bad';
+    return 'pending';
+  }
+  function statusPill(status) {
+    return `<span class="status-pill ${statusPillClass(status)}">${status}</span>`;
   }
 
   /* ================= NAV ================= */
@@ -161,10 +179,20 @@
   $('#loadProfiles').addEventListener('click', async () => {
     const box = $('#profilesResult');
     const s = loadSession();
-    if (!s.accountId || !s.accessToken) return showResult(box, { error: 'Inicia sesión primero.' });
+    if (!s.accountId || !s.accessToken) return showError(box, 'Inicia sesión primero.');
     const { ok, status, data } = await api(CFG.USER, `/api/users/profiles/${s.accountId}`, { auth: true });
-    showResult(box, ok ? data : { error: errMsg(data, status) });
-    if (ok && data[0]) saveSession({ profileId: data[0].id });
+    if (!ok) return showError(box, errMsg(data, status));
+    box.innerHTML = data.length
+      ? `<div class="item-list">${data.map((p) => `
+        <div class="item-card">
+          <div class="item-head">
+            <span class="item-title">${escapeHtml(p.name)}</span>
+            ${p.isKids ? '<span class="tag">infantil</span>' : ''}
+          </div>
+          <div class="item-meta">perfil ${p.id} · creado ${fmtDate(p.createdAt)}</div>
+        </div>`).join('')}</div>`
+      : '<p class="empty-note">Esta cuenta todavía no tiene perfiles.</p>';
+    if (data[0]) saveSession({ profileId: data[0].id });
   });
 
   /* ================= CATALOG ================= */
@@ -297,7 +325,16 @@
       CFG.PLAYBACK,
       `/api/playback/token/${titleId}?${new URLSearchParams({ profileId, region })}`,
     );
-    showResult(box, ok ? data : { error: errMsg(data, status) });
+    if (!ok) return showError(box, errMsg(data, status));
+    const circuit = data.catalogCheck?.circuit;
+    box.innerHTML = kv([
+      ['Título', `${escapeHtml(data.titleName)} (id ${data.titleId})`],
+      ['Sesión', data.sessionId, 'mono'],
+      ['Expira en', `${data.expiresInSeconds}s (${fmtDate(data.expiresAt)})`],
+      ['Manifest', data.manifestUrl],
+      data.catalogCheck?.source && ['Fuente de disponibilidad', data.catalogCheck.source],
+      circuit && ['Circuit breaker hacia Catalog', `<span class="status-pill ${circuit === 'CLOSED' ? 'good' : 'bad'}">${circuit}</span>`],
+    ]);
   });
 
   $('#saveProgress').addEventListener('click', async () => {
@@ -322,7 +359,18 @@
       CFG.PLAYBACK,
       `/api/playback/resume/${profileId}?includeCompleted=true`,
     );
-    showResult(box, ok ? data : { error: errMsg(data, status) });
+    if (!ok) return showError(box, errMsg(data, status));
+    if (!data.length) { box.innerHTML = '<p class="empty-note">Sin progreso guardado para este perfil.</p>'; return; }
+    const names = await resolveTitleNames(data.map((r) => r.titleId));
+    box.innerHTML = `<div class="item-list">${data.map((r) => `
+      <div class="item-card">
+        <div class="item-head">
+          <span class="item-title">${escapeHtml(names[r.titleId])}</span>
+          ${r.completed ? '<span class="tag">visto</span>' : `<span class="tag">${r.percentWatched ?? 0}%</span>`}
+        </div>
+        <div class="item-meta">${r.positionSeconds}s${r.durationSeconds ? ' / ' + r.durationSeconds + 's' : ''} · actualizado ${fmtDate(r.updatedAt)}</div>
+        <div class="progress-bar"><div style="width:${r.percentWatched ?? 0}%"></div></div>
+      </div>`).join('')}</div>`;
   });
 
   /* ================= MEDIA PROCESSING ================= */
@@ -347,7 +395,14 @@
     const box = $('#jobResult');
     const jobId = $('#m_jobId').value.trim();
     const { ok, status, data } = await api(CFG.MEDIA, `/api/media/jobs/${jobId}`);
-    showResult(box, ok ? data : { error: errMsg(data, status) });
+    if (!ok) return showError(box, errMsg(data, status));
+    box.innerHTML = kv([
+      ['Job', data.id, 'mono'],
+      ['Título', data.title_id],
+      ['Estado', statusPill(data.status)],
+      ['Creado', fmtDate(data.created_at)],
+      ['Actualizado', fmtDate(data.updated_at)],
+    ]);
   });
 
   /* ================= RECOMMENDATION ================= */
@@ -380,10 +435,20 @@
     const box = $('#similarResult');
     const titleId = $('#rc_titleId').value.trim();
     const { ok, status, data } = await api(CFG.RECOMMENDATION, `/api/recommendations/titles/${titleId}/similar`);
-    showResult(box, ok ? data : { error: errMsg(data, status) });
+    if (!ok) return showError(box, errMsg(data, status));
+    if (!data.length) { box.innerHTML = '<p class="empty-note">Sin títulos parecidos todavía (falta sincronizar embeddings).</p>'; return; }
+    const names = await resolveTitleNames(data.map((i) => i.titleId));
+    box.innerHTML = `<div class="item-list">${data.map((i) => `
+      <div class="item-card">
+        <div class="item-head"><span class="item-title">${escapeHtml(names[i.titleId])}</span></div>
+        <div class="item-meta">similitud ${(i.similarity * 100).toFixed(1)}%</div>
+      </div>`).join('')}</div>`;
   });
 
   /* ================= BILLING ================= */
+  function renderPayment(p) {
+    return p ? `${p.amount.toFixed(2)} USD ${statusPill(p.status)}${p.paidAt ? ' · ' + fmtDate(p.paidAt) : ''}` : 's/pagos';
+  }
   $('#subscribe').addEventListener('click', async () => {
     const box = $('#subscribeResult');
     const { ok, status, data } = await api(CFG.BILLING, '/api/billing/subscribe', {
@@ -394,8 +459,15 @@
         cardNumber: $('#b_card').value.trim(),
       },
     });
-    showResult(box, ok ? data : { error: errMsg(data, status) });
-    if (data && data.id) $('#w_subscriptionId').value = data.id;
+    if (!ok) return showError(box, errMsg(data, status));
+    box.innerHTML = kv([
+      ['Suscripción', data.id, 'mono'],
+      ['Plan', data.plan],
+      ['Estado', statusPill(data.status)],
+      ['Próximo cobro', fmtDate(data.nextBillingDate)],
+      ['Último pago', renderPayment(data.payments?.[0])],
+    ]);
+    if (data.id) $('#w_subscriptionId').value = data.id;
   });
 
   $('#sendWebhook').addEventListener('click', async () => {
@@ -415,7 +487,18 @@
     const box = $('#historyResult');
     const accountId = $('#b_accountId').value.trim();
     const { ok, status, data } = await api(CFG.BILLING, `/api/billing/history/${accountId}`);
-    showResult(box, ok ? data : { error: errMsg(data, status) });
+    if (!ok) return showError(box, errMsg(data, status));
+    if (!data.length) { box.innerHTML = '<p class="empty-note">Esta cuenta no tiene suscripciones.</p>'; return; }
+    box.innerHTML = `<div class="item-list">${data.map((sub) => `
+      <div class="item-card">
+        <div class="item-head">
+          <span class="item-title">Suscripción ${sub.id} · ${sub.plan}</span>
+          ${statusPill(sub.status)}
+        </div>
+        <div class="item-meta">próximo cobro ${fmtDate(sub.nextBillingDate)} · creada ${fmtDate(sub.createdAt)}</div>
+        ${(sub.payments || []).map((p) => `
+          <div class="episode-row"><span>${renderPayment(p)}</span></div>`).join('') || '<div class="episode-row"><span>Sin pagos registrados</span></div>'}
+      </div>`).join('')}</div>`;
   });
 
   renderSession();
