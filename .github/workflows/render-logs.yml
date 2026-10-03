@@ -1,0 +1,37 @@
+# Diagnóstico: muestra los logs recientes de un servicio de Render que
+# contengan un texto (por defecto, los intentos de conexión a RabbitMQ).
+name: Render - logs recientes
+
+on:
+  workflow_dispatch:
+    inputs:
+      secret_suffix:
+        description: Sufijo del secreto RENDER_SERVICE_ID_<sufijo>
+        required: true
+        default: NOTIFICATION
+      text:
+        description: Texto a buscar en los logs
+        required: true
+        default: RabbitMQ
+
+jobs:
+  logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Logs del servicio
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: ${{ secrets[format('RENDER_SERVICE_ID_{0}', inputs.secret_suffix)] }}
+          TEXT: ${{ inputs.text }}
+        run: |
+          set -euo pipefail
+          API=https://api.render.com/v1
+          AUTH="Authorization: Bearer $RENDER_API_KEY"
+          OWNER=$(curl -fsS "$API/services/$SERVICE_ID" -H "$AUTH" | jq -r .ownerId)
+          curl -fsS -G "$API/logs" -H "$AUTH" \
+            --data-urlencode "ownerId=$OWNER" \
+            --data-urlencode "resource=$SERVICE_ID" \
+            --data-urlencode "text=$TEXT" \
+            --data-urlencode "limit=20" \
+            | jq -r '.logs[] | "\(.timestamp)  \(.message)"' \
+            | sed -E 's#(amqps?://)[^@ ]*@#\1***@#g'
