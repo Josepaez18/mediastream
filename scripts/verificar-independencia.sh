@@ -2,9 +2,10 @@
 # ============================================================================
 # verificar-independencia.sh
 #
-# Comprueba que los seis microservicios de MediaStream (User, Catalog,
-# Playback, Media Processing, Recommendation y Billing) sean realmente
-# independientes y no un monolito distribuido disfrazado.
+# Comprueba que los ocho microservicios de MediaStream (User, Catalog,
+# Playback, Media Processing, Recommendation, Billing, Notification y
+# Analytics) y el API Gateway sean realmente independientes y no un
+# monolito distribuido disfrazado.
 #
 # Uso (desde la carpeta MediaStream, con Git Bash o WSL):
 #   bash scripts/verificar-independencia.sh
@@ -29,7 +30,10 @@ BASES=(
   "media-db|media_user|media_processing_db|media_job"
   "recommendation-db|reco_user|recommendation_db|content_embedding"
   "billing-db|billing_service|billing_service_db|subscriptions"
+  "analytics-db|analytics_user|analytics_db|hours_watched_daily"
 )
+# Notification-Service no tiene base relacional (usa Redis) y el API Gateway
+# no guarda estado: no aparecen en esta prueba.
 
 tablas_de() {
   docker exec "$1" psql -U "$2" -d "$3" -tAc \
@@ -62,7 +66,7 @@ paso "Reiniciando SOLO playback-service..."
 docker compose restart playback-service > /dev/null 2>&1
 sleep 8
 
-for par in "3001|user-service" "3002|catalog-service" "3004|media-processing-service" "3005|recommendation-service" "3006|billing-service"; do
+for par in "3001|user-service" "3002|catalog-service" "3004|media-processing-service" "3005|recommendation-service" "3006|billing-service" "3007|notification-service" "3008|analytics-service" "8080|api-gateway"; do
   IFS='|' read -r puerto nombre <<< "$par"
   if curl -sf "http://localhost:$puerto/health" > /dev/null; then
     echo "$OK $nombre siguió respondiendo durante el reinicio de playback"
@@ -103,6 +107,25 @@ else
   echo "$FAIL billing-service dejó de responder sin el catálogo"; fallos=$((fallos+1))
 fi
 
+if curl -sf http://localhost:3007/health > /dev/null; then
+  echo "$OK notification-service sigue vivo sin el catálogo (avisa con un texto genérico)"
+else
+  echo "$FAIL notification-service se cayó sin el catálogo"; fallos=$((fallos+1))
+fi
+
+if [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3008/api/analytics/kpis)" = "200" ]; then
+  echo "$OK analytics-service sigue sirviendo los últimos KPIs calculados"
+else
+  echo "$FAIL analytics-service dejó de responder sin el catálogo"; fallos=$((fallos+1))
+fi
+
+codigo_gw=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/catalog/titles)
+if [ "$codigo_gw" = "502" ] && curl -sf http://localhost:8080/health > /dev/null; then
+  echo "$OK el API Gateway responde 502 solo en las rutas de Catalog y sigue atendiendo las demás"
+else
+  echo "$FAIL el API Gateway no aisló la caída de Catalog (HTTP $codigo_gw)"; fallos=$((fallos+1))
+fi
+
 paso "¿Degrada correctamente? (reintentos, circuit breaker y última información conocida, secciones 4.5–4.7)"
 respuesta=$(curl -s -w "\n%{http_code}" \
   "http://localhost:3003/api/playback/token/1?profileId=test&region=CO")
@@ -135,7 +158,7 @@ else
   echo "  [AVISO] catalog-service aún está arrancando, dale unos segundos más"
 fi
 
-titulo "PRUEBA 4 — Billing avisa a User aunque User esté caído"
+titulo "PRUEBA 4 — Billing avisa a User y a Notification aunque User esté caído"
 
 # Cuenta inventada: User la ignora (no existe) y no toca ninguna cuenta real.
 CUENTA_PRUEBA=999999999
@@ -158,12 +181,25 @@ else
   echo "$FAIL Billing respondió HTTP $codigo"; fallos=$((fallos+1))
 fi
 
-sleep 6  # el panel de RabbitMQ actualiza sus contadores cada ~5 s
-pendientes=$(mensajes_en_cola)
+# El panel de RabbitMQ actualiza sus contadores cada ~5 s: se consulta
+# varias veces en vez de confiar en una sola lectura.
+pendientes=0
+for _ in $(seq 1 10); do
+  sleep 3
+  pendientes=$(mensajes_en_cola)
+  [ "${pendientes:-0}" -ge 1 ] && break
+done
 if [ "${pendientes:-0}" -ge 1 ]; then
   echo "$OK payment.failed espera en la cola user_service.payment_failed ($pendientes mensaje/s)"
 else
   echo "$FAIL No hay mensajes esperando en la cola: el evento se perdió"; fallos=$((fallos+1))
+fi
+
+paso "Notification recibió su propia copia del evento (otra cola, mismo exchange):"
+if curl -s "http://localhost:3007/api/notifications/0?accountId=$CUENTA_PRUEBA" | grep -q '"PAYMENT_FAILED"'; then
+  echo "$OK Notification avisó del pago rechazado sin esperar a User"
+else
+  echo "$FAIL Notification no registró el aviso del pago rechazado"; fallos=$((fallos+1))
 fi
 
 paso "Levantando user-service de nuevo: debe consumir lo pendiente..."
@@ -179,10 +215,11 @@ fi
 titulo "PRUEBA 5 — Sin código compartido"
 
 paso "Buscando imports cruzados entre servicios..."
-cruces=$(grep -rnE "from ['\"].*\.\./\.\./(user|catalog|playback|media-processing|recommendation|billing)-service" \
-  user-service/src catalog-service/src playback-service/src billing-service/src 2>/dev/null | wc -l)
+cruces=$(grep -rnE "from ['\"].*\.\./\.\./((user|catalog|playback|media-processing|recommendation|billing|notification|analytics)-service|api-gateway)" \
+  user-service/src catalog-service/src playback-service/src billing-service/src \
+  notification-service/src api-gateway/src 2>/dev/null | wc -l)
 cruces_py=$(grep -rnE "(catalog|playback|user|billing)[-_]service" --include=*.py \
-  media-processing-service/app recommendation-service/app 2>/dev/null | grep -E "^[^:]+:[0-9]+:(from|import) " | wc -l)
+  media-processing-service/app recommendation-service/app analytics-service/app 2>/dev/null | grep -E "^[^:]+:[0-9]+:(from|import) " | wc -l)
 if [ "$cruces" -eq 0 ] && [ "$cruces_py" -eq 0 ]; then
   echo "$OK Ningún servicio importa código fuente de otro"
 else
@@ -192,8 +229,10 @@ fi
 paso "¿Cada servicio declara sus propias dependencias?"
 if [ -f user-service/package.json ] && [ -f catalog-service/package.json ] \
    && [ -f playback-service/package.json ] && [ -f media-processing-service/requirements.txt ] \
-   && [ -f recommendation-service/requirements.txt ] && [ -f billing-service/package.json ]; then
-  echo "$OK Seis manifiestos de dependencias independientes (4 Node.js + 2 Python)"
+   && [ -f recommendation-service/requirements.txt ] && [ -f billing-service/package.json ] \
+   && [ -f notification-service/package.json ] && [ -f analytics-service/requirements.txt ] \
+   && [ -f api-gateway/package.json ]; then
+  echo "$OK Nueve manifiestos de dependencias independientes (6 Node.js + 3 Python)"
 else
   echo "$FAIL Falta algún manifiesto de dependencias"; fallos=$((fallos+1))
 fi

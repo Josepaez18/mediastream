@@ -19,6 +19,9 @@
 #   media-processing-service   localhost:3004        media-db     :5436
 #   recommendation-service     localhost:3005        recommendation-db :5437 (pgvector)
 #   billing-service            localhost:3006        billing-db   :5438
+#   notification-service       localhost:3007        (sin base: Redis)
+#   analytics-service          localhost:3008        analytics-db :5439
+#   api-gateway                localhost:8080        (sin base)
 #
 # Uso:
 #   docker compose up -d --build                  → levanta todo
@@ -38,6 +41,8 @@ services:
   #               de Playback a Recommendation
   #   RabbitMQ  → media.ready, media.processing.failed, payment.failed
   #               (no pueden perderse: persistencia + ack + reintento)
+  #               payment.failed va al exchange billing.events: User y
+  #               Notification reciben cada uno su copia en su propia cola.
 
   redis:
     image: redis:7-alpine
@@ -335,8 +340,10 @@ services:
 
   # ------------------------------------------------------------ billing-service
   # Suscripciones y pagos (pasarela Stripe simulada). Cuando un cobro es
-  # rechazado publica payment.failed en la cola user_service.payment_failed
-  # del RabbitMQ compartido: User-Service la consume y restringe la cuenta.
+  # rechazado publica payment.failed en el exchange billing.events del
+  # RabbitMQ compartido: User-Service lo recibe en su cola
+  # user_service.payment_failed y restringe la cuenta; Notification-Service,
+  # en la suya, y avisa al usuario.
   # Billing no llama a User ni conoce su base de datos (account_id es solo
   # una referencia lógica).
 
@@ -385,6 +392,115 @@ services:
     networks:
       - mediastream-net
 
+  # ------------------------------------------------------- notification-service
+  # Sin base de datos relacional: Redis guarda el historial y deduplica.
+  # Escucha media.ready y payment.failed (RabbitMQ, cola propia en cada
+  # exchange) y playback.completed (Redis Pub/Sub). Le pide a Catalog el
+  # nombre del título solo para el texto del aviso; si Catalog cae, avisa
+  # igual con un texto genérico.
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    environment:
+      PORT: 3007
+      REDIS_URL: "redis://redis:6379"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      CATALOG_SERVICE_URL: "http://catalog-service:3002"
+      CORS_ORIGINS: "*"
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      # NO depende de ningún otro servicio: si Notification está caído, sus
+      # eventos esperan en sus colas de RabbitMQ.
+    networks:
+      - mediastream-net
+
+  # ---------------------------------------------------------- analytics-service
+  # Base PROPIA para los KPIs. El ETL periódico lee Playback-DB y Catalog-DB
+  # como "réplicas de solo lectura" (sección 3): la conexión se abre con
+  # default_transaction_read_only, así que no puede escribir en ellas. En
+  # producción estas URLs apuntarían a réplicas reales.
+
+  analytics-db:
+    image: postgres:16-alpine
+    container_name: analytics-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: analytics_user
+      POSTGRES_PASSWORD: analytics_pass
+      POSTGRES_DB: analytics_db
+    ports:
+      - "5439:5432"
+    volumes:
+      - analytics_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics_user -d analytics_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  analytics-service:
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    container_name: analytics-service
+    restart: unless-stopped
+    ports:
+      - "3008:3008"
+    environment:
+      PORT: 3008
+      DATABASE_URL: "postgresql+psycopg2://analytics_user:analytics_pass@analytics-db:5432/analytics_db"
+      PLAYBACK_REPLICA_URL: "postgresql+psycopg2://playback_user:playback_pass@playback-db:5432/playback_db"
+      CATALOG_REPLICA_URL: "postgresql+psycopg2://catalog_user:catalog_pass@catalog-db:5432/catalog_db"
+      ETL_INTERVAL_SECONDS: 60
+      CORS_ORIGINS: "*"
+    depends_on:
+      analytics-db:
+        condition: service_healthy
+      # NO depende de playback-db ni de catalog-db para arrancar: si no
+      # responden, el ETL falla, queda en etl_run y se reintenta.
+    networks:
+      - mediastream-net
+
+  # ---------------------------------------------------------------- api-gateway
+  # Único punto de entrada (sección 5): enruta por prefijo, valida el
+  # AccessToken (mismo JWT_ACCESS_SECRET que User), aplica rate limiting y
+  # propaga el request-id. Sin estado ni base de datos, y sin depends_on: si
+  # un servicio está caído, solo sus rutas responden 502.
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      JWT_ACCESS_SECRET: "dev-access-secret"
+      USER_SERVICE_URL: "http://user-service:3001"
+      CATALOG_SERVICE_URL: "http://catalog-service:3002"
+      PLAYBACK_SERVICE_URL: "http://playback-service:3003"
+      MEDIA_SERVICE_URL: "http://media-processing-service:3004"
+      RECOMMENDATION_SERVICE_URL: "http://recommendation-service:3005"
+      BILLING_SERVICE_URL: "http://billing-service:3006"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3007"
+      ANALYTICS_SERVICE_URL: "http://analytics-service:3008"
+      CORS_ORIGINS: "*"
+    networks:
+      - mediastream-net
+
 volumes:
   user_db_data:
   catalog_db_data:
@@ -392,6 +508,7 @@ volumes:
   media_db_data:
   recommendation_db_data:
   billing_db_data:
+  analytics_db_data:
 
 networks:
   mediastream-net:

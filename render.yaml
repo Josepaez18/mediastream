@@ -13,7 +13,7 @@
 # Usuario de GitHub configurado: josepaez18.
 # =============================================================================
 
-# URLs públicas de los seis servicios. Todas las consolas las leen desde
+# URLs públicas de los servicios. Todas las consolas las leen desde
 # /config.js para enlazarse entre sí, y cada servicio las usa como lista de
 # orígenes permitidos por CORS (sección 10). Playback y Recommendation llaman
 # a Catalog por PUBLIC_CATALOG_URL (en el plan gratis los servicios no
@@ -37,6 +37,16 @@ envVarGroups:
         value: https://mediastream-recommendation-rvk4.onrender.com
       - key: PUBLIC_BILLING_URL
         value: https://mediastream-billing-c7bf.onrender.com
+      # Notification, Analytics y el Gateway todavía no se han creado en
+      # Render: estas URLs son las esperadas. Si Render les asigna otro slug
+      # (p. ej. con un sufijo como "-3um7"), corrígelas aquí y en
+      # frontend/config.js.
+      - key: PUBLIC_NOTIFICATION_URL
+        value: https://mediastream-notification.onrender.com
+      - key: PUBLIC_ANALYTICS_URL
+        value: https://mediastream-analytics.onrender.com
+      - key: PUBLIC_GATEWAY_URL
+        value: https://mediastream-gateway.onrender.com
       # Único frontend de la aplicación (Static Site, más abajo). Es el único
       # origen que necesita permiso de CORS: ya no hay una consola por
       # servicio, así que nada más llama a estas APIs desde el navegador.
@@ -271,3 +281,92 @@ services:
       # Pasarela simulada: no se usa una clave real de Stripe (ver README).
       - key: STRIPE_SECRET_KEY
         value: sk_test_no_usada_en_esta_simulacion
+
+  # -------------------------------------------------------- Notification
+  # Sin base de datos relacional: Redis (deduplicación + historial).
+  - type: web
+    name: mediastream-notification
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-notification-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3007"
+      - key: NODE_ENV
+        value: production
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: mediastream-redis
+          property: connectionString
+      - key: RABBITMQ_URL
+        sync: false # URL AMQP de CloudAMQP
+      # Catalog se alcanza por PUBLIC_CATALOG_URL (del grupo de URLs).
+
+  # ----------------------------------------------------------- Analytics
+  # Su base propia (analytics_db) más las "réplicas" de Playback y Catalog:
+  # en el plan gratis no hay réplicas de lectura, así que lee las bases
+  # originales en la misma instancia, siempre en modo solo lectura.
+  - type: web
+    name: mediastream-analytics
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-analytics-service:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "3008"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mediastream-db
+          property: connectionString
+      - key: DATABASE_NAME
+        value: analytics_db
+      - key: PLAYBACK_REPLICA_DATABASE_NAME
+        value: playback_db
+      - key: CATALOG_REPLICA_DATABASE_NAME
+        value: catalog_db
+      - key: ETL_INTERVAL_SECONDS
+        value: "300"
+
+  # ------------------------------------------------------------- Gateway
+  # Único punto de entrada (sección 5). Reenvía a cada servicio por su
+  # PUBLIC_*_URL y valida los AccessToken con el mismo secreto que los firma
+  # User-Service (se toma de ese servicio, no se duplica a mano).
+  - type: web
+    name: mediastream-gateway
+    runtime: image
+    image:
+      url: ghcr.io/josepaez18/mediastream-api-gateway:main
+      creds:
+        fromRegistryCreds:
+          name: ghcr-mediastream
+    plan: free
+    region: virginia
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mediastream-urls
+      - key: PORT
+        value: "8080"
+      - key: NODE_ENV
+        value: production
+      - key: JWT_ACCESS_SECRET
+        fromService:
+          type: web
+          name: mediastream-user
+          envVarKey: JWT_ACCESS_SECRET

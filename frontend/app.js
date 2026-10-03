@@ -23,10 +23,14 @@
     const s = loadSession();
     $('#sessAccount').textContent = s.accountId ? `cuenta ${s.accountId}` : 'sin cuenta';
     $('#sessProfile').textContent = s.profileId ? `perfil ${s.profileId}` : 'sin perfil';
-    if (s.accountId) $('#b_accountId').value = s.accountId;
+    if (s.accountId) {
+      $('#b_accountId').value = s.accountId;
+      $('#n_accountId').value = s.accountId;
+    }
     if (s.profileId) {
       $('#p_profileId').value = s.profileId;
       $('#rc_profileId').value = s.profileId;
+      $('#n_profileId').value = s.profileId;
     }
   }
   function decodeJwtPayload(token) {
@@ -113,6 +117,8 @@
   $('#mediaUrlLabel').textContent = CFG.MEDIA;
   $('#recommendationUrlLabel').textContent = CFG.RECOMMENDATION;
   $('#billingUrlLabel').textContent = CFG.BILLING;
+  $('#notificationUrlLabel').textContent = CFG.NOTIFICATION;
+  $('#analyticsUrlLabel').textContent = CFG.ANALYTICS;
 
   /* ================= HOME: STATUS ================= */
   const SERVICES = [
@@ -122,6 +128,9 @@
     { key: 'MEDIA', name: 'Media Processing' },
     { key: 'RECOMMENDATION', name: 'Recommendation' },
     { key: 'BILLING', name: 'Billing' },
+    { key: 'NOTIFICATION', name: 'Notification' },
+    { key: 'ANALYTICS', name: 'Analytics' },
+    { key: 'GATEWAY', name: 'API Gateway' },
   ];
   function buildStatusGrid() {
     const grid = $('#statusGrid');
@@ -527,6 +536,96 @@
         ${(sub.payments || []).map((p) => `
           <div class="episode-row"><span>${renderPayment(p)}</span></div>`).join('') || '<div class="episode-row"><span>Sin pagos registrados</span></div>'}
       </div>`).join('')}</div>`;
+  });
+
+  /* ================= NOTIFICATION ================= */
+  const NOTIFICATION_LABELS = {
+    NEW_RELEASE: 'estreno',
+    CONTINUE_WATCHING: 'sigue viendo',
+    PAYMENT_FAILED: 'pago',
+  };
+  $('#loadNotifications').addEventListener('click', async () => {
+    const box = $('#notificationsResult');
+    const profileId = $('#n_profileId').value.trim();
+    const accountId = $('#n_accountId').value.trim();
+    if (!profileId) return showError(box, 'Indica el id del perfil.');
+    const params = new URLSearchParams({ limit: '50' });
+    if (accountId) params.set('accountId', accountId);
+    const { ok, status, data } = await api(CFG.NOTIFICATION, `/api/notifications/${encodeURIComponent(profileId)}?${params}`);
+    if (!ok) return showError(box, errMsg(data, status));
+    if (!data.length) { box.innerHTML = '<p class="empty-note" style="margin-top:10px;">Todavía no hay notificaciones para este perfil.</p>'; return; }
+    box.innerHTML = `<div class="item-list">${data.map((n) => `
+      <div class="item-card">
+        <div class="item-head">
+          <span class="item-title">${escapeHtml(n.title)}</span>
+          <span class="status-pill ${n.type === 'PAYMENT_FAILED' ? 'bad' : n.type === 'NEW_RELEASE' ? 'good' : 'pending'}">${NOTIFICATION_LABELS[n.type] || n.type}</span>
+        </div>
+        <div class="item-meta" style="color:var(--ink-dim); font-size:12.5px; margin-bottom:4px;">${escapeHtml(n.message)}</div>
+        <div class="item-meta">${n.channels.join(' + ')} · por ${escapeHtml(n.sourceEvent)} · ${new Date(n.createdAt).toLocaleString('es-CO')}</div>
+      </div>`).join('')}</div>`;
+  });
+
+  /* ================= ANALYTICS ================= */
+  function bars(rows, max) {
+    return rows.map((r) => `
+      <div class="bar-row">
+        <span class="bar-label" title="${escapeHtml(r.label)}">${escapeHtml(r.label)}</span>
+        <span class="bar-track"><span class="bar-fill" style="display:block; width:${max ? (r.value / max) * 100 : 0}%"></span></span>
+        <span class="bar-value">${r.display}</span>
+      </div>`).join('');
+  }
+  function etlLine(run) {
+    if (!run) return 'El ETL todavía no se ha ejecutado.';
+    const when = run.finishedAt ? new Date(run.finishedAt).toLocaleString('es-CO') : '—';
+    return run.status === 'success'
+      ? `Último ETL: ${when} (correcto).`
+      : `Último ETL: ${when} — falló: ${run.error || 'sin detalle'}`;
+  }
+  async function loadKpis() {
+    const box = $('#kpisResult');
+    const region = $('#a_region').value.trim();
+    const params = new URLSearchParams({ limit: '10' });
+    if (region) params.set('region', region);
+    const { ok, status, data } = await api(CFG.ANALYTICS, `/api/analytics/kpis?${params}`);
+    if (!ok) return showError(box, errMsg(data, status));
+
+    const titleLabel = (r) => r.titleName || `título ${r.titleId}`;
+    const daily = data.hoursWatchedDaily.slice(-14);
+    const maxHours = Math.max(0, ...daily.map((d) => d.hours));
+    const maxViews = Math.max(0, ...data.popularityByRegion.map((p) => p.views));
+
+    box.innerHTML = `
+      <p class="empty-note" style="margin-top:4px;">${escapeHtml(etlLine(data.lastEtl))}</p>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-value">${data.totals.hoursWatched.toLocaleString('es-CO')}</div><div class="kpi-label">horas vistas en total</div></div>
+        <div class="kpi"><div class="kpi-value">${data.totals.activeProfiles}</div><div class="kpi-label">perfiles con actividad</div></div>
+        <div class="kpi"><div class="kpi-value">${data.totals.titlesWatched}</div><div class="kpi-label">títulos vistos</div></div>
+      </div>
+
+      <div class="detail-section-title">Horas vistas por día</div>
+      ${daily.length ? bars(daily.map((d) => ({ label: fmtDate(d.date + 'T12:00:00'), value: d.hours, display: d.hours.toFixed(2) + ' h' })), maxHours) : '<p class="empty-note">Sin datos todavía.</p>'}
+
+      <div class="detail-section-title">Popularidad por región${region ? ' · ' + escapeHtml(region.toUpperCase()) : ''}</div>
+      ${data.popularityByRegion.length ? bars(data.popularityByRegion.map((p) => ({ label: `${titleLabel(p)} · ${p.region}`, value: p.views, display: p.views + ' perf.' })), maxViews) : '<p class="empty-note">Sin datos todavía.</p>'}
+
+      <div class="detail-section-title">Tasa de abandono (más alta primero)</div>
+      ${data.abandonmentByEpisode.length ? bars(data.abandonmentByEpisode.map((a) => ({
+        label: `${titleLabel(a)}${a.episodeId ? ' · ep. ' + a.episodeId : ''}`,
+        value: a.abandonmentRate,
+        display: Math.round(a.abandonmentRate * 100) + '% de ' + a.viewers,
+      })), 1) : '<p class="empty-note">Sin datos todavía.</p>'}
+      ${data.regions.length ? `<p class="empty-note" style="margin-top:12px;">Regiones con datos: ${data.regions.map(escapeHtml).join(', ')}</p>` : ''}
+    `;
+  }
+  $('#loadKpis').addEventListener('click', loadKpis);
+  $('#runEtl').addEventListener('click', async () => {
+    const msg = $('#etlMsg');
+    showMsg(msg, 'Ejecutando ETL…', true);
+    const { ok, status, data } = await api(CFG.ANALYTICS, '/api/analytics/etl/run', { method: 'POST' });
+    if (!ok) return showMsg(msg, errMsg(data, status), false);
+    const rows = Object.entries(data.rowsLoaded).map(([t, n]) => `${t}: ${n}`).join(' · ');
+    showMsg(msg, `ETL completado (${rows}).`, true);
+    loadKpis();
   });
 
   renderSession();

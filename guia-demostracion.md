@@ -1,4 +1,4 @@
-# Guía de demostración — MediaStream (6 microservicios)
+# Guía de demostración — MediaStream (8 microservicios + API Gateway)
 
 Todos los comandos se ejecutan en **cmd**, desde la carpeta **`MediaStream`** (la que
 contiene `docker-compose.yml` y las seis carpetas de servicios).
@@ -15,6 +15,9 @@ cd C:\Users\ASUS\OneDrive\Desktop\MediaStream
 | Media Processing | http://localhost:3004 | rosa |
 | Recommendation | http://localhost:3005 | verde azulado |
 | Billing | http://localhost:3006 | lima |
+| Notification | http://localhost:3007/docs | (sin consola: sección *Notificaciones* del frontend) |
+| Analytics | http://localhost:3008/docs | (sin consola: sección *Analítica* del frontend) |
+| API Gateway | http://localhost:8080 | (sin consola: `GET /` muestra sus rutas) |
 
 ---
 
@@ -53,8 +56,8 @@ Espera a que RabbitMQ termine de arrancar (~30 segundos) y verifica:
 docker compose ps
 ```
 
-Deben aparecer **14 contenedores** en `running`: 6 servicios, 6 bases de datos,
-Redis y RabbitMQ.
+Deben aparecer **18 contenedores** en `running`: 8 servicios, el API Gateway, 7 bases
+de datos (Notification no tiene: usa Redis), Redis y RabbitMQ.
 
 ### 3. Comprobar las seis consolas
 
@@ -317,6 +320,66 @@ compensatoria del patrón Saga, y va por RabbitMQ porque ese evento no puede per
 
 ---
 
+### Paso 9b — Notification: avisos que nadie pidió explícitamente (`localhost:3007`)
+
+Notification no tiene endpoints para crear avisos: solo escucha eventos.
+
+```
+curl "http://localhost:3007/api/notifications/1?accountId=2"
+```
+
+Aparecen, sin que nadie se lo haya pedido:
+
+- **Nuevo estreno: El Último Meridiano** — por el `media.ready` del paso 5 (el mismo evento
+  que hizo AVAILABLE el título en Catalog, pero en **otra cola**, la de Notification).
+- **No pudimos procesar tu pago** — uno por cada rechazo de Beto en el paso 9 (cuenta 2),
+  por el mismo `payment.failed` que restringió la cuenta en User.
+
+En http://localhost:15672 → **Exchanges** → `billing.events` → *Bindings*: dos colas,
+`user_service.payment_failed` y `notification_service.payment_failed`.
+
+Frase clave: *"Billing publicó un solo evento y no sabe cuántos lo escuchan. User restringe
+la cuenta y Notification avisa, cada uno desde su propia cola. Agregar Notification no
+obligó a tocar a User."*
+
+### Paso 9c — Analytics: KPIs sin tocar las bases en vivo (`localhost:3008`)
+
+```
+curl -X POST http://localhost:3008/api/analytics/etl/run
+curl "http://localhost:3008/api/analytics/kpis?region=CO"
+```
+
+Muestra horas vistas, tasa de abandono y popularidad en CO con lo que se reprodujo en los
+pasos 7 y 8. Explica que el ETL lee Playback-DB y Catalog-DB como **réplicas de solo
+lectura**:
+
+```
+docker compose exec analytics-db psql -U analytics_user -d analytics_db -c "select status, rows_loaded from etl_run order by id desc limit 3"
+```
+
+Frase clave: *"Es el único servicio que lee bases ajenas, y lo hace en modo solo lectura,
+sobre réplicas, cada cierto tiempo. Las consultas pesadas no le quitan recursos a la
+reproducción."*
+
+### Paso 9d — API Gateway: una sola puerta (`localhost:8080`)
+
+```
+curl http://localhost:8080/
+curl -i http://localhost:8080/api/playback/resume/1
+```
+
+Sin token: **401**. Inicia sesión **a través del Gateway** y repite con el token:
+
+```
+curl -X POST http://localhost:8080/api/users/login -H "Content-Type: application/json" -d "{\"email\":\"ana@correo.com\",\"password\":\"clave-segura-123\"}"
+curl -i http://localhost:8080/api/playback/resume/1 -H "Authorization: Bearer <accessToken>"
+```
+
+Señala las cabeceras `x-request-id` y `X-RateLimit-Remaining`. Repite el login 11 veces
+seguidas: la undécima responde **429** (límite estricto en endpoints sensibles).
+
+---
+
 ### Paso 10 — Independencia: el momento fuerte
 
 Antes de apagar nada, crea en **Catalog** un título más (`Estreno pendiente`,
@@ -413,8 +476,9 @@ Con Git Bash:
 bash scripts/verificar-independencia.sh
 ```
 
-Revisa las seis bases, reinicia servicios, comprueba que `payment.failed` espere en la
-cola con User apagado y busca imports cruzados. Tarda ~1 minuto y apaga/enciende Catalog
+Revisa las siete bases, reinicia servicios, comprueba que todos sobrevivan a la caída de
+Catalog (el Gateway responde 502 solo en sus rutas), que `payment.failed` espere en la
+cola con User apagado mientras Notification avisa igual, y busca imports cruzados. Tarda ~1 minuto y apaga/enciende Catalog
 y User: ensáyalo antes. Crea una suscripción de prueba para la cuenta `999999999`, que
 User ignora porque no existe.
 
@@ -426,6 +490,8 @@ User ignora porque no existe.
 - http://localhost:3004/docs (FastAPI la genera sola)
 - http://localhost:3005/docs (FastAPI la genera sola)
 - http://localhost:3006/docs
+- http://localhost:3007/docs
+- http://localhost:3008/docs (FastAPI la genera sola)
 
 ---
 

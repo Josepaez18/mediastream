@@ -1,9 +1,9 @@
 # MediaStream
 
 Plataforma de streaming construida como microservicios. Cada servicio es autónomo:
-tiene su propia base de datos, su propio ciclo de despliegue y no comparte código
-con los demás — ni siquiera el lenguaje: cuatro están hechos en Node.js/NestJS y dos
-en Python/FastAPI.
+tiene su propia base de datos (o ninguna), su propio ciclo de despliegue y no comparte
+código con los demás — ni siquiera el lenguaje: cinco están hechos en Node.js/NestJS y
+tres en Python/FastAPI. Delante de todos hay un API Gateway (NestJS).
 
 ```
 MediaStream/
@@ -14,6 +14,10 @@ MediaStream/
 ├── media-processing-service/      ← FastAPI · autónomo, con su propio compose
 ├── recommendation-service/        ← FastAPI + pgvector · autónomo, con su propio compose
 ├── billing-service/               ← NestJS · autónomo, con su propio compose
+├── notification-service/          ← NestJS + Redis (sin base relacional) · autónomo
+├── analytics-service/             ← FastAPI · ETL sobre réplicas de solo lectura · autónomo
+├── api-gateway/                   ← NestJS · punto de entrada único (sin estado)
+├── frontend/                      ← único frontend (HTML/CSS/JS estático)
 └── scripts/
     └── verificar-independencia.sh
 ```
@@ -26,7 +30,7 @@ MediaStream/
 docker compose up -d --build
 ```
 
-La primera vez tarda varios minutos (seis imágenes, más FFmpeg para Media).
+La primera vez tarda varios minutos (nueve imágenes, más FFmpeg para Media).
 
 | Servicio | Consola | Swagger | Base de datos | Responsabilidad |
 |---|---|---|---|---|
@@ -36,6 +40,9 @@ La primera vez tarda varios minutos (seis imágenes, más FFmpeg para Media).
 | Media Processing | http://localhost:3004 | `/docs` | `media_processing_db` · 5436 | Transcodificación con FFmpeg, publica `media.ready` |
 | Recommendation | http://localhost:3005 | `/docs` | `recommendation_db` · 5437 (pgvector) | Sugerencias híbridas: contenido + colaborativo |
 | Billing | http://localhost:3006 | `/docs` | `billing_service_db` · 5438 | Suscripciones, pagos (Stripe simulado), publica `payment.failed` |
+| Notification | http://localhost:3007 | `/docs` | — (Redis) | Avisos de estrenos, series en curso y pagos rechazados |
+| Analytics | http://localhost:3008 | `/docs` | `analytics_db` · 5439 | KPIs de audiencia con ETL sobre réplicas de Playback y Catalog |
+| **API Gateway** | http://localhost:8080 | — | — | Enrutamiento, JWT, rate limiting, request-id, CORS |
 | RabbitMQ (admin) | http://localhost:15672 | — | — | `guest` / `guest` |
 
 ## Trabajar en un solo servicio
@@ -50,6 +57,11 @@ docker compose up --build
 ---
 
 ## Las consolas
+
+> El frontend de la aplicación es uno solo (`frontend/`, en Render como Static Site), con una
+> sección por servicio, incluidas Notificaciones y Analítica. Las consolas por servicio que
+> se describen a continuación existen solo en los seis primeros servicios, como herramienta
+> de desarrollo.
 
 Las seis consolas web usan el mismo sistema visual (tipografía, estructura,
 componentes), pero cada servicio tiene su color para reconocerlo de un vistazo:
@@ -92,7 +104,16 @@ solo ven HTTP y eventos.
 ### Lo que SÍ se comparte (y está bien)
 
 **Redis y RabbitMQ.** Son el medio de comunicación, no un almacén de datos de
-dominio. Un servicio publica un evento sin saber quién lo escucha.
+dominio. Un servicio publica un evento sin saber quién lo escucha. (Notification usa
+además Redis como su almacenamiento ligero, con claves propias `notifications:*` y
+`dedup:*`.)
+
+**La excepción documentada: Analytics.** El documento lo define como un ETL sobre
+*réplicas de solo lectura* de Playback-DB y Catalog-DB. Lee esas bases con la conexión
+en modo `default_transaction_read_only` (no puede escribir), solo con `SELECT` sobre
+columnas concretas, y todas esas consultas viven en un único archivo
+(`analytics-service/app/etl/extract.py`). Así las consultas pesadas no compiten con los
+servicios transaccionales.
 
 **La red Docker** (`mediastream-net`), que solo permite que se resuelvan por nombre.
 
@@ -136,6 +157,12 @@ dominio. Un servicio publica un evento sin saber quién lo escucha.
 | Billing → User | RabbitMQ | `payment.failed` no puede perderse (restricción de acceso) |
 | Playback → Recommendation | Redis Pub/Sub | Alto volumen; perder un `progress` ocasional no importa |
 | Recommendation → Catalog | REST síncrono | Metadatos para los vectores y filtro de región; si falla, recomienda igual |
+| Billing → Notification | RabbitMQ | El mismo `payment.failed`, en una cola propia de Notification |
+| Media → Notification | RabbitMQ | El mismo `media.ready`, en una cola propia: aviso de estreno |
+| Playback → Notification | Redis Pub/Sub | `playback.completed` de un episodio: "sigue con el siguiente" |
+| Notification → Catalog | REST síncrono | Solo el nombre del título para el texto; si falla, avisa igual |
+| Analytics ← Playback-DB, Catalog-DB | ETL periódico (solo lectura) | Consultas pesadas fuera de los servicios transaccionales |
+| Cliente → Gateway → servicio | REST (proxy) | Punto de entrada único: JWT, rate limiting, request-id |
 
 ### Contrato del evento `media.ready`
 
@@ -153,10 +180,14 @@ fija este contrato.
 
 | | |
 |---|---|
-| Cola | `user_service.payment_failed` (durable, mensajes persistentes) |
-| Mensaje | `{"pattern": "payment.failed", "data": {"accountId": "1"}}` (formato de Nest) |
+| Exchange | `billing.events` (topic, durable) · routing key `payment.failed` · mensajes persistentes |
+| Mensaje | `{"pattern": "payment.failed", "data": {"accountId": "1", "eventId": "…", "occurredAt": "…"}}` (formato de Nest) |
 | Publica | Billing, cuando un cobro es rechazado (al suscribirse, al cambiar de plan o por webhook) |
-| Consume | User: 1.º y 2.º → cuenta `MOROSA`; 3.º → `SUSPENDIDA` (no puede iniciar sesión) |
+| Consume | User, en `user_service.payment_failed`: 1.º y 2.º → cuenta `MOROSA`; 3.º → `SUSPENDIDA` (no puede iniciar sesión) |
+| Consume | Notification, en `notification_service.payment_failed`: aviso a la cuenta (deduplicado por `eventId`) |
+
+Billing declara y enlaza la cola de User al publicar, así que el evento queda guardado
+aunque User no haya arrancado nunca. Notification declara y enlaza la suya.
 
 ### Tolerancia a fallos
 
@@ -179,6 +210,13 @@ eventos en Redis y sigue adelante.
 Si se cae User, Billing sigue cobrando: los `payment.failed` esperan en la cola y User
 los procesa al volver. Billing tampoco declara `depends_on: user-service`.
 
+Si se cae Notification, nadie se entera: sus eventos esperan en sus colas (salvo los
+`playback.completed` de Pub/Sub, que se pierden sin consecuencias). Si se cae Analytics,
+tampoco: nadie depende de él. Y si Playback-DB o Catalog-DB no responden, el ETL falla,
+queda registrado y el panel sigue mostrando los últimos KPIs.
+
+Si se cae un servicio detrás del API Gateway, solo sus rutas responden 502.
+
 ---
 
 ## Verificar que son independientes
@@ -187,10 +225,11 @@ los procesa al volver. Billing tampoco declara `depends_on: user-service`.
 bash scripts/verificar-independencia.sh
 ```
 
-Comprueba que cada una de las seis bases tenga solo sus tablas, que reiniciar un
-servicio no afecte a los otros, que Playback, Media, Recommendation y Billing sobrevivan
-a la caída de Catalog, que un `payment.failed` publicado con User apagado espere en la
-cola y se procese al volver, y que no haya imports cruzados. Apaga y enciende
+Comprueba que cada una de las siete bases tenga solo sus tablas, que reiniciar un
+servicio no afecte a los otros, que Playback, Media, Recommendation, Billing,
+Notification, Analytics y el Gateway sobrevivan a la caída de Catalog, que un
+`payment.failed` publicado con User apagado espere en su cola (y que Notification reciba
+el suyo igual), y que no haya imports cruzados. Apaga y enciende
 `catalog-service` y `user-service` durante la prueba, así que córrelo solo en desarrollo
 (necesita Git Bash o WSL en Windows).
 
@@ -213,6 +252,12 @@ cola y se procese al volver, y que no haya imports cruzados. Apaga y enciende
 7. **Billing** (`:3006`): suscribe la cuenta con la tarjeta `4242 4242 4242 4242`, luego
    en *Aviso de pago* marca un pago rechazado. Vuelve a iniciar sesión en User: la cuenta
    aparece `MOROSA`, sin que Billing haya llamado a User.
+8. **Notification** (`:3007`): `GET /api/notifications/1?accountId=1` muestra el estreno
+   del paso 3 y el aviso de pago del paso 7, generados solo a partir de eventos.
+9. **Analytics** (`:3008`): `POST /api/analytics/etl/run` y luego `GET /api/analytics/kpis`:
+   horas vistas, abandono y popularidad por región con la reproducción del paso 5.
+10. **API Gateway** (`:8080`): repite cualquiera de los pasos por `localhost:8080/api/...`;
+    las rutas protegidas piden `Authorization: Bearer <AccessToken>` (ver `api-gateway/README.md`).
 
 La guía `guia-demostracion.md` tiene cada comando para copiar y pegar.
 
@@ -224,8 +269,8 @@ Cada servicio se prueba solo, desde su carpeta:
 
 | Servicio | Lint | Pruebas |
 |---|---|---|
-| User, Catalog, Playback, Billing | `npm run lint` (ESLint) | `npm test` (Jest) |
-| Media, Recommendation | `flake8 .` | `pytest` (con `pip install -r requirements-dev.txt`) |
+| User, Catalog, Playback, Billing, Notification, API Gateway | `npm run lint` (ESLint) | `npm test` (Jest) |
+| Media, Recommendation, Analytics | `flake8 .` | `pytest` (con `pip install -r requirements-dev.txt`) |
 
 Las pruebas de integración de los servicios Python (migraciones contra un PostgreSQL
 real) solo corren si `TEST_ADMIN_DATABASE_URL` está definida; el pipeline la define.
@@ -239,27 +284,26 @@ Secciones 7 y 8 del documento de arquitectura:
   integración contra PostgreSQL) → imagen Docker → GitHub Container Registry (etiquetada
   con el SHA) → deploy hook de Render con esa misma imagen. Solo corre el del servicio que
   cambió; en los Pull Requests hacia `develop` solo corren lint y tests.
-- **`render.yaml`**: Blueprint de Render con los seis Web Services (desde las imágenes de
+- **`render.yaml`**: Blueprint de Render con los nueve Web Services (desde las imágenes de
   GHCR), una instancia de Render Postgres con una base propia por servicio, Render Key
-  Value (Redis) y RabbitMQ en CloudAMQP.
+  Value (Redis) y RabbitMQ en CloudAMQP. Notification y el Gateway no tienen base, así que
+  su pipeline omite los pasos de Prisma (`prisma: false`).
 
 El paso a paso (cuentas, secretos y verificación) está en la guía
 **MediaStream — Despliegue en Render**.
 
 ---
 
-## Siguientes servicios
-
-Para agregar uno nuevo, el patrón es el mismo:
+## Agregar un servicio nuevo
 
 1. Carpeta propia con su manifiesto de dependencias, `Dockerfile`, migraciones y
    `docker-compose.yml` aislado.
 2. Su bloque en el `docker-compose.yml` raíz: base de datos propia y el servicio
-   conectado a `mediastream-net`, con un puerto libre (3007 en adelante; bases desde el 5439).
+   conectado a `mediastream-net`, con un puerto libre (3009 en adelante; bases desde el 5440).
 3. Comunicación por REST (si necesita la respuesta) o eventos (si solo notifica).
    Nunca por base de datos compartida.
-4. Su consola, copiada de cualquiera de las seis, con su propio color, y una fila
-   más en el selector de servicios de todas.
+4. Su ruta en el API Gateway (`api-gateway/src/proxy/routes.ts`), su workflow en
+   `.github/workflows/`, su Web Service en `render.yaml` y su sección en `frontend/`.
 
-Según el documento de arquitectura faltan **Notification-Service**,
-**Analytics-Service** y el **API Gateway**.
+Con Notification-Service, Analytics-Service y el API Gateway, la plataforma cubre todos
+los componentes del documento de arquitectura.

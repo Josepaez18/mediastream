@@ -14,7 +14,7 @@
   <aside class="sidebar">
     <div class="brand">
       <h1>MediaStream</h1>
-      <div class="sub">Frontend único · consume los 6 microservicios</div>
+      <div class="sub">Frontend único · consume los 8 microservicios</div>
     </div>
     <nav class="nav" id="nav">
       <button class="nav-item active" data-section="home"><span class="nav-dot" style="background:var(--ink-faint)"></span> Estado general</button>
@@ -24,6 +24,8 @@
       <button class="nav-item" data-section="media"><span class="nav-dot" style="background:var(--c-media)"></span> Media Processing</button>
       <button class="nav-item" data-section="recommendation"><span class="nav-dot" style="background:var(--c-recommendation)"></span> Recomendaciones</button>
       <button class="nav-item" data-section="billing"><span class="nav-dot" style="background:var(--c-billing)"></span> Facturación</button>
+      <button class="nav-item" data-section="notification"><span class="nav-dot" style="background:var(--c-notification)"></span> Notificaciones</button>
+      <button class="nav-item" data-section="analytics"><span class="nav-dot" style="background:var(--c-analytics)"></span> Analítica</button>
     </nav>
     <div class="session-box">
       <div class="label">Sesión actual</div>
@@ -40,7 +42,7 @@
     <section class="section active" id="sec-home">
       <div class="section-header">
         <h2>Estado de la plataforma</h2>
-        <div class="desc">Este es el único frontend de MediaStream. Cada tarjeta llama directo al <code class="inline">/health/ready</code> del microservicio correspondiente — no hay un gateway intermedio.</div>
+        <div class="desc">Este es el único frontend de MediaStream. Cada tarjeta llama directo al <code class="inline">/health/ready</code> del microservicio correspondiente. El API Gateway es el punto de entrada único para clientes externos (valida el JWT, aplica rate limiting); esta consola de demostración habla con cada servicio sin pasar por él, para poder ver a cada uno por separado.</div>
       </div>
       <div class="status-grid" id="statusGrid"></div>
     </section>
@@ -248,6 +250,41 @@
         <h3>Historial de una cuenta</h3>
         <button class="btn btn-outline btn-sm" id="loadHistory">Cargar historial</button>
         <div id="historyResult"></div>
+      </div>
+    </section>
+
+    <!-- ===================== NOTIFICATION ===================== -->
+    <section class="section" id="sec-notification">
+      <div class="section-header">
+        <h2>Notificaciones</h2>
+        <div class="desc">Habla directo con Notification-Service (<span id="notificationUrlLabel" class="mono"></span>). No tiene endpoints para crear avisos: los genera solo al escuchar <code class="inline">media.ready</code> (nuevo estreno), <code class="inline">playback.completed</code> (siguiente episodio) y <code class="inline">payment.failed</code> (pago rechazado).</div>
+      </div>
+      <div class="card accent-top" style="--accent:var(--c-notification)">
+        <h3>Historial de un perfil</h3>
+        <div class="two-col">
+          <div class="form-row"><label>Id del perfil</label><input type="text" id="n_profileId" placeholder="1"></div>
+          <div class="form-row"><label>Id de la cuenta <span class="hint">(para ver los avisos de pago)</span></label><input type="text" id="n_accountId" placeholder="1"></div>
+        </div>
+        <button class="btn" id="loadNotifications">Ver notificaciones</button>
+        <div id="notificationsResult"></div>
+        <p class="hint" style="color:var(--ink-faint); font-size:12px;">Pruébalo: procesa un vídeo en Media Processing (estreno), completa un episodio de una serie en Reproducción, o envía un webhook <code class="inline">payment_failed</code> en Facturación.</p>
+      </div>
+    </section>
+
+    <!-- ===================== ANALYTICS ===================== -->
+    <section class="section" id="sec-analytics">
+      <div class="section-header">
+        <h2>Analítica</h2>
+        <div class="desc">Habla directo con Analytics-Service (<span id="analyticsUrlLabel" class="mono"></span>). Los KPIs salen de un ETL periódico sobre réplicas de solo lectura de Playback-DB y Catalog-DB, nunca de las bases en vivo.</div>
+      </div>
+      <div class="card accent-top" style="--accent:var(--c-analytics)">
+        <div class="toolbar">
+          <div class="form-row"><label>Región (popularidad)</label><input type="text" id="a_region" placeholder="(todas)" style="width:120px;"></div>
+          <button class="btn btn-sm" id="loadKpis">Ver KPIs</button>
+          <button class="btn btn-outline btn-sm" id="runEtl">Recalcular ahora (ETL)</button>
+        </div>
+        <div class="form-msg" id="etlMsg"></div>
+        <div id="kpisResult"></div>
       </div>
     </section>
 
