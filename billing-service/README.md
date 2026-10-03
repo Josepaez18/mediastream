@@ -62,19 +62,25 @@ documentada en `.env.example`, sin usarse todavía).
 ## Comunicación asíncrona
 
 Cuando un cobro es rechazado (ya sea al suscribirse, al cambiar de plan, o mediante el aviso
-de `/api/billing/webhook`), Billing-Service publica el evento **`payment.failed`** hacia
-**RabbitMQ**, en la **misma cola que User-Service ya consume** (`user_service.payment_failed`).
-Es la acción del patrón Saga por coreografía descrito en la sección 4.3 del documento:
-Billing-Service completa su transacción local y User-Service reacciona de forma independiente,
-restringiendo el acceso de la cuenta de forma progresiva.
+de `/api/billing/webhook`), Billing-Service publica el evento **`payment.failed`** en el
+exchange **`billing.events`** de **RabbitMQ**. Cada servicio interesado lo recibe en su propia
+cola enlazada al exchange:
 
-Contrato con User-Service (si cambia uno, cambia el otro):
+- **User-Service** (`user_service.payment_failed`) restringe el acceso de la cuenta de forma
+  progresiva: es la acción compensatoria del patrón Saga por coreografía (sección 4.3).
+- **Notification-Service** (`notification_service.payment_failed`) avisa al usuario.
+
+Billing completa su transacción local y publica; no sabe ni le importa cuántos servicios
+reaccionan.
+
+Contrato (si cambia, hay que revisar los consumidores):
 
 | | |
 |---|---|
-| Cola | `user_service.payment_failed` (durable) |
-| Patrón | `payment.failed` |
-| Payload | `{"accountId": "1"}` — Nest lo envía como `{"pattern": "payment.failed", "data": {...}}` |
+| Exchange | `billing.events` (topic, durable) |
+| Routing key | `payment.failed` |
+| Mensaje | `{"pattern": "payment.failed", "data": {"accountId": "1", "eventId": "…", "occurredAt": "…"}}` (formato de Nest, el que lee el `@EventPattern` de User) |
+| Cola de User | `user_service.payment_failed`: Billing la declara y la enlaza al publicar, para que el evento no se pierda aunque User todavía no haya arrancado |
 | Entrega | mensajes **persistentes**: sobreviven a un reinicio de RabbitMQ |
 
 > **Importante**: para que el evento le llegue a User-Service, los dos tienen que usar el

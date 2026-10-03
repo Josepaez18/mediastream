@@ -41,6 +41,11 @@ on:
         required: false
         type: string
         default: postgres:16-alpine
+      prisma:
+        description: El servicio usa Prisma (false en los que no tienen base relacional)
+        required: false
+        type: boolean
+        default: true
       ffmpeg:
         description: Instalar FFmpeg para las pruebas (Media-Processing)
         required: false
@@ -83,7 +88,7 @@ jobs:
         if: inputs.runtime == 'node'
         run: npm ci
       - name: Generar el cliente de Prisma
-        if: inputs.runtime == 'node'
+        if: inputs.runtime == 'node' && inputs.prisma
         run: npx prisma generate
       - name: Lint (ESLint)
         if: inputs.runtime == 'node'
@@ -91,8 +96,11 @@ jobs:
       - name: Tests unitarios (Jest)
         if: inputs.runtime == 'node'
         run: npm test -- --ci
+      - name: Build (TypeScript)
+        if: inputs.runtime == 'node' && !inputs.prisma
+        run: npm run build
       - name: Migraciones contra PostgreSQL real (Prisma)
-        if: inputs.runtime == 'node'
+        if: inputs.runtime == 'node' && inputs.prisma
         env:
           DATABASE_URL: postgresql://ci:ci@localhost:5432/${{ inputs.database }}?schema=public
         run: npx prisma migrate deploy

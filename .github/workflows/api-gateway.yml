@@ -1,0 +1,36 @@
+# API-Gateway: lint → tests → imagen Docker → GHCR → Render.
+# Solo corre cuando cambia algo de este microservicio (sección 7: "tests del
+# servicio modificado"). También se puede lanzar a mano desde la pestaña Actions.
+name: API-Gateway
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "api-gateway/**"
+      - ".github/workflows/api-gateway.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  pull_request:
+    branches: [develop]
+    paths:
+      - "api-gateway/**"
+      - ".github/workflows/api-gateway.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: api-gateway-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline-servicio.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      service: api-gateway
+      runtime: node
+      secret_suffix: GATEWAY
+      prisma: false
+    secrets: inherit

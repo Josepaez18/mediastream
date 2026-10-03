@@ -1,0 +1,36 @@
+# Stack de desarrollo AISLADO del API Gateway.
+#
+# El Gateway no tiene base de datos ni dependencias propias: solo reenvía a
+# los microservicios por la red compartida mediastream-net. Los que no estén
+# levantados responden 502 a través del Gateway; los demás funcionan igual.
+# Para levantar TODA la plataforma junta, usa el docker-compose.yml de la
+# carpeta padre.
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      JWT_ACCESS_SECRET: "dev-access-secret"
+      USER_SERVICE_URL: "http://user-service:3001"
+      CATALOG_SERVICE_URL: "http://catalog-service:3002"
+      PLAYBACK_SERVICE_URL: "http://playback-service:3003"
+      MEDIA_SERVICE_URL: "http://media-processing-service:3004"
+      RECOMMENDATION_SERVICE_URL: "http://recommendation-service:3005"
+      BILLING_SERVICE_URL: "http://billing-service:3006"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3007"
+      ANALYTICS_SERVICE_URL: "http://analytics-service:3008"
+      CORS_ORIGINS: "*"
+    networks:
+      - mediastream-net
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge
