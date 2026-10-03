@@ -12,5 +12,5 @@ window.MEDIASTREAM_CONFIG = {
   // en render.yaml (grupo mediastream-urls).
   NOTIFICATION: 'https://mediastream-notification.onrender.com',
   ANALYTICS: 'https://mediastream-analytics.onrender.com',
-  GATEWAY: 'https://mediastream-gateway.onrender.com',
+  GATEWAY: 'https://mediastream-gateway-5wjw.onrender.com',
 };

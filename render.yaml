@@ -46,7 +46,7 @@ envVarGroups:
       - key: PUBLIC_ANALYTICS_URL
         value: https://mediastream-analytics.onrender.com
       - key: PUBLIC_GATEWAY_URL
-        value: https://mediastream-gateway.onrender.com
+        value: https://mediastream-gateway-5wjw.onrender.com
       # Único frontend de la aplicación (Static Site, más abajo). Es el único
       # origen que necesita permiso de CORS: ya no hay una consola por
       # servicio, así que nada más llama a estas APIs desde el navegador.
