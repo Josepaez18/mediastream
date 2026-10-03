@@ -1,0 +1,60 @@
+# Stack de desarrollo AISLADO de Analytics-Service.
+#
+# Levanta el servicio solo, con su propia base de datos. Las "réplicas" de
+# Playback-DB y Catalog-DB se alcanzan por la red compartida mediastream-net
+# si esos servicios corren en sus propios compose; si no están, el ETL falla,
+# queda registrado en etl_run y se reintenta en el siguiente ciclo. El panel
+# responde igual con los últimos KPIs calculados.
+#
+# Para levantar TODA la plataforma junta, usa el docker-compose.yml de la
+# carpeta padre.
+
+services:
+  analytics-db:
+    image: postgres:16-alpine
+    container_name: analytics-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: analytics_user
+      POSTGRES_PASSWORD: analytics_pass
+      POSTGRES_DB: analytics_db
+    ports:
+      - "5439:5432"
+    volumes:
+      - analytics_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics_user -d analytics_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mediastream-net
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: analytics-service
+    restart: unless-stopped
+    ports:
+      - "3008:3008"
+    environment:
+      PORT: 3008
+      DATABASE_URL: "postgresql+psycopg2://analytics_user:analytics_pass@analytics-db:5432/analytics_db"
+      PLAYBACK_REPLICA_URL: "postgresql+psycopg2://playback_user:playback_pass@playback-db:5432/playback_db"
+      CATALOG_REPLICA_URL: "postgresql+psycopg2://catalog_user:catalog_pass@catalog-db:5432/catalog_db"
+      ETL_INTERVAL_SECONDS: 60
+      CORS_ORIGINS: "*"
+    depends_on:
+      analytics-db:
+        condition: service_healthy
+    networks:
+      - mediastream-net
+
+volumes:
+  analytics_db_data:
+
+networks:
+  mediastream-net:
+    name: mediastream-net
+    driver: bridge

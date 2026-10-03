@@ -1,0 +1,35 @@
+# Analytics-Service: lint → tests → imagen Docker → GHCR → Render.
+# Solo corre cuando cambia algo de este microservicio (sección 7: "tests del
+# servicio modificado"). También se puede lanzar a mano desde la pestaña Actions.
+name: Analytics-Service
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "analytics-service/**"
+      - ".github/workflows/analytics-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  pull_request:
+    branches: [develop]
+    paths:
+      - "analytics-service/**"
+      - ".github/workflows/analytics-service.yml"
+      - ".github/workflows/_pipeline-servicio.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: analytics-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline-servicio.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      service: analytics-service
+      runtime: python
+      secret_suffix: ANALYTICS
+    secrets: inherit
