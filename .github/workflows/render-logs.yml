@@ -28,6 +28,12 @@ jobs:
           API=https://api.render.com/v1
           AUTH="Authorization: Bearer $RENDER_API_KEY"
           OWNER=$(curl -fsS "$API/services/$SERVICE_ID" -H "$AUTH" | jq -r .ownerId)
+          echo "== Variables de entorno (solo nombres)"
+          curl -fsS "$API/services/$SERVICE_ID/env-vars?limit=100" -H "$AUTH" | jq -r '.[] | .envVar.key'
+          echo "== Últimos despliegues"
+          curl -fsS "$API/services/$SERVICE_ID/deploys?limit=4" -H "$AUTH" \
+            | jq -r '.[] | .deploy | "\(.createdAt)  \(.status)  \(.trigger)"'
+          echo "== Logs"
           curl -fsS -G "$API/logs" -H "$AUTH" \
             --data-urlencode "ownerId=$OWNER" \
             --data-urlencode "resource=$SERVICE_ID" \
