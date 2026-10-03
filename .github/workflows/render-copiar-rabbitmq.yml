@@ -1,0 +1,49 @@
+# Mantenimiento: copia RABBITMQ_URL (URL AMQP de CloudAMQP) de User-Service a
+# otro servicio de Render y lo redespliega. Sirve para los servicios creados
+# después por el Blueprint, donde esa variable (sync: false) queda vacía.
+# El valor nunca se imprime: se enmascara en los logs.
+name: Render - copiar RABBITMQ_URL
+
+on:
+  workflow_dispatch:
+    inputs:
+      secret_suffix:
+        description: Sufijo del secreto RENDER_SERVICE_ID_<sufijo> del servicio destino
+        required: true
+        default: NOTIFICATION
+
+jobs:
+  copiar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copiar RABBITMQ_URL de User al servicio destino y redesplegar
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SOURCE_ID: ${{ secrets.RENDER_SERVICE_ID_USER }}
+          TARGET_ID: ${{ secrets[format('RENDER_SERVICE_ID_{0}', inputs.secret_suffix)] }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$SOURCE_ID" ] || [ -z "$TARGET_ID" ]; then
+            echo "::error::Falta RENDER_API_KEY, RENDER_SERVICE_ID_USER o RENDER_SERVICE_ID_${{ inputs.secret_suffix }}"
+            exit 1
+          fi
+          API=https://api.render.com/v1
+          AUTH="Authorization: Bearer $RENDER_API_KEY"
+
+          VALUE=$(curl -fsS "$API/services/$SOURCE_ID/env-vars?limit=100" -H "$AUTH" \
+            | jq -r '.[] | .envVar | select(.key == "RABBITMQ_URL") | .value')
+          if [ -z "$VALUE" ] || [ "$VALUE" = "null" ]; then
+            echo "::error::User-Service no tiene RABBITMQ_URL en Render"
+            exit 1
+          fi
+          echo "::add-mask::$VALUE"
+          HOST=$(echo "$VALUE" | sed -E 's#^([a-z]+://)[^@]*@([^/:]+).*#\1\2#')
+          echo "Origen: $HOST"
+
+          curl -fsS -X PUT "$API/services/$TARGET_ID/env-vars/RABBITMQ_URL" -H "$AUTH" \
+            -H "Content-Type: application/json" -d "$(jq -n --arg v "$VALUE" '{value: $v}')" -o /dev/null
+          echo "RABBITMQ_URL actualizado en el servicio ${{ inputs.secret_suffix }}"
+
+          curl -fsS -X POST "$API/services/$TARGET_ID/deploys" -H "$AUTH" \
+            -H "Content-Type: application/json" -d '{}' -o /dev/null
+          echo "Redespliegue solicitado" | tee -a "$GITHUB_STEP_SUMMARY"
