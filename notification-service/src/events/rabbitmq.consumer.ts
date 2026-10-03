@@ -5,6 +5,27 @@ import { parseMediaReady, parsePaymentFailed } from './event-payloads';
 
 const RECONNECT_DELAY_MS = 5000;
 
+/** Host y puerto de la URL AMQP, sin usuario ni contraseña (para los logs). */
+export function describeBroker(url: string): string {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.hostname}${u.port ? `:${u.port}` : ''}`;
+  } catch {
+    return 'URL inválida';
+  }
+}
+
+/**
+ * Motivo legible de un fallo de conexión. Un ECONNREFUSED de Node 20 llega
+ * como AggregateError (IPv4 + IPv6) con message vacío: se usan sus códigos.
+ */
+export function describeConnectionError(err: unknown): string {
+  const e = err as { message?: string; code?: string; errors?: { code?: string; message?: string }[] };
+  if (e?.message) return e.message;
+  if (e?.errors?.length) return e.errors.map((x) => x.code ?? x.message).join(', ');
+  return e?.code ?? String(err);
+}
+
 interface Subscription {
   exchange: string;
   routingKey: string;
@@ -95,7 +116,9 @@ export class RabbitmqConsumer implements OnModuleInit, OnModuleDestroy {
       );
     } catch (err) {
       this.logger.warn(
-        `No se pudo conectar a RabbitMQ (${(err as Error).message}). Reintentando en ${RECONNECT_DELAY_MS}ms...`,
+        `No se pudo conectar a RabbitMQ en ${describeBroker(url)}` +
+          `${process.env.RABBITMQ_URL ? '' : ' (RABBITMQ_URL no está definida)'}` +
+          ` (${describeConnectionError(err)}). Reintentando en ${RECONNECT_DELAY_MS}ms...`,
       );
       if (!this.closing) setTimeout(() => this.connectWithRetry(), RECONNECT_DELAY_MS);
     }
