@@ -97,6 +97,16 @@ export class CreateTitleDto {
   @Type(() => AvailabilityInputDto)
   availabilities?: AvailabilityInputDto[];
 
+  @ApiPropertyOptional({ example: false, description: 'Visible con el plan GRATIS' })
+  @IsOptional()
+  @IsBoolean()
+  isFree?: boolean;
+
+  @ApiPropertyOptional({ example: 'https://ejemplo.com/poster.jpg', description: 'Imagen del título' })
+  @IsOptional()
+  @IsString()
+  posterUrl?: string;
+
   @ApiPropertyOptional({
     example: false,
     description:

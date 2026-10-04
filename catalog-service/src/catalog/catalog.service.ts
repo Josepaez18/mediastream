@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { CreateTitleDto } from './dto/create-title.dto';
+import { UpdateTitleDto } from './dto/update-title.dto';
 import { ListTitlesQueryDto } from './dto/list-titles-query.dto';
 import { TitleStatus } from '@prisma/client';
 
@@ -116,6 +117,8 @@ export class CatalogService {
         type: dto.type,
         category: dto.category,
         ageRating: dto.ageRating,
+        isFree: dto.isFree ?? false,
+        posterUrl: dto.posterUrl || null,
         status: dto.publishImmediately ? TitleStatus.AVAILABLE : TitleStatus.PENDING,
         seasons: dto.seasons
           ? {
@@ -147,6 +150,68 @@ export class CatalogService {
 
     await this.redis.invalidateByPrefix(CACHE_PREFIX);
     return this.serializeTitle(title);
+  }
+
+  // PATCH /api/catalog/titles/{id} (uso administrativo)
+  async updateTitle(id: bigint, dto: UpdateTitleDto) {
+    const existing = await this.prisma.title.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException(`Título ${id} no encontrado`);
+
+    const { regions, posterUrl, ...fields } = dto;
+    const regionList = regions
+      ? [...new Set(regions.map((r) => r.trim().toUpperCase()).filter(Boolean))]
+      : undefined;
+
+    const title = await this.prisma.$transaction(async (tx) => {
+      if (regionList) {
+        await tx.availability.deleteMany({ where: { titleId: id } });
+        if (regionList.length) {
+          await tx.availability.createMany({
+            data: regionList.map((region) => ({ titleId: id, region, availableFrom: new Date() })),
+          });
+        }
+      }
+      return tx.title.update({
+        where: { id },
+        data: {
+          ...fields,
+          ...(posterUrl !== undefined ? { posterUrl: posterUrl.trim() || null } : {}),
+        },
+      });
+    });
+
+    await this.redis.invalidateByPrefix(CACHE_PREFIX);
+    this.logger.log(`Título ${id} actualizado`);
+    return this.serializeTitle(title);
+  }
+
+  // DELETE /api/catalog/titles/{id} (uso administrativo). Temporadas,
+  // episodios y disponibilidad se borran en cascada.
+  async deleteTitle(id: bigint) {
+    const existing = await this.prisma.title.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException(`Título ${id} no encontrado`);
+    await this.prisma.title.delete({ where: { id } });
+    await this.redis.invalidateByPrefix(CACHE_PREFIX);
+    this.logger.log(`Título ${id} eliminado`);
+    return { deleted: id.toString() };
+  }
+
+  // GET /api/catalog/admin/titles: todos los títulos, en cualquier estado y
+  // región, con sus regiones y número de episodios (panel de administración).
+  async adminListTitles() {
+    const titles = await this.prisma.title.findMany({
+      include: {
+        availabilities: { select: { region: true } },
+        seasons: { include: { _count: { select: { episodes: true } } } },
+      },
+      orderBy: { id: 'desc' },
+    });
+    return titles.map((t) => ({
+      ...this.serializeTitle(t),
+      regions: [...new Set(t.availabilities.map((a) => a.region))].sort(),
+      seasons: t.seasons.length,
+      episodes: t.seasons.reduce((sum, s) => sum + s._count.episodes, 0),
+    }));
   }
 
   // Invocado por el consumidor del evento media.ready (Media-Processing-Service).
@@ -181,6 +246,8 @@ export class CatalogService {
       status: title.status,
       category: title.category,
       ageRating: title.ageRating,
+      isFree: title.isFree ?? false,
+      posterUrl: title.posterUrl ?? null,
       createdAt: title.createdAt,
       updatedAt: title.updatedAt,
     };

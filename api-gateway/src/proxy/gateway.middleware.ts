@@ -2,7 +2,7 @@ import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { Socket } from 'net';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { isPublicRoute } from '../auth/access-policy';
+import { isAdminRoute, isPublicRoute } from '../auth/access-policy';
 import { InvalidTokenError, verifyAccessToken } from '../auth/jwt';
 import { FixedWindowRateLimiter, ruleFor } from '../rate-limit/rate-limiter';
 import { findRoute, resolveTarget, ROUTES } from './routes';
@@ -12,7 +12,13 @@ import { findRoute, resolveTarget, ROUTES } from './routes';
  * de destino confía en ellas "porque solo el Gateway puede inyectarlas").
  * Si el cliente las manda, se borran antes de reenviar la petición.
  */
-export const INTERNAL_HEADERS = ['x-account-id', 'x-account-email'];
+export const INTERNAL_HEADERS = [
+  'x-account-id',
+  'x-account-email',
+  'x-account-role',
+  'x-account-plan',
+  'x-account-status',
+];
 
 // Los microservicios también responden cabeceras CORS (para poder probarlos
 // solos). Detrás del Gateway, la política CORS es solo la del Gateway: si
@@ -96,6 +102,12 @@ export function createGateway(options: GatewayOptions): RequestHandler {
         accountId = claims.accountId;
         req.headers['x-account-id'] = claims.accountId;
         if (claims.email) req.headers['x-account-email'] = claims.email;
+        if (claims.role) req.headers['x-account-role'] = claims.role;
+        if (claims.plan) req.headers['x-account-plan'] = claims.plan;
+        if (claims.status) req.headers['x-account-status'] = claims.status;
+        if (isAdminRoute(req.method, path) && claims.role !== 'ADMIN') {
+          return sendError(res, 403, 'Requiere rol de administrador.', path);
+        }
       } catch (err) {
         const message = err instanceof InvalidTokenError ? err.message : 'AccessToken inválido.';
         return sendError(res, 401, message, path);

@@ -114,6 +114,9 @@ services:
       JWT_ACCESS_TTL: "15m"
       JWT_REFRESH_TTL: "7d"
       CORS_ORIGINS: "*"
+      # Administrador inicial (solo desarrollo): se crea o actualiza al arrancar.
+      ADMIN_EMAIL: "admin@mediastream.com"
+      ADMIN_PASSWORD: "Admin12345!"
     depends_on:
       user-db:
         condition: service_healthy

@@ -31,6 +31,11 @@ model Title {
   status         TitleStatus    @default(PENDING)
   category       String?
   ageRating      String?        @map("age_rating")
+  // Visible con el plan GRATIS. El resto exige un plan de pago (lo hace
+  // cumplir Playback-Service al emitir el token de reproducción).
+  isFree         Boolean        @default(false) @map("is_free")
+  // Imagen del título (opcional); sin ella el frontend genera un póster.
+  posterUrl      String?        @map("poster_url")
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
 

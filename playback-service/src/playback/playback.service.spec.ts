@@ -249,3 +249,28 @@ describe('PlaybackService', () => {
     });
   });
 });
+
+describe('canWatch (plan de la cuenta)', () => {
+  const { canWatch } = jest.requireActual('./playback.service');
+  const paid = { isFree: false };
+  const free = { isFree: true };
+
+  it('el plan GRATIS solo ve los títulos gratis', () => {
+    expect(canWatch(free, { plan: 'GRATIS' })).toBe(true);
+    expect(canWatch(paid, { plan: 'GRATIS' })).toBe(false);
+  });
+
+  it('los planes de pago y el administrador ven todo', () => {
+    expect(canWatch(paid, { plan: 'BASICO' })).toBe(true);
+    expect(canWatch(paid, { plan: 'GRATIS', role: 'ADMIN' })).toBe(true);
+  });
+
+  it('una cuenta MOROSA queda restringida como la gratis', () => {
+    expect(canWatch(paid, { plan: 'PREMIUM', status: 'MOROSA' })).toBe(false);
+    expect(canWatch(free, { plan: 'PREMIUM', status: 'MOROSA' })).toBe(true);
+  });
+
+  it('sin cabeceras del Gateway (llamada directa en desarrollo) no se aplica', () => {
+    expect(canWatch(paid, {})).toBe(true);
+  });
+});

@@ -20,3 +20,21 @@ export function isPublicRoute(method: string, path: string): boolean {
   if (m === 'OPTIONS') return true; // preflight de CORS
   return PUBLIC_RULES.some((rule) => rule.methods.includes(m) && rule.pattern.test(path));
 }
+
+/**
+ * Rutas de administración: solo el rol ADMIN (sección 5: el Gateway valida la
+ * sesión antes de dejar pasar la petición). Cada servicio vuelve a comprobar
+ * el rol por su cuenta; esta es la primera barrera.
+ *
+ *   · Cuentas, suscripciones y títulos: /api/{users,billing,catalog}/admin/*
+ *   · Escrituras en el catálogo (crear, editar, borrar títulos)
+ *   · Subida y transcodificación de vídeos (Media-Processing)
+ *   · Panel de KPIs y ETL (Analytics)
+ */
+export function isAdminRoute(method: string, path: string): boolean {
+  const m = method.toUpperCase();
+  if (m === 'OPTIONS') return false;
+  if (/^\/api\/(users|billing|catalog)\/admin(\/|$)/.test(path)) return true;
+  if (/^\/api\/catalog(\/|$)/.test(path) && m !== 'GET' && m !== 'HEAD') return true;
+  return /^\/api\/(media|analytics)(\/|$)/.test(path);
+}

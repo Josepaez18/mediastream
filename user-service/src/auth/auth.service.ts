@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -10,7 +11,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ProfilesService } from '../profiles/profiles.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { AccountStatus } from '@prisma/client';
+import { Account, AccountStatus } from '@prisma/client';
+import { profileLimit } from '../common/plans';
 
 const ACCESS_TOKEN_TTL = process.env.JWT_ACCESS_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.JWT_REFRESH_TTL || '7d';
@@ -69,7 +71,14 @@ export class AuthService {
       where: { email: dto.email },
     });
     if (!account) {
-      throw new UnauthorizedException('Credenciales inválidas.');
+      // Se distingue "no existe" de "contraseña incorrecta" para que el
+      // frontend pueda llevar a la persona al registro. Revela si un correo
+      // está registrado; se acepta en esta plataforma y el rate limiting del
+      // Gateway (10 intentos por minuto) frena la enumeración masiva.
+      throw new NotFoundException({
+        message: 'No existe una cuenta con ese correo. Regístrate para empezar.',
+        code: 'ACCOUNT_NOT_FOUND',
+      });
     }
 
     const passwordOk = await bcrypt.compare(dto.password, account.passwordHash);
@@ -83,13 +92,14 @@ export class AuthService {
       );
     }
 
-    const accessToken = this.signAccessToken(account.id.toString(), account.email);
+    const accessToken = this.signAccessToken(account);
     const refreshToken = this.signRefreshToken(account.id.toString());
 
     return {
       accessToken,
       refreshToken,
       accountStatus: account.status, // el cliente puede mostrar el aviso si está MOROSA
+      account: this.serializeAccount(account),
     };
   }
 
@@ -115,13 +125,56 @@ export class AuthService {
       throw new UnauthorizedException('No se puede renovar el acceso.');
     }
 
-    const accessToken = this.signAccessToken(account.id.toString(), account.email);
+    const accessToken = this.signAccessToken(account);
     return { accessToken };
   }
 
-  private signAccessToken(accountId: string, email: string): string {
+  /**
+   * GET /api/users/me: datos de la cuenta y un AccessToken nuevo con el rol,
+   * el plan y el estado ACTUALES. El frontend lo llama tras suscribirse
+   * (el plan cambia por un evento de Billing) y periódicamente para renovar
+   * la sesión sin depender de la cookie de refresh.
+   */
+  async me(accountId: string) {
+    const account = await this.prisma.account.findUnique({
+      where: { id: BigInt(accountId) },
+      include: { _count: { select: { profiles: true } } },
+    });
+    if (!account || account.status === AccountStatus.SUSPENDIDA) {
+      throw new UnauthorizedException('La sesión ya no es válida.');
+    }
+    return {
+      account: {
+        ...this.serializeAccount(account),
+        profiles: account._count.profiles,
+        profileLimit: profileLimit(account.plan, account.role),
+      },
+      accessToken: this.signAccessToken(account),
+    };
+  }
+
+  serializeAccount(account: Account) {
+    return {
+      id: account.id.toString(),
+      email: account.email,
+      role: account.role,
+      plan: account.plan,
+      status: account.status,
+      createdAt: account.createdAt,
+    };
+  }
+
+  // El AccessToken lleva rol, plan y estado: el API Gateway los valida y los
+  // pasa a cada servicio (x-account-role, x-account-plan, x-account-status).
+  private signAccessToken(account: Account): string {
     return this.jwtService.sign(
-      { sub: accountId, email },
+      {
+        sub: account.id.toString(),
+        email: account.email,
+        role: account.role,
+        plan: account.plan,
+        status: account.status,
+      },
       {
         secret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret',
         expiresIn: ACCESS_TOKEN_TTL,

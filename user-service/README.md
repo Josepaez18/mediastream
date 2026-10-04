@@ -6,6 +6,13 @@ familiares), implementado según el documento *"Arquitectura Plataforma Tecnoló
 > **Alcance de este servicio**: solo identidad, autenticación y perfiles. El plan de
 > suscripción y el estado de pago viven en Billing-Service; User-Service únicamente
 > reacciona al evento `payment.failed` para restringir el acceso.
+>
+> **Rol y plan:** cada cuenta tiene un rol (`USER`/`ADMIN`) y un plan (`GRATIS`, `BASICO`,
+> `ESTANDAR`, `PREMIUM`). El plan lo actualizan los eventos `subscription.activated` y
+> `subscription.canceled` de Billing (misma cola). Endpoints nuevos: `GET /api/users/me`
+> (cuenta + token renovado), `POST`/`DELETE /api/users/profiles` (límite según el plan) y, solo
+> ADMIN, `GET`/`PATCH`/`DELETE /api/users/admin/accounts`. Un correo no registrado en el login
+> responde 404 `ACCOUNT_NOT_FOUND`. `ADMIN_EMAIL`/`ADMIN_PASSWORD` crean el administrador inicial.
 
 ## Stack
 

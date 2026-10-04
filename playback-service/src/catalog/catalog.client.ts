@@ -15,6 +15,7 @@ export interface CatalogTitle {
   type: 'MOVIE' | 'SERIES';
   category?: string | null;
   ageRating?: string | null;
+  isFree?: boolean;
 }
 
 export interface CatalogAvailability {
@@ -110,6 +111,7 @@ export class CatalogClient {
           type: data.type,
           category: data.category ?? null,
           ageRating: data.ageRating ?? null,
+          isFree: Boolean(data.isFree),
         } as CatalogTitle;
       } catch (err: any) {
         if (err.response?.status === 404) return null;

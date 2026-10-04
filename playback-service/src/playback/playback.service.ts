@@ -18,6 +18,28 @@ import { GenerateTokenQueryDto } from './dto/generate-token-query.dto';
 // Netflix y similares usan valores cercanos al 90-95%.
 const COMPLETION_THRESHOLD = 0.95;
 
+/**
+ * Quién pide el token, según las cabeceras que inyecta el API Gateway a
+ * partir del AccessToken (x-account-plan, x-account-role, x-account-status).
+ * Sin ellas (llamada directa al servicio, en desarrollo) no se aplica el plan.
+ */
+export interface Viewer {
+  plan?: string;
+  role?: string;
+  status?: string;
+}
+
+/**
+ * ¿Puede ver este título? El plan GRATIS solo ve los títulos marcados como
+ * gratis; una cuenta MOROSA (pago rechazado) queda restringida igual que la
+ * gratis hasta regularizar el pago. El administrador ve todo.
+ */
+export function canWatch(title: { isFree?: boolean }, viewer: Viewer = {}): boolean {
+  if (!viewer.plan || viewer.role === 'ADMIN' || title.isFree) return true;
+  const effectivePlan = viewer.status === 'MOROSA' ? 'GRATIS' : viewer.plan;
+  return effectivePlan !== 'GRATIS';
+}
+
 // 451 Unavailable For Legal Reasons: el título existe pero no tiene licencia
 // en la región del usuario (sección 4.4 del documento).
 const UNAVAILABLE_FOR_LEGAL_REASONS = 451;
@@ -46,7 +68,7 @@ export class PlaybackService {
    * abierto, usa la última información conocida (sección 4.7). La respuesta
    * indica de dónde salió la verificación en `catalogCheck`.
    */
-  async generateToken(titleId: string, query: GenerateTokenQueryDto) {
+  async generateToken(titleId: string, query: GenerateTokenQueryDto, viewer: Viewer = {}) {
     const { profileId, region, deviceId } = query;
 
     if (!/^\d+$/.test(titleId)) {
@@ -64,6 +86,16 @@ export class PlaybackService {
       throw new ForbiddenException(
         `El título "${title.name}" no está disponible para reproducción (estado ${title.status})`,
       );
+    }
+
+    if (!canWatch(title, viewer)) {
+      throw new ForbiddenException({
+        message:
+          viewer.status === 'MOROSA'
+            ? 'Tu último pago fue rechazado: actualiza tu medio de pago para volver a ver todo el catálogo.'
+            : `"${title.name}" requiere un plan de pago. Con el plan Gratis puedes ver los títulos marcados como gratis.`,
+        code: 'PLAN_REQUIRED',
+      });
     }
 
     const regionCheck = await this.catalog.isAvailableInRegion(titleId, region);

@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { BillingEventsModule } from './billing-events/billing-events.module';
 import { HealthController } from './health.controller';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { HealthController } from './health.controller';
     AuthModule,
     ProfilesModule,
     BillingEventsModule,
+    AdminModule,
   ],
   controllers: [HealthController, ConsoleConfigController],
 })

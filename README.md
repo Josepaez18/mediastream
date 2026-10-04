@@ -56,12 +56,47 @@ docker compose up --build
 
 ---
 
+## La aplicación (frontend tipo Netflix)
+
+`frontend/` es la aplicación para las personas: una SPA estática (HTML, CSS y JS, sin build)
+que habla **solo con el API Gateway**. En local: `cd frontend && python -m http.server 3000`
+y abre http://localhost:3000 (usa el Gateway de `localhost:8080`).
+
+| Pantalla | Qué hace |
+|---|---|
+| Login / registro | Si el correo no está registrado, el login lleva al registro con el correo ya escrito |
+| ¿Quién está viendo? | Perfiles de la cuenta (el límite depende del plan); perfiles infantiles con control parental |
+| Inicio | Portada, "Seguir viendo", "Recomendado para ti", gratis y por categoría; búsqueda; avisos |
+| Reproductor | Video de muestra libre de derechos; guarda el progreso en Playback y sugiere el siguiente episodio |
+| Planes | Gratis, Básico, Estándar y Premium con pago simulado; cambiar o cancelar |
+| Cuenta | Plan, estado, región, historial de pagos y notificaciones |
+| Administración | Solo rol ADMIN: resumen e ingresos, catálogo (crear, editar, publicar, marcar gratis, borrar), usuarios (suspender, plan, rol, borrar), suscripciones, subir videos y estado de los servicios |
+
+### Planes y roles
+
+| Plan | Precio | Catálogo | Perfiles |
+|---|---|---|---|
+| Gratis | $0 | Solo títulos marcados como gratis | 1 |
+| Básico | $7.99 | Todo | 2 |
+| Estándar | $12.99 | Todo | 4 |
+| Premium | $17.99 | Todo | 5 |
+
+- **El plan vive en User-Service** y lo cambia Billing por eventos (`subscription.activated`,
+  `subscription.canceled`, en el exchange `billing.events`): ningún servicio llama a otro.
+- **El AccessToken lleva rol, plan y estado.** El Gateway los pasa a cada servicio como
+  `x-account-role`, `x-account-plan` y `x-account-status`, y bloquea las rutas de
+  administración (`/api/*/admin/*`, escrituras del catálogo, Media y Analytics) a quien no sea
+  ADMIN. Cada servicio vuelve a comprobarlo.
+- **Playback hace cumplir el plan:** no emite el token de reproducción de un título de pago
+  para el plan Gratis, ni para una cuenta MOROSA (pago rechazado) hasta que regularice.
+- **Administrador inicial:** `ADMIN_EMAIL` y `ADMIN_PASSWORD` en User-Service. En Docker
+  Compose: `admin@mediastream.com` / `Admin12345!`. En Render la contraseña la genera Render
+  (Dashboard → *mediastream-user* → *Environment* → `ADMIN_PASSWORD`).
+
 ## Las consolas
 
-> El frontend de la aplicación es uno solo (`frontend/`, en Render como Static Site), con una
-> sección por servicio, incluidas Notificaciones y Analítica. Las consolas por servicio que
-> se describen a continuación existen solo en los seis primeros servicios, como herramienta
-> de desarrollo.
+> La aplicación es `frontend/` (arriba). Las consolas por servicio que se describen a
+> continuación existen solo en los seis primeros servicios, como herramienta de desarrollo.
 
 Las seis consolas web usan el mismo sistema visual (tipografía, estructura,
 componentes), pero cada servicio tiene su color para reconocerlo de un vistazo:

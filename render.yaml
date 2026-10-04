@@ -119,6 +119,12 @@ services:
         value: 15m
       - key: JWT_REFRESH_TTL
         value: 7d
+      # Administrador inicial. Render genera la contraseña: se consulta en
+      # Dashboard → mediastream-user → Environment (ADMIN_PASSWORD).
+      - key: ADMIN_EMAIL
+        value: admin@mediastream.com
+      - key: ADMIN_PASSWORD
+        generateValue: true
 
   # ------------------------------------------------------------- Catalog
   - type: web

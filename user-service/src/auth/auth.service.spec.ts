@@ -1,10 +1,11 @@
 import {
   ConflictException,
   ForbiddenException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AccountStatus } from '@prisma/client';
+import { AccountPlan, AccountRole, AccountStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,6 +22,9 @@ describe('AuthService', () => {
     email: 'ana@correo.com',
     passwordHash: 'hash(Secreta123)',
     status: AccountStatus.ACTIVA,
+    role: AccountRole.USER,
+    plan: AccountPlan.GRATIS,
+    failedPaymentAttempts: 0,
     createdAt: new Date('2026-01-01T00:00:00Z'),
   };
   let prisma: { account: { findUnique: jest.Mock; create: jest.Mock } };
@@ -83,5 +87,27 @@ describe('AuthService', () => {
     await expect(
       service.login({ email: ana.email, password: 'Secreta123' }),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('correo no registrado: 404 ACCOUNT_NOT_FOUND (el frontend lleva al registro)', async () => {
+    prisma.account.findUnique.mockResolvedValue(null);
+    const err = await service.login({ email: 'nadie@correo.com', password: 'x' }).catch((e) => e);
+    expect(err).toBeInstanceOf(NotFoundException);
+    expect(err.getResponse()).toMatchObject({ code: 'ACCOUNT_NOT_FOUND' });
+  });
+
+  it('el AccessToken lleva rol, plan y estado (el Gateway los pasa a los servicios)', async () => {
+    prisma.account.findUnique.mockResolvedValue({ ...ana, role: AccountRole.ADMIN, plan: AccountPlan.PREMIUM });
+    const { accessToken, account } = await service.login({ email: ana.email, password: 'Secreta123' });
+    const claims = new JwtService({}).decode(accessToken) as any;
+    expect(claims).toMatchObject({ sub: '1', role: 'ADMIN', plan: 'PREMIUM', status: 'ACTIVA' });
+    expect(account).toMatchObject({ role: 'ADMIN', plan: 'PREMIUM' });
+  });
+
+  it('/me devuelve el plan actual y un token renovado con ese plan', async () => {
+    prisma.account.findUnique.mockResolvedValue({ ...ana, plan: AccountPlan.ESTANDAR, _count: { profiles: 2 } });
+    const result = await service.me('1');
+    expect(result.account).toMatchObject({ plan: 'ESTANDAR', profiles: 2, profileLimit: 4 });
+    expect((new JwtService({}).decode(result.accessToken) as any).plan).toBe('ESTANDAR');
   });
 });
