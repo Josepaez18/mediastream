@@ -7,7 +7,9 @@ import {
   Param,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { PlaybackService } from './playback.service';
 import { CreateProgressDto } from './dto/create-progress.dto';
@@ -28,8 +30,14 @@ export class PlaybackController {
   generateToken(
     @Param('titleId') titleId: string,
     @Query() query: GenerateTokenQueryDto,
+    @Req() req: Request,
   ) {
-    return this.playbackService.generateToken(titleId, query);
+    const header = (name: string) => (req.headers[name] as string | undefined) || undefined;
+    return this.playbackService.generateToken(titleId, query, {
+      plan: header('x-account-plan'),
+      role: header('x-account-role'),
+      status: header('x-account-status'),
+    });
   }
 
   @Post('progress')
