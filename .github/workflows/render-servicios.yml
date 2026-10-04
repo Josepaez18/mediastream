@@ -1,0 +1,17 @@
+# Diagnóstico: lista los servicios de Render (nombre, ID y URL), para
+# configurar los secretos RENDER_SERVICE_ID_* del pipeline.
+name: Render - listar servicios
+
+on:
+  workflow_dispatch:
+
+jobs:
+  listar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Servicios
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -fsS "https://api.render.com/v1/services?limit=50" -H "Authorization: Bearer $RENDER_API_KEY" \
+            | jq -r '.[] | .service | "SERVICIO \(.name) \(.id) \(.serviceDetails.url // "-")"'
