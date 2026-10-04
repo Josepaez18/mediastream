@@ -14,3 +14,8 @@ window.MEDIASTREAM_CONFIG = {
   ANALYTICS: 'https://mediastream-analytics.onrender.com',
   GATEWAY: 'https://mediastream-gateway-5wjw.onrender.com',
 };
+
+// En local (docker compose) el frontend habla con el Gateway de la máquina.
+if (['localhost', '127.0.0.1'].includes(location.hostname) || location.protocol === 'file:') {
+  window.MEDIASTREAM_CONFIG.GATEWAY = 'http://localhost:8080';
+}
