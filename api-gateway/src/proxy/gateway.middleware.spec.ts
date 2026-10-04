@@ -7,8 +7,8 @@ import { FixedWindowRateLimiter } from '../rate-limit/rate-limiter';
 import { createGateway } from './gateway.middleware';
 
 const SECRET = 'test-secret';
-const token = (sub = '42', options: jwt.SignOptions = { expiresIn: '5m' }) =>
-  `Bearer ${jwt.sign({ sub, email: 'ana@correo.com' }, SECRET, options)}`;
+const token = (sub = '42', options: jwt.SignOptions = { expiresIn: '5m' }, extra: object = {}) =>
+  `Bearer ${jwt.sign({ sub, email: 'ana@correo.com', role: 'USER', plan: 'GRATIS', status: 'ACTIVA', ...extra }, SECRET, options)}`;
 
 /**
  * Servicio de destino falso: responde con lo que recibió (método, ruta,
@@ -56,6 +56,7 @@ describe('API Gateway', () => {
       BILLING_SERVICE_URL: upstream.url,
       // Nadie escucha en este puerto: simula un servicio caído.
       ANALYTICS_SERVICE_URL: 'http://127.0.0.1:1',
+      MEDIA_SERVICE_URL: upstream.url,
     };
     const a = express();
     a.use(createGateway({ jwtSecret: SECRET, env, limiter, proxyTimeoutMs: 300 }));
@@ -105,6 +106,29 @@ describe('API Gateway', () => {
     expect(res.body.headers['x-account-email']).toBe('ana@correo.com');
   });
 
+  it('pasa rol, plan y estado de la cuenta al servicio, sin dejar que el cliente los falsifique', async () => {
+    const res = await request(app)
+      .get('/api/playback/resume/1')
+      .set('Authorization', token('42', { expiresIn: '5m' }, { plan: 'PREMIUM' }))
+      .set('x-account-role', 'ADMIN');
+    expect(res.body.headers).toMatchObject({
+      'x-account-role': 'USER',
+      'x-account-plan': 'PREMIUM',
+      'x-account-status': 'ACTIVA',
+    });
+  });
+
+  it('las rutas de administración exigen rol ADMIN', async () => {
+    const user = token('42');
+    const admin = token('1', { expiresIn: '5m' }, { role: 'ADMIN' });
+    expect((await request(app).delete('/api/catalog/titles/3').set('Authorization', user)).status).toBe(403);
+    expect((await request(app).get('/api/users/admin/accounts').set('Authorization', user)).status).toBe(403);
+    expect((await request(app).post('/api/media/ingest').set('Authorization', user)).status).toBe(403);
+    expect((await request(app).delete('/api/catalog/titles/3').set('Authorization', admin)).status).toBe(200);
+    // Leer el catálogo sigue siendo público.
+    expect((await request(app).get('/api/catalog/titles')).status).toBe(200);
+  });
+
   it('una ruta pública no deja pasar un x-account-id falsificado', async () => {
     const res = await request(app).get('/api/catalog/titles').set('x-account-id', '999');
     expect(res.body.headers['x-account-id']).toBeUndefined();
@@ -125,7 +149,9 @@ describe('API Gateway', () => {
   });
 
   it('responde 502 si el servicio de destino está caído y 504 si no responde a tiempo', async () => {
-    const down = await request(app).get('/api/analytics/kpis').set('Authorization', token());
+    const down = await request(app)
+      .get('/api/analytics/kpis')
+      .set('Authorization', token('1', { expiresIn: '5m' }, { role: 'ADMIN' }));
     expect(down.status).toBe(502);
     expect(down.body.message).toContain('analytics-service');
 

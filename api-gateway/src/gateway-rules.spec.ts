@@ -1,4 +1,4 @@
-import { isPublicRoute } from './auth/access-policy';
+import { isAdminRoute, isPublicRoute } from './auth/access-policy';
 import { corsOptions } from './cors';
 import { findRoute, resolveTarget, ROUTES } from './proxy/routes';
 import { FixedWindowRateLimiter, ruleFor } from './rate-limit/rate-limiter';
@@ -35,6 +35,26 @@ describe('política de acceso', () => {
     ['OPTIONS', '/api/billing/subscribe', true],
   ])('%s %s → pública: %s', (method, path, expected) => {
     expect(isPublicRoute(method, path)).toBe(expected);
+  });
+});
+
+describe('rutas de administración', () => {
+  it.each([
+    ['GET', '/api/users/admin/accounts', true],
+    ['PATCH', '/api/users/admin/accounts/3', true],
+    ['GET', '/api/billing/admin/overview', true],
+    ['GET', '/api/catalog/admin/titles', true],
+    ['POST', '/api/catalog/titles', true],
+    ['PATCH', '/api/catalog/titles/3', true],
+    ['DELETE', '/api/catalog/titles/3', true],
+    ['POST', '/api/media/ingest', true],
+    ['GET', '/api/analytics/kpis', true],
+    ['GET', '/api/catalog/titles', false],
+    ['GET', '/api/users/profiles/1', false],
+    ['POST', '/api/billing/subscribe', false],
+    ['GET', '/api/notifications/1', false],
+  ])('%s %s → solo admin: %s', (method, path, expected) => {
+    expect(isAdminRoute(method, path)).toBe(expected);
   });
 });
 
