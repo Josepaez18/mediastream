@@ -23,7 +23,7 @@ describe('BillingService', () => {
     };
   };
   let stripe: { charge: jest.Mock };
-  let events: { publishPaymentFailed: jest.Mock };
+  let events: { publishPaymentFailed: jest.Mock; publishSubscriptionActivated: jest.Mock; publishSubscriptionCanceled: jest.Mock };
   let service: BillingService;
 
   beforeAll(() => Logger.overrideLogger(false));
@@ -39,7 +39,11 @@ describe('BillingService', () => {
       },
     };
     stripe = { charge: jest.fn() };
-    events = { publishPaymentFailed: jest.fn().mockResolvedValue(undefined) };
+    events = {
+      publishPaymentFailed: jest.fn().mockResolvedValue(undefined),
+      publishSubscriptionActivated: jest.fn().mockResolvedValue(undefined),
+      publishSubscriptionCanceled: jest.fn().mockResolvedValue(undefined),
+    };
     service = new BillingService(
       prisma as unknown as PrismaService,
       stripe as unknown as StripeService,
@@ -106,5 +110,28 @@ describe('BillingService', () => {
       SubscriptionStatus.PAGO_FALLIDO,
     );
     expect(events.publishPaymentFailed).toHaveBeenCalledWith('7');
+  });
+
+  describe('plan de la cuenta (eventos hacia User-Service)', () => {
+    it('cobro exitoso → subscription.activated con el plan', async () => {
+      stripe.charge.mockResolvedValue(PaymentStatus.EXITOSO);
+      await subscribe();
+      expect(events.publishSubscriptionActivated).toHaveBeenCalledWith('7', Plan.ESTANDAR);
+    });
+
+    it('cobro rechazado o pendiente → no cambia el plan', async () => {
+      stripe.charge.mockResolvedValue(PaymentStatus.PENDIENTE);
+      await subscribe();
+      stripe.charge.mockResolvedValue(PaymentStatus.FALLIDO);
+      await subscribe().catch(() => undefined);
+      expect(events.publishSubscriptionActivated).not.toHaveBeenCalled();
+    });
+
+    it('cancelar → CANCELADA y subscription.canceled', async () => {
+      prisma.subscription.findFirst.mockResolvedValue({ id: 1n, accountId: 7n, plan: Plan.BASICO });
+      const result: any = await service.cancel('7');
+      expect(result.status).toBe(SubscriptionStatus.CANCELADA);
+      expect(events.publishSubscriptionCanceled).toHaveBeenCalledWith('7');
+    });
   });
 });

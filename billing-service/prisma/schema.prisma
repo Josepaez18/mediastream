@@ -30,6 +30,7 @@ enum SubscriptionStatus {
   ACTIVA         // el último cobro fue exitoso
   PAGO_FALLIDO   // la pasarela de pago rechazó el último cobro (dispara payment.failed)
   PAGO_PENDIENTE // la pasarela no respondió a tiempo; NO se trata como un rechazo (sección 4.5)
+  CANCELADA      // la persona canceló: la cuenta vuelve al plan GRATIS (subscription.canceled)
 }
 
 enum PaymentStatus {

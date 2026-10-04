@@ -73,7 +73,7 @@ export class BillingService {
       include: PAYMENTS_NEWEST_FIRST,
     });
 
-    return this.respond(outcome, dto.accountId, subscription);
+    return this.respond(outcome, dto.accountId, subscription, dto.plan);
   }
 
   // PUT /api/billing/plan: cambia el plan de una suscripción activa y cobra
@@ -116,7 +116,67 @@ export class BillingService {
       include: PAYMENTS_NEWEST_FIRST,
     });
 
-    return this.respond(outcome, dto.accountId, updated);
+    return this.respond(outcome, dto.accountId, updated, updated.plan);
+  }
+
+  // POST /api/billing/cancel: cancela la suscripción activa. La cuenta vuelve
+  // al plan GRATIS cuando User-Service procesa subscription.canceled.
+  async cancel(accountIdRaw: string) {
+    const accountId = BigInt(accountIdRaw);
+    const subscription = await this.prisma.subscription.findFirst({
+      where: {
+        accountId,
+        status: { in: [SubscriptionStatus.ACTIVA, SubscriptionStatus.PAGO_FALLIDO, SubscriptionStatus.PAGO_PENDIENTE] },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!subscription) {
+      throw new NotFoundException('No hay una suscripción vigente para esta cuenta.');
+    }
+    const updated = await this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { status: SubscriptionStatus.CANCELADA },
+      include: PAYMENTS_NEWEST_FIRST,
+    });
+    await this.paymentEvents.publishSubscriptionCanceled(accountIdRaw);
+    return updated;
+  }
+
+  // GET /api/billing/admin/overview: todas las suscripciones con su último
+  // pago, más los totales para el panel de administración.
+  async adminOverview() {
+    const subscriptions = await this.prisma.subscription.findMany({
+      include: { payments: { orderBy: { id: 'desc' as const } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    const byPlan: Record<string, number> = { BASICO: 0, ESTANDAR: 0, PREMIUM: 0 };
+    let revenue = 0;
+    for (const sub of subscriptions) {
+      if (sub.status === SubscriptionStatus.ACTIVA) byPlan[sub.plan] += 1;
+      for (const p of sub.payments) if (p.status === PaymentStatus.EXITOSO) revenue += p.amount;
+    }
+    return {
+      totals: {
+        subscriptions: subscriptions.length,
+        active: Object.values(byPlan).reduce((a, b) => a + b, 0),
+        activeByPlan: byPlan,
+        revenue: Number(revenue.toFixed(2)),
+        monthlyRecurring: Number(
+          Object.entries(byPlan)
+            .reduce((sum, [plan, n]) => sum + n * PLAN_PRICES[plan as Plan], 0)
+            .toFixed(2),
+        ),
+      },
+      subscriptions: subscriptions.map((sub) => ({
+        id: sub.id.toString(),
+        accountId: sub.accountId.toString(),
+        plan: sub.plan,
+        status: sub.status,
+        nextBillingDate: sub.nextBillingDate,
+        createdAt: sub.createdAt,
+        lastPayment: sub.payments[0] ?? null,
+      })),
+    };
   }
 
   // GET /api/billing/history/{account_id}
@@ -159,6 +219,10 @@ export class BillingService {
         },
         include: PAYMENTS_NEWEST_FIRST,
       });
+      await this.paymentEvents.publishSubscriptionActivated(
+        subscription.accountId.toString(),
+        subscription.plan,
+      );
       return updated;
     }
 
@@ -193,6 +257,7 @@ export class BillingService {
     outcome: PaymentStatus,
     accountId: string,
     subscription: unknown,
+    plan: Plan,
   ): Promise<BillingResult> {
     if (outcome === PaymentStatus.FALLIDO) {
       await this.paymentEvents.publishPaymentFailed(accountId);
@@ -200,6 +265,11 @@ export class BillingService {
         { message: 'El cobro fue rechazado por la pasarela de pago.', subscription },
         HttpStatus.PAYMENT_REQUIRED,
       );
+    }
+
+    if (outcome === PaymentStatus.EXITOSO) {
+      // El plan de la cuenta lo actualiza User-Service al recibir este evento.
+      await this.paymentEvents.publishSubscriptionActivated(accountId, plan);
     }
 
     const httpStatus =
