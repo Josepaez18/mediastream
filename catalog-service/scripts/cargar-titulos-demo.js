@@ -14,6 +14,15 @@
 const { PrismaClient } = require('@prisma/client');
 const Redis = require('ioredis');
 
+// Visibles con el plan GRATIS (el resto exige un plan de pago).
+const FREE_TITLES = new Set([
+  'Código Relámpago',
+  'Las Horas del Faro',
+  'Selva Adentro',
+  'Vecinos en Apuros',
+  'Pip y el Dragón de Papel',
+]);
+
 const TITLES = [
   // --- Acción
   {
@@ -101,8 +110,12 @@ async function main() {
 
   console.log('Cargando títulos de demostración en catalog_db...\n');
   for (const t of TITLES) {
+    const isFree = FREE_TITLES.has(t.name);
     const existing = await prisma.title.findFirst({ where: { name: t.name } });
     if (existing) {
+      if (isFree && !existing.isFree) {
+        await prisma.title.update({ where: { id: existing.id }, data: { isFree: true } });
+      }
       skipped++;
       console.log(`  =  ${t.name}  (ya existía, id ${existing.id})`);
       continue;
@@ -114,6 +127,7 @@ async function main() {
         type: t.type,
         category: t.category,
         ageRating: t.ageRating,
+        isFree,
         status: 'AVAILABLE',
         availabilities: {
           create: [
@@ -137,7 +151,7 @@ async function main() {
       },
     });
     created++;
-    console.log(`  +  ${t.name}  (id ${row.id}, ${t.category}, ${t.ageRating})`);
+    console.log(`  +  ${t.name}  (id ${row.id}, ${t.category}, ${t.ageRating}${isFree ? ', gratis' : ''})`);
   }
 
   // El listado del catálogo se cachea en Redis 60 s. Como este script
