@@ -113,7 +113,24 @@
     return { message, code };
   }
 
-  async function api(path, { method = 'GET', body, form, auth = true, quiet401 = false } = {}) {
+  // 502/503/504 que no vienen del Gateway (página HTML de Render): el servicio
+  // se está iniciando o cambiando de versión. En el plan gratis tarda ~1 min.
+  const WAKING_MESSAGE = 'El servicio se está iniciando. Espera unos segundos y vuelve a intentarlo.';
+  const isWaking = (status, data) => [502, 503, 504].includes(status) && (data === null || typeof data !== 'object');
+
+  async function api(path, opts = {}) {
+    const method = opts.method || 'GET';
+    // Las lecturas se reintentan solas mientras el servicio despierta; las
+    // escrituras no, para no repetir una operación que sí se hizo.
+    for (let attempt = 0; ; attempt++) {
+      const r = await request(path, opts);
+      if (!isWaking(r.status, r.data)) return r;
+      if (method !== 'GET' || attempt >= 2) return { ...r, message: WAKING_MESSAGE };
+      await sleep(3000);
+    }
+  }
+
+  async function request(path, { method = 'GET', body, form, auth = true, quiet401 = false } = {}) {
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (auth && session.token) headers.Authorization = `Bearer ${session.token}`;
