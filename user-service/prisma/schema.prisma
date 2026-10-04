@@ -24,12 +24,29 @@ enum AccountStatus {
   SUSPENDIDA  // 3er payment.failed consecutivo: login bloqueado hasta regularizar el pago
 }
 
+// Rol y plan (frontend tipo Netflix): el rol decide quién administra la
+// plataforma; el plan, qué parte del catálogo se puede reproducir. El plan lo
+// actualiza Billing-Service por eventos (subscription.activated / canceled).
+enum AccountRole {
+  USER
+  ADMIN
+}
+
+enum AccountPlan {
+  GRATIS
+  BASICO
+  ESTANDAR
+  PREMIUM
+}
+
 model Account {
   id                    BigInt        @id @default(autoincrement())
   email                 String        @unique
   passwordHash          String        @map("password_hash")
   status                AccountStatus @default(ACTIVA)
   failedPaymentAttempts Int           @default(0) @map("failed_payment_attempts")
+  role                  AccountRole   @default(USER)
+  plan                  AccountPlan   @default(GRATIS)
   createdAt             DateTime      @default(now()) @map("created_at")
 
   profiles              Profile[]

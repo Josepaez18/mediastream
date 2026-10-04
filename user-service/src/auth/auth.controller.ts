@@ -1,5 +1,6 @@
-import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../common/jwt-auth.guard';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -27,7 +28,7 @@ export class AuthController {
       'el RefreshToken se entrega en una cookie httpOnly.',
   })
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const { accessToken, refreshToken, accountStatus } = await this.authService.login(dto);
+    const { accessToken, refreshToken, accountStatus, account } = await this.authService.login(dto);
 
     res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
       httpOnly: true,
@@ -37,7 +38,15 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
 
-    return { accessToken, accountStatus };
+    return { accessToken, accountStatus, account };
+  }
+
+  @Get('me')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Datos de la cuenta y un AccessToken renovado con el plan y rol actuales.' })
+  me(@Req() req: any) {
+    return this.authService.me(req.user.sub);
   }
 
   @Post('refresh')
