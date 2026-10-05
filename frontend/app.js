@@ -816,12 +816,15 @@
     let lastSaved = 0;
     let idleTimer;
 
+    let pendingSave = Promise.resolve();
+    // Devuelve siempre el guardado en curso (aunque esta llamada se descarte
+    // por repetida), para que quien espere sepa cuándo terminó.
     const save = (completedNow = false) => {
-      if (!video.duration || !isFinite(video.duration)) return;
+      if (!video.duration || !isFinite(video.duration)) return pendingSave;
       const position = completedNow ? Math.floor(video.duration) : Math.floor(video.currentTime);
-      if (!completedNow && Math.abs(position - lastSaved) < 3) return;
+      if (!completedNow && Math.abs(position - lastSaved) < 3) return pendingSave;
       lastSaved = position;
-      api('/api/playback/progress', {
+      pendingSave = api('/api/playback/progress', {
         method: 'POST',
         body: {
           profileId: session.profile.id,
@@ -832,6 +835,7 @@
           deviceId: 'web',
         },
       });
+      return pendingSave;
     };
 
     video.addEventListener('loadedmetadata', () => { if (last && last < video.duration - 5) video.currentTime = last; });
@@ -844,7 +848,13 @@
     const wake = () => { player.classList.remove('idle'); clearTimeout(idleTimer); idleTimer = setTimeout(() => player.classList.add('idle'), 2500); };
     player.addEventListener('mousemove', wake);
     wake();
-    $('#backBtn').addEventListener('click', () => { save(); history.length > 1 ? history.back() : go('#/inicio'); });
+    // Al volver se espera a que el progreso quede guardado: así "Seguir viendo"
+    // ya lo muestra en el inicio.
+    $('#backBtn').addEventListener('click', async () => {
+      video.pause();
+      await save();
+      history.length > 1 ? history.back() : go('#/inicio');
+    });
     onLeave(() => { save(); video.pause(); clearTimeout(idleTimer); });
   }
 
