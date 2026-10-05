@@ -21,6 +21,15 @@ function startUpstream(): Promise<{ url: string; close: () => Promise<void> }> {
     req.on('data', (c) => chunks.push(c));
     req.on('end', () => {
       if (req.url?.startsWith('/api/playback/slow')) return; // nunca responde
+      if (req.url?.startsWith('/api/billing/dormido')) {
+        // Lo que responde el borde de Render cuando el servicio está dormido.
+        res.writeHead(502, { 'Content-Type': 'text/html', 'x-render-routing': 'no-deploy' });
+        return res.end('<!DOCTYPE html><title>502</title>');
+      }
+      if (req.url?.startsWith('/api/billing/error502')) {
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        return res.end('{"message":"error propio del servicio"}');
+      }
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.end(
@@ -172,6 +181,18 @@ describe('API Gateway', () => {
 
     const slow = await request(app).get('/api/playback/slow').set('Authorization', token());
     expect(slow.status).toBe(504);
+  });
+
+  it('servicio dormido en Render → 503 SERVICE_WAKING con el servicio a despertar', async () => {
+    const res = await request(app).get('/api/billing/dormido').set('Authorization', token());
+    expect(res.status).toBe(503);
+    expect(res.body).toMatchObject({ code: 'SERVICE_WAKING', service: 'billing', serviceUrl: upstream.url });
+  });
+
+  it('un 502 propio del servicio (sin la marca de Render) pasa tal cual', async () => {
+    const res = await request(app).get('/api/billing/error502').set('Authorization', token());
+    expect(res.status).toBe(502);
+    expect(res.body.message).toBe('error propio del servicio');
   });
 
   it('404 para rutas /api que ningún servicio atiende; lo demás sigue a Nest', async () => {

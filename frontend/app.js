@@ -118,12 +118,40 @@
   const WAKING_MESSAGE = 'El servicio se está iniciando. Espera unos segundos y vuelve a intentarlo.';
   const isWaking = (status, data) => [502, 503, 504].includes(status) && (data === null || typeof data !== 'object');
 
+  /*
+   * Servicios dormidos (plan gratis de Render): se apagan tras 15 min sin
+   * tráfico y solo despiertan con una visita desde FUERA de Render. El Gateway
+   * no puede despertarlos, pero el navegador sí: se "toca" su URL pública.
+   */
+  const SERVICE_KEYS = {
+    user: 'USER', catalog: 'CATALOG', playback: 'PLAYBACK', media: 'MEDIA',
+    recommendation: 'RECOMMENDATION', billing: 'BILLING', notification: 'NOTIFICATION', analytics: 'ANALYTICS',
+  };
+  const lastWake = {};
+  function wake(service, url) {
+    const base = url || CFG[SERVICE_KEYS[service]];
+    if (!base || Date.now() - (lastWake[base] || 0) < 20000) return;
+    lastWake[base] = Date.now();
+    // no-cors: solo importa que la visita llegue; la respuesta no se lee.
+    fetch(`${base.replace(/\/+$/, '')}/health`, { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+  }
+  function wakeAll() { Object.keys(SERVICE_KEYS).forEach((s) => wake(s)); }
+
+  let wakingToastShown = 0;
   async function api(path, opts = {}) {
     const method = opts.method || 'GET';
-    // Las lecturas se reintentan solas mientras el servicio despierta; las
-    // escrituras no, para no repetir una operación que sí se hizo.
+    const started = Date.now();
     for (let attempt = 0; ; attempt++) {
       const r = await request(path, opts);
+      // El servicio estaba dormido: la petición no llegó, se puede reintentar
+      // (también un registro o un pago) mientras despierta.
+      if (r.code === 'SERVICE_WAKING') {
+        wake(r.data?.service, r.data?.serviceUrl);
+        if (Date.now() - started > 90000) return { ...r, message: 'El servicio tarda en iniciar. Inténtalo de nuevo en un minuto.' };
+        if (Date.now() - wakingToastShown > 30000) { wakingToastShown = Date.now(); toast('Iniciando el servicio, puede tardar hasta un minuto…'); }
+        await sleep(4000);
+        continue;
+      }
       if (!isWaking(r.status, r.data)) return r;
       if (method !== 'GET' || attempt >= 2) return { ...r, message: WAKING_MESSAGE };
       await sleep(3000);
@@ -163,6 +191,9 @@
   // Renueva la sesión cada 10 minutos mientras la app está abierta (el
   // AccessToken dura 15).
   setInterval(() => { if (session.token) refreshMe(); }, 10 * 60 * 1000);
+  // Mientras la app está abierta y visible, se mantienen despiertos los
+  // servicios (se duermen a los 15 min sin tráfico).
+  setInterval(() => { if (document.visibilityState === 'visible') wakeAll(); }, 10 * 60 * 1000);
 
   /* ============================================================ catálogo */
   const CATEGORY_COLORS = {
@@ -1337,18 +1368,20 @@
   }
 
   async function adminServices(body) {
+    wakeAll();
     const r = await api('/health/services', { auth: false });
     const services = r.ok ? r.data.services : [];
     body.innerHTML = `
       <p class="form-note">Estado de cada microservicio detrás del API Gateway (su <code>/health/ready</code>). En el plan gratis de Render, un servicio dormido tarda ~50 s en despertar.</p>
       <div class="svc-grid">${services.map((s) => `
-        <div class="svc"><span class="dot ${s.ok ? 'ok' : 'off'}"></span><div><strong>${esc(s.service)}</strong><div class="form-note">${s.ok ? `${s.latencyMs} ms` : 'sin respuesta'}</div></div></div>`).join('') || '<p class="empty">El Gateway no responde.</p>'}</div>
+        <div class="svc"><span class="dot ${s.ok ? 'ok' : 'off'}"></span><div><strong>${esc(s.service)}</strong><div class="form-note">${s.ok ? `${s.latencyMs} ms` : s.status === 502 ? 'dormido · se despierta al usarlo' : 'sin respuesta'}</div></div></div>`).join('') || '<p class="empty">El Gateway no responde.</p>'}</div>
       <p style="margin-top:16px"><button class="btn btn-outline btn-sm" id="svcRefresh">Actualizar</button></p>`;
     $('#svcRefresh').addEventListener('click', () => adminServices(body));
   }
 
   /* ================================================================ arranque */
   (async () => {
+    wakeAll();
     if (session.token && tokenValid()) {
       const me = await refreshMe();
       if (!me.ok && me.status === 401) { logout('Tu sesión expiró. Vuelve a iniciar sesión.'); return; }

@@ -56,11 +56,27 @@ export interface GatewayOptions {
   proxyTimeoutMs?: number;
 }
 
-export function sendError(res: Response | ServerResponse, status: number, message: string, path = '') {
+export function sendError(
+  res: Response | ServerResponse,
+  status: number,
+  message: string,
+  path = '',
+  extra: Record<string, unknown> = {},
+) {
   if (res.headersSent) return;
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.end(JSON.stringify({ statusCode: status, path, timestamp: new Date().toISOString(), message }));
+  res.end(JSON.stringify({ statusCode: status, path, timestamp: new Date().toISOString(), message, ...extra }));
+}
+
+/**
+ * ¿El servicio de destino está dormido? En el plan gratis, Render apaga un
+ * servicio tras 15 min sin tráfico. Una visita desde fuera lo despierta, pero
+ * a una petición que llega desde otro servicio de Render (como el Gateway) su
+ * borde le responde 502 con x-render-routing: no-deploy, sin despertarlo.
+ */
+export function isSleepingUpstream(status: number | undefined, headers: Record<string, unknown>): boolean {
+  return status === 502 && headers['x-render-routing'] === 'no-deploy';
 }
 
 export function createGateway(options: GatewayOptions): RequestHandler {
@@ -80,9 +96,24 @@ export function createGateway(options: GatewayOptions): RequestHandler {
         // (el dominio del Gateway) en vez de por el Host del servicio de destino.
         xfwd: false,
         proxyTimeout,
+        // La respuesta se escribe a mano (abajo) para poder reemplazar la
+        // página HTML de Render por un JSON cuando el servicio está dormido.
+        selfHandleResponse: true,
         on: {
-          proxyRes: (proxyRes) => {
+          proxyRes: (proxyRes, req: IncomingMessage, res: ServerResponse) => {
+            if (isSleepingUpstream(proxyRes.statusCode, proxyRes.headers)) {
+              proxyRes.resume(); // descarta la página de Render
+              // 503 + SERVICE_WAKING: la petición NO llegó al servicio, así que el
+              // cliente puede despertarlo (visitando su URL pública) y reintentar.
+              return sendError(res, 503, `${route.service}-service se está iniciando. Reintenta en unos segundos.`, req.url ?? '', {
+                code: 'SERVICE_WAKING',
+                service: route.service,
+                serviceUrl: target,
+              });
+            }
             for (const header of UPSTREAM_CORS_HEADERS) delete proxyRes.headers[header];
+            res.writeHead(proxyRes.statusCode ?? 502, proxyRes.statusMessage, proxyRes.headers);
+            proxyRes.pipe(res);
           },
           error: (err: NodeJS.ErrnoException, req: IncomingMessage, res: ServerResponse | Socket) => {
             if (!('setHeader' in res)) return; // conexión sin respuesta HTTP (p. ej. websocket)
