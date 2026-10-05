@@ -134,6 +134,21 @@ describe('API Gateway', () => {
     expect(res.body.headers['x-account-id']).toBeUndefined();
   });
 
+  it('no reenvía las cabeceras de la plataforma (Cloudflare/Render) al servicio de destino', async () => {
+    const res = await request(app)
+      .get('/api/catalog/titles')
+      .set('cf-ray', 'abc')
+      .set('cf-connecting-ip', '1.2.3.4')
+      .set('rndr-id', 'gateway')
+      .set('x-render-origin-server', 'Render')
+      .set('true-client-ip', '1.2.3.4')
+      .set('x-forwarded-host', 'mediastream-gateway.onrender.com');
+    expect(res.status).toBe(200);
+    for (const h of ['cf-ray', 'cf-connecting-ip', 'rndr-id', 'x-render-origin-server', 'true-client-ip', 'x-forwarded-host']) {
+      expect(res.body.headers[h]).toBeUndefined();
+    }
+  });
+
   it('quita las cabeceras CORS del servicio de destino (la política es la del Gateway)', async () => {
     const res = await request(app).get('/api/catalog/titles');
     expect(res.headers['access-control-allow-origin']).toBeUndefined();

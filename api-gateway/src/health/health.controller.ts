@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { resolveTarget, ROUTES } from '../proxy/routes';
 
 const CHECK_TIMEOUT_MS = 3000;
@@ -26,6 +27,12 @@ export class HealthController {
   @Get('health/ready')
   ready() {
     return { status: 'ready', service: 'api-gateway' };
+  }
+
+  // Diagnóstico: NOMBRES de las cabeceras que llegan al Gateway (sin valores).
+  @Get('health/headers')
+  headers(@Req() req: Request) {
+    return { headers: Object.keys(req.headers).sort() };
   }
 
   // Estado de cada microservicio detrás del Gateway (su /health/ready).

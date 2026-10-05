@@ -20,6 +20,21 @@ export const INTERNAL_HEADERS = [
   'x-account-status',
 ];
 
+/**
+ * Cabeceras que pone la plataforma de hosting a la petición ENTRANTE
+ * (Cloudflare y el enrutador de Render). Identifican al Gateway como destino;
+ * si se reenvían tal cual al microservicio, el borde de Render puede enrutar
+ * la petición a otro sitio y responder 502 "no-deploy". Se quitan antes de
+ * reenviar: el microservicio recibe una petición limpia, como la de un cliente.
+ */
+export const PLATFORM_HEADER = /^(cf-|x-render|rndr|render-|true-client-ip$|cdn-loop$|x-real-ip$|x-forwarded-|forwarded$|via$)/i;
+
+export function stripPlatformHeaders(headers: Record<string, unknown>) {
+  for (const name of Object.keys(headers)) {
+    if (PLATFORM_HEADER.test(name)) delete headers[name];
+  }
+}
+
 // Los microservicios también responden cabeceras CORS (para poder probarlos
 // solos). Detrás del Gateway, la política CORS es solo la del Gateway: si
 // llegaran las dos, el navegador vería el origen permitido repetido y
@@ -61,7 +76,9 @@ export function createGateway(options: GatewayOptions): RequestHandler {
       createProxyMiddleware<Request, Response>({
         target,
         changeOrigin: true,
-        xfwd: true,
+        // Sin X-Forwarded-*: el borde de Render podría enrutar por X-Forwarded-Host
+        // (el dominio del Gateway) en vez de por el Host del servicio de destino.
+        xfwd: false,
         proxyTimeout,
         on: {
           proxyRes: (proxyRes) => {
@@ -93,6 +110,7 @@ export function createGateway(options: GatewayOptions): RequestHandler {
     if (!route) return sendError(res, 404, `Ninguna ruta del Gateway atiende ${path}.`, path);
 
     for (const header of INTERNAL_HEADERS) delete req.headers[header];
+    stripPlatformHeaders(req.headers);
 
     // Autenticación centralizada (sección 5).
     let accountId: string | undefined;
