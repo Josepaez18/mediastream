@@ -809,10 +809,33 @@
     let sourceIndex = 0;
     let leaving = false;
     video.src = sources[0];
+    let started = false;
+    let resumeAt = 0;
+    let recoveries = 0;
+    let recovering = false;
+    video.addEventListener('loadedmetadata', () => { started = true; });
+    video.addEventListener('timeupdate', () => { if (video.currentTime > 0 && !recovering) resumeAt = video.currentTime; });
     video.addEventListener('error', () => {
       // Al salir del reproductor el navegador aborta la descarga y lanza
       // 'error' (MEDIA_ERR_ABORTED): no es una fuente caída, no se cambia.
       if (leaving || video.error?.code === 1) return;
+      if (started) {
+        // Ya se estaba viendo (p. ej. un corte de red al adelantar): se recarga
+        // la MISMA fuente en el mismo punto, para no cambiar de video.
+        if (recoveries++ < 3) {
+          const at = resumeAt;
+          recovering = true;
+          video.load();
+          video.addEventListener('loadedmetadata', () => {
+            video.currentTime = Math.min(at, video.duration - 1);
+            video.addEventListener('seeked', () => { recovering = false; }, { once: true });
+            video.play().catch(() => {});
+          }, { once: true });
+          return;
+        }
+        return playerMessage('Se perdió la conexión con el video', 'Revisa tu conexión e inténtalo de nuevo; tu progreso quedó guardado.');
+      }
+      // Nunca cargó: se prueba la siguiente fuente de muestra.
       sourceIndex += 1;
       if (sourceIndex < sources.length) { video.src = sources[sourceIndex]; video.play().catch(() => {}); }
       else playerMessage('No se pudo cargar el video', 'Las fuentes de video de muestra no responden. Inténtalo más tarde.');
@@ -824,7 +847,7 @@
     // Devuelve siempre el guardado en curso (aunque esta llamada se descarte
     // por repetida), para que quien espere sepa cuándo terminó.
     const save = (completedNow = false) => {
-      if (!video.duration || !isFinite(video.duration) || video.readyState < 1) return pendingSave;
+      if (recovering || !video.duration || !isFinite(video.duration) || video.readyState < 1) return pendingSave;
       const position = completedNow ? Math.floor(video.duration) : Math.floor(video.currentTime);
       if (!completedNow && Math.abs(position - lastSaved) < 3) return pendingSave;
       lastSaved = position;
