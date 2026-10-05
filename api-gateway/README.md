@@ -66,6 +66,19 @@ los servicios de destino se descartan para que no se dupliquen con las del Gatew
 
 **Timeouts.** Si un servicio no responde en `PROXY_TIMEOUT_MS` (15 s), 504; si está caído, 502.
 
+**Servicios dormidos (Render, plan gratis).** Render apaga un servicio tras 15 min sin tráfico
+y solo lo despierta una visita desde **fuera** de Render; a las peticiones del Gateway su borde
+les responde 502 `x-render-routing: no-deploy`. El Gateway lo traduce a **503**
+`{"code": "SERVICE_WAKING", "service": "...", "serviceUrl": "..."}`: la petición no llegó al
+servicio, así que el frontend visita `serviceUrl` desde el navegador (lo despierta) y reintenta,
+también en registros y pagos. Al abrir la app, y cada 10 min con la pestaña visible, el frontend
+despierta todos los servicios.
+
+**Cabeceras de la plataforma.** Antes de reenviar se quitan las que Cloudflare y Render agregan
+a la petición entrante (`cf-*`, `rndr-id`, `render-proxy-ttl`, `cdn-loop`, `x-forwarded-*`, …):
+identifican al Gateway y no deben llegar a los servicios. `GET /health/headers` lista los
+nombres de las cabeceras que llegan (sin valores), para diagnóstico.
+
 ## Health
 
 | Endpoint | |
