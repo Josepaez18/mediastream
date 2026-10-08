@@ -627,21 +627,31 @@
   }
 
   let openMenu = null;
-  function toggleMenu(anchor, html) {
-    if (openMenu) { const same = openMenu.anchor === anchor; openMenu.el.remove(); openMenu = null; if (same) return; }
+  function closeOpenMenu() {
+    if (!openMenu) return;
+    openMenu.anchor.setAttribute('aria-expanded', 'false');
+    openMenu.el.remove();
+    openMenu = null;
+  }
+  function toggleMenu(anchor, html, extraClass = '') {
+    if (openMenu) { const same = openMenu.anchor === anchor; closeOpenMenu(); if (same) return; }
     const el = document.createElement('div');
-    el.className = 'dropdown' + (anchor.id === 'bellBtn' ? ' notif-panel' : '');
+    el.className = 'dropdown' + (anchor.id === 'bellBtn' ? ' notif-panel' : '') + (extraClass ? ' ' + extraClass : '');
+    anchor.setAttribute('aria-expanded', 'true');
     el.innerHTML = html;
     anchor.parentElement.appendChild(el);
     openMenu = { anchor, el };
     el.addEventListener('click', (e) => {
       if (e.target.closest('[data-logout]')) logout();
-      if (e.target.closest('a')) { el.remove(); openMenu = null; }
+      if (e.target.closest('a')) closeOpenMenu();
     });
     if (anchor.id === 'bellBtn') fillNotifications(el);
   }
   document.addEventListener('click', (e) => {
-    if (openMenu && !openMenu.el.contains(e.target) && !openMenu.anchor.contains(e.target)) { openMenu.el.remove(); openMenu = null; }
+    if (openMenu && !openMenu.el.contains(e.target) && !openMenu.anchor.contains(e.target)) closeOpenMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && openMenu) { const anchor = openMenu.anchor; closeOpenMenu(); anchor.focus(); }
   });
 
   /* ========================================================= notificaciones */
@@ -701,18 +711,32 @@
     accion: '💥', aventura: '🧭', anime: '🌸', animacion: '🎨', 'ciencia ficcion': '🚀', comedia: '😂', crimen: '🕵️',
     documental: '🌍', drama: '🎭', fantasia: '🐉', infantil: '🧸', musical: '🎵', romance: '💜', suspenso: '🔪', terror: '👻',
   };
-  function categoryChips(list, base, current) {
+  // Categorías en un desplegable: un botón (con la categoría activa) que abre
+  // un menú con todas, su icono y cuántos títulos tiene cada una.
+  let categoryMenuHtml = '';
+  function categoryDropdown(list, base, current) {
     const counts = {};
     for (const t of list) if (t.category) counts[t.category] = (counts[t.category] || 0) + 1;
     const cats = Object.keys(counts).sort((a, b) => a.localeCompare(b, 'es'));
     if (cats.length < 2) return '';
-    const chip = (label, href, on, icon = '') =>
-      `<a class="chip ${on ? 'on' : ''}" href="${href}">${icon ? `<span aria-hidden="true">${icon}</span>` : ''}${esc(label)}</a>`;
-    return `<nav class="chips" aria-label="Categorías">
-      ${chip('Todas', base, !current, '✨')}
-      ${cats.map((c) => chip(c, `${base}?cat=${encodeURIComponent(c)}`, norm(c) === norm(current), CATEGORY_ICONS[norm(c)] || '🎬')).join('')}
-    </nav>`;
+    const item = (label, href, on, icon, count) =>
+      `<a class="${on ? 'on' : ''}" href="${href}"><span class="cat-icon" aria-hidden="true">${icon}</span><span class="cat-name">${esc(label)}</span>${count !== undefined ? `<span class="cat-count">${count}</span>` : ''}</a>`;
+    categoryMenuHtml = `
+      ${item('Todas las categorías', base, !current, '✨')}
+      ${cats.map((c) => item(c, `${base}?cat=${encodeURIComponent(c)}`, norm(c) === norm(current), CATEGORY_ICONS[norm(c)] || '🎬', counts[c])).join('')}`;
+    const label = current ? `${CATEGORY_ICONS[norm(current)] || '🎬'} ${esc(current)}` : 'Categorías';
+    return `
+      <div class="cat-bar">
+        <div class="menu-wrap">
+          <button class="cat-toggle ${current ? 'active' : ''}" id="catBtn" aria-haspopup="true">
+            <span>${label}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+        ${current ? `<a class="cat-clear" href="${base}">Quitar filtro ✕</a>` : ''}
+      </div>`;
   }
+
 
   // Lo más visto según Analytics; si todavía no hay vistas, se completa con el orden del catálogo.
   function rankByViews(list, top) {
@@ -750,7 +774,7 @@
         const inCat = list.filter((t) => norm(t.category) === norm(cat));
         body = `<div class="page cat-page"><h1>${CATEGORY_ICONS[norm(cat)] || '🎬'} ${esc(cat)}</h1>
             <p class="lead">${inCat.length} ${inCat.length === 1 ? 'título' : 'títulos'}${typeFilter ? (typeFilter === 'SERIES' ? ' · solo series' : ' · solo películas') : ''}</p></div>
-          ${categoryChips(list, base, cat)}
+          ${categoryDropdown(list, base, cat)}
           ${inCat.length ? `<div class="grid-results">${inCat.map((t) => card(t)).join('')}</div>` : '<p class="empty">No hay títulos en esta categoría.</p>'}`;
       } else if (!list.length) {
         body = `<p class="empty">Todavía no hay títulos disponibles en tu región (${esc(session.region)}). ${isAdmin() ? 'Agrégalos desde el <a href="#/admin/catalogo">panel de administración</a>.' : ''}</p>`;
@@ -776,7 +800,7 @@
         const progressOf = new Map(resumeTitles.map((r) => [String(r.titleId), r.percentWatched]));
         body = `
           ${heroBlock(hero)}
-          ${categoryChips(list, base, null)}
+          ${categoryDropdown(list, base, null)}
           <div class="rows">
             ${flash ? `<div class="notice" style="margin:0 28px 20px">${esc(flash)}</div>` : ''}
             ${effectivePlan() === 'GRATIS' && !isAdmin() ? `<div class="upsell" style="margin:0 28px 26px"><strong>Estás en el plan Gratis.</strong> Ves los títulos marcados como gratis; el resto tiene candado. <a href="#/planes">Ver planes</a></div>` : ''}
@@ -793,6 +817,7 @@
 
     app.innerHTML = `${topbar(active)}${body}`;
     bindTopbar();
+    $('#catBtn')?.addEventListener('click', (e) => toggleMenu(e.currentTarget, categoryMenuHtml, 'cat-menu'));
     $('#heroPlay')?.addEventListener('click', (e) => playTitle(e.currentTarget.dataset.id));
     $('#heroInfo')?.addEventListener('click', (e) => openTitle(e.currentTarget.dataset.id));
   }
