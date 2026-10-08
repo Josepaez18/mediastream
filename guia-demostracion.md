@@ -104,14 +104,15 @@ Con datos limpios, Beto es la cuenta **2**.
 Con datos limpios será el título **1**. Queda en `PENDING`: **no lo publiques
 todavía**. Que Media lo vuelva disponible es uno de los momentos fuertes.
 
-**Títulos de demostración** (14 títulos de 6 géneros, ya disponibles en CO y MX,
-para que Recommendation tenga entre qué recomendar):
+**Títulos de demostración** (103 películas y series reales con su póster, 18 de
+ellas gratis, ya disponibles en CO y MX, para que Recommendation tenga entre qué
+recomendar; los datos están en `catalog-service/scripts/titulos-demo.json`):
 
 ```
 docker compose exec catalog-service node scripts/cargar-titulos-demo.js
 ```
 
-Quedan con los ids 2 a 15. **Hazlo después** de crear "El Último Meridiano".
+Quedan con los ids 2 a 104. **Hazlo después** de crear "El Último Meridiano".
 
 **Deja el stack corriendo.** No lo apagues hasta después de presentar.
 

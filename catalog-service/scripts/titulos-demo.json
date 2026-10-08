@@ -1,0 +1,6744 @@
+[
+  {
+    "name": "Batman: El caballero de la noche",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "PG-13",
+    "synopsis": "Batman, Gordon y el fiscal Harvey Dent intentan acabar con el crimen en Ciudad Gótica, hasta que aparece el Guasón y lo pone todo patas arriba.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1c/The_Dark_Knight_%282008_film%29.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Mad Max: Furia en el camino",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "R",
+    "synopsis": "En un desierto postapocalíptico, Max y la emperatriz Furiosa huyen de un tirano en una persecución sin descanso.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/6/6e/Mad_Max_Fury_Road.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "John Wick",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "R",
+    "synopsis": "Un exasesino retirado vuelve al único oficio que conoce cuando unos matones le arrebatan lo último que le quedaba.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/9/98/John_Wick_TeaserPoster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Gladiador",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "R",
+    "synopsis": "Traicionado y convertido en esclavo, el general Máximo se abre paso como gladiador para vengarse del emperador de Roma.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/fb/Gladiator_%282000_film_poster%29.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Top Gun: Maverick",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "PG-13",
+    "synopsis": "Tras treinta años de servicio, Maverick entrena a una nueva generación de pilotos para una misión casi imposible.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/13/Top_Gun_Maverick_Poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Misión imposible: Repercusión",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "PG-13",
+    "synopsis": "Ethan Hunt y su equipo corren contra el reloj después de que una misión sale mal y tres núcleos de plutonio caen en malas manos.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/ff/MI_%E2%80%93_Fallout.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El origen",
+    "type": "MOVIE",
+    "category": "Ciencia ficción",
+    "ageRating": "PG-13",
+    "synopsis": "Un ladrón que roba secretos entrando en los sueños recibe un último encargo: implantar una idea en la mente de alguien.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Interestelar",
+    "type": "MOVIE",
+    "category": "Ciencia ficción",
+    "ageRating": "PG-13",
+    "synopsis": "Con la Tierra agonizando, un grupo de astronautas cruza un agujero de gusano en busca de un nuevo hogar para la humanidad.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/b/bc/Interstellar_film_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Matrix",
+    "type": "MOVIE",
+    "category": "Ciencia ficción",
+    "ageRating": "R",
+    "synopsis": "Un programador descubre que el mundo que conoce es una simulación y que él podría ser la clave para liberar a la humanidad.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/db/The_Matrix.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Duna",
+    "type": "MOVIE",
+    "category": "Ciencia ficción",
+    "ageRating": "PG-13",
+    "synopsis": "Paul Atreides llega con su familia a Arrakis, el planeta desértico más peligroso del universo y el único que produce la especia.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Dune_%282021_film%29.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Blade Runner 2049",
+    "type": "MOVIE",
+    "category": "Ciencia ficción",
+    "ageRating": "R",
+    "synopsis": "Un nuevo blade runner desentierra un secreto que podría hundir lo que queda de la sociedad y busca a Rick Deckard.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/9/9b/Blade_Runner_2049_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Avatar",
+    "type": "MOVIE",
+    "category": "Ciencia ficción",
+    "ageRating": "PG-13",
+    "synopsis": "Un marine parapléjico es enviado a la luna Pandora y termina dividido entre seguir órdenes y proteger el mundo que aprende a amar.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d6/Avatar_%282009_film%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Sueños de libertad",
+    "type": "MOVIE",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "Condenado por un crimen que no cometió, Andy Dufresne encuentra amistad y esperanza durante décadas en la prisión de Shawshank.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/81/ShawshankRedemptionMoviePoster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Forrest Gump",
+    "type": "MOVIE",
+    "category": "Drama",
+    "ageRating": "PG-13",
+    "synopsis": "Un hombre de corazón noble atraviesa sin proponérselo varios de los momentos clave de la historia de Estados Unidos.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/6/67/Forrest_Gump_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Parásitos",
+    "type": "MOVIE",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "Una familia pobre se infiltra poco a poco en la vida de una familia rica, hasta que un descubrimiento lo cambia todo.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/5/53/Parasite_%282019_film%29.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El padrino",
+    "type": "MOVIE",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "El patriarca de una familia mafiosa de Nueva York transfiere el control de su imperio a su hijo menor, que no quería ese destino.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1c/Godfather_ver1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Roma",
+    "type": "MOVIE",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "Un año en la vida de Cleo, empleada doméstica de una familia de clase media en la Ciudad de México de los años setenta.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/85/Roma_theatrical_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Whiplash: Música y obsesión",
+    "type": "MOVIE",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "Un joven baterista de jazz soporta los métodos extremos de un profesor dispuesto a todo por sacar a un genio.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/01/Whiplash_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El Gran Hotel Budapest",
+    "type": "MOVIE",
+    "category": "Comedia",
+    "ageRating": "R",
+    "synopsis": "El legendario conserje de un hotel europeo y su joven botones se ven envueltos en el robo de un cuadro y una herencia disputada.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Mi pobre angelito",
+    "type": "MOVIE",
+    "category": "Comedia",
+    "ageRating": "PG",
+    "synopsis": "Olvidado en casa durante las vacaciones de Navidad, Kevin debe defenderla de dos ladrones torpes.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/7/76/Home_alone_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "La máscara",
+    "type": "MOVIE",
+    "category": "Comedia",
+    "ageRating": "PG-13",
+    "synopsis": "Un empleado bancario tímido encuentra una máscara que lo convierte en un personaje desatado y caricaturesco.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/4/4b/The_Mask_%28film%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Amigos intocables",
+    "type": "MOVIE",
+    "category": "Comedia",
+    "ageRating": "R",
+    "synopsis": "Un aristócrata tetrapléjico contrata como cuidador a un joven de los suburbios, y nace una amistad improbable.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/9/93/The_Intouchables.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Coco",
+    "type": "MOVIE",
+    "category": "Animación",
+    "ageRating": "PG",
+    "synopsis": "Miguel sueña con ser músico y, en pleno Día de Muertos, termina en la Tierra de los Muertos buscando a su tatarabuelo.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/9/98/Coco_%282017_film%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Spider-Man: Un nuevo universo",
+    "type": "MOVIE",
+    "category": "Animación",
+    "ageRating": "PG",
+    "synopsis": "Miles Morales se convierte en Spider-Man y se une a otros arañas de distintas dimensiones para salvar su mundo.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/fa/Spider-Man_Into_the_Spider-Verse_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El viaje de Chihiro",
+    "type": "MOVIE",
+    "category": "Animación",
+    "ageRating": "PG",
+    "synopsis": "Una niña queda atrapada en un mundo de espíritus y trabaja en una casa de baños mágica para salvar a sus padres.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Toy Story",
+    "type": "MOVIE",
+    "category": "Animación",
+    "ageRating": "G",
+    "synopsis": "Woody, el vaquero favorito de Andy, se siente desplazado cuando llega Buzz Lightyear, un astronauta que no sabe que es un juguete.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/13/Toy_Story.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Intensa-Mente",
+    "type": "MOVIE",
+    "category": "Animación",
+    "ageRating": "PG",
+    "synopsis": "Alegría, Tristeza y las demás emociones de Riley intentan guiarla cuando su familia se muda a una nueva ciudad.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/0a/Inside_Out_%282015_film%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Encanto",
+    "type": "MOVIE",
+    "category": "Infantil",
+    "ageRating": "PG",
+    "synopsis": "En las montañas de Colombia, Mirabel es la única de la familia Madrigal sin un don mágico, pero quizá sea la única capaz de salvarla.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/83/Encanto_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Frozen: Una aventura congelada",
+    "type": "MOVIE",
+    "category": "Infantil",
+    "ageRating": "PG",
+    "synopsis": "Anna emprende un viaje para encontrar a su hermana Elsa, cuyos poderes de hielo han dejado al reino en un invierno eterno.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/05/Frozen_%282013_film%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Paddington",
+    "type": "MOVIE",
+    "category": "Infantil",
+    "ageRating": "PG",
+    "synopsis": "Un osito peruano llega a Londres buscando un hogar y encuentra a la familia Brown, aunque también a una taxidermista con malas intenciones.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/06/PaddingtonPOSTER.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El rey león",
+    "type": "MOVIE",
+    "category": "Infantil",
+    "ageRating": "G",
+    "synopsis": "Simba, un joven león, debe aceptar su lugar en el ciclo de la vida tras la muerte de su padre.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/3/3d/The_Lion_King_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "¡Huye!",
+    "type": "MOVIE",
+    "category": "Terror",
+    "ageRating": "R",
+    "synopsis": "Un joven afroamericano visita a la familia de su novia y descubre que la amabilidad de sus anfitriones esconde algo terrible.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/a/a3/Get_Out_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Un lugar en silencio",
+    "type": "MOVIE",
+    "category": "Terror",
+    "ageRating": "PG-13",
+    "synopsis": "Una familia sobrevive en silencio absoluto en un mundo invadido por criaturas que cazan guiadas por el sonido.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/a/a0/A_Quiet_Place_film_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El conjuro",
+    "type": "MOVIE",
+    "category": "Terror",
+    "ageRating": "R",
+    "synopsis": "Los investigadores paranormales Ed y Lorraine Warren ayudan a una familia aterrorizada por una presencia en su granja.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/8c/The_Conjuring_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "It",
+    "type": "MOVIE",
+    "category": "Terror",
+    "ageRating": "R",
+    "synopsis": "Un grupo de niños marginados se enfrenta a Pennywise, un payaso que despierta cada 27 años para alimentarse del miedo.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/5/5a/It_%282017%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Titanic",
+    "type": "MOVIE",
+    "category": "Romance",
+    "ageRating": "PG-13",
+    "synopsis": "Una joven de clase alta y un artista sin dinero se enamoran a bordo del Titanic en su desafortunado viaje inaugural.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/18/Titanic_%281997_film%29_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "La La Land: Una historia de amor",
+    "type": "MOVIE",
+    "category": "Romance",
+    "ageRating": "PG-13",
+    "synopsis": "Una aspirante a actriz y un pianista de jazz se enamoran en Los Ángeles mientras persiguen sus sueños.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/a/ab/La_La_Land_%28film%29.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Orgullo y prejuicio",
+    "type": "MOVIE",
+    "category": "Romance",
+    "ageRating": "PG",
+    "synopsis": "Elizabeth Bennet y el orgulloso señor Darcy superan prejuicios y malentendidos en la Inglaterra rural del siglo XIX.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/03/Prideandprejudiceposter.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Diario de una pasión",
+    "type": "MOVIE",
+    "category": "Romance",
+    "ageRating": "PG-13",
+    "synopsis": "Un anciano lee a una mujer la historia de dos jóvenes de mundos distintos que se enamoraron un verano de los años cuarenta.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/86/Posternotebook.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Lo que el pulpo me enseñó",
+    "type": "MOVIE",
+    "category": "Documental",
+    "ageRating": "G",
+    "synopsis": "Un cineasta forja una relación única con un pulpo en un bosque de algas de Sudáfrica.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/06/My_Octopus_Teacher_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Free Solo",
+    "type": "MOVIE",
+    "category": "Documental",
+    "ageRating": "PG-13",
+    "synopsis": "Alex Honnold se prepara para escalar sin cuerdas El Capitán, una pared de casi mil metros en Yosemite.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/9/9c/Free_Solo.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "La marcha de los pingüinos",
+    "type": "MOVIE",
+    "category": "Documental",
+    "ageRating": "G",
+    "synopsis": "Cada año, los pingüinos emperador recorren kilómetros de hielo antártico para reproducirse y criar a sus polluelos.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/19/March_of_the_penguins_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Breaking Bad",
+    "type": "SERIES",
+    "category": "Crimen",
+    "ageRating": "R",
+    "synopsis": "Un profesor de química con un diagnóstico terminal se asocia con un exalumno para fabricar metanfetamina y asegurar el futuro de su familia.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/6/61/BreakingBadS1DVD.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 5,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Stranger Things",
+    "type": "SERIES",
+    "category": "Ciencia ficción",
+    "ageRating": "PG-13",
+    "synopsis": "En un pueblo de Indiana, un niño desaparece y sus amigos descubren experimentos secretos, fuerzas sobrenaturales y a una niña muy extraña.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/b/b1/Stranger_Things_season_1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "The Crown",
+    "type": "SERIES",
+    "category": "Drama",
+    "ageRating": "PG-13",
+    "synopsis": "La vida de la reina Isabel II, desde su boda y su llegada al trono hasta las crisis políticas y familiares de su largo reinado.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/6/6c/The_Crown_season_1.jpeg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 5,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 6,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "The Mandalorian",
+    "type": "SERIES",
+    "category": "Ciencia ficción",
+    "ageRating": "PG-13",
+    "synopsis": "Tras la caída del Imperio, un cazarrecompensas solitario recorre los confines de la galaxia protegiendo a un misterioso niño.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/04/The_Mandalorian_season_1_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "El juego del calamar",
+    "type": "SERIES",
+    "category": "Suspenso",
+    "ageRating": "R",
+    "synopsis": "Cientos de personas endeudadas aceptan participar en juegos infantiles con un premio millonario, sin saber que perder cuesta la vida.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/7/7b/Squid_Game_season_1_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "The Last of Us",
+    "type": "SERIES",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "Veinte años después de una pandemia que acabó con la civilización, Joel debe sacar a la joven Ellie de una zona de cuarentena.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/3/3e/The_Last_of_Us_season_1_Blu-ray.png",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Narcos",
+    "type": "SERIES",
+    "category": "Crimen",
+    "ageRating": "R",
+    "synopsis": "La historia de los agentes de la DEA que persiguieron a Pablo Escobar y a los carteles de la droga en la Colombia de los ochenta.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/b/b9/Narcos_season_1.png",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Juego de tronos",
+    "type": "SERIES",
+    "category": "Fantasía",
+    "ageRating": "R",
+    "synopsis": "Varias casas nobles luchan por el Trono de Hierro de los Siete Reinos mientras una antigua amenaza despierta más allá del Muro.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/e/e8/Game_of_Thrones_Season_1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 5,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 6,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 7,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 8,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Friends",
+    "type": "SERIES",
+    "category": "Comedia",
+    "ageRating": "PG-13",
+    "synopsis": "Seis amigos comparten amores, trabajos, departamentos y muchas tazas de café en Nueva York.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1c/Friends_Season_1_DVD.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 25,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 5,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 6,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 25,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 7,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 8,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 9,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 10,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bluey",
+    "type": "SERIES",
+    "category": "Infantil",
+    "ageRating": "G",
+    "synopsis": "Bluey, una perrita de seis años, convierte la vida familiar en aventuras llenas de imaginación junto a su hermana y sus padres.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/4/48/Bluey_%282018_TV_series%29_title_card.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 25,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 26,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 27,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 28,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 29,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 30,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 31,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 32,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 33,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 34,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 35,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 36,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 37,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 38,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 39,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 40,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 41,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 42,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 43,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 44,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 45,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 46,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 47,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 48,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 49,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 50,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 51,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 52,
+            "durationSeconds": 420
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 25,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 26,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 27,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 28,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 29,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 30,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 31,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 32,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 33,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 34,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 35,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 36,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 37,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 38,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 39,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 40,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 41,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 42,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 43,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 44,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 45,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 46,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 47,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 48,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 49,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 50,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 51,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 52,
+            "durationSeconds": 420
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 25,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 26,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 27,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 28,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 29,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 30,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 31,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 32,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 33,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 34,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 35,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 36,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 37,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 38,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 39,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 40,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 41,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 42,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 43,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 44,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 45,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 46,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 47,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 48,
+            "durationSeconds": 420
+          },
+          {
+            "episodeNumber": 49,
+            "durationSeconds": 420
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Planeta Tierra II",
+    "type": "SERIES",
+    "category": "Documental",
+    "ageRating": "G",
+    "synopsis": "Islas, montañas, selvas, desiertos, praderas y ciudades: la vida salvaje del planeta como nunca se había filmado.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/b/ba/Planet_Earth_II.png",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Nuestro planeta",
+    "type": "SERIES",
+    "category": "Documental",
+    "ageRating": "G",
+    "synopsis": "Un recorrido por los ecosistemas más valiosos de la Tierra y por lo que podemos hacer para protegerlos.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/f8/Our_Planet_%28Netflix%29_-_Series_Cover_Artwork.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Cosmos: Una odisea en el espacio-tiempo",
+    "type": "SERIES",
+    "category": "Documental",
+    "ageRating": "PG",
+    "synopsis": "Neil deGrasse Tyson guía un viaje por el universo, desde el Big Bang hasta los grandes descubrimientos de la ciencia.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Cosmos_spacetime_odyssey_titlecard.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Chef's Table",
+    "type": "SERIES",
+    "category": "Documental",
+    "ageRating": "PG",
+    "synopsis": "Cada episodio retrata a un chef de talla mundial: su historia, su cocina y lo que lo llevó a reinventarla.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/11/Chef%27s_Table.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Planeta azul II",
+    "type": "SERIES",
+    "category": "Documental",
+    "ageRating": "G",
+    "synopsis": "Una exploración de los océanos, desde los arrecifes de coral hasta las profundidades nunca vistas.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/2/21/BBC_Blue_Planet_II_title_card.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "El último baile",
+    "type": "SERIES",
+    "category": "Documental",
+    "ageRating": "PG-13",
+    "synopsis": "Michael Jordan y los Chicago Bulls en su última temporada juntos, con imágenes inéditas de la temporada 1997-98.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/14/The_Last_Dance_2020.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "La Tierra de noche",
+    "type": "SERIES",
+    "category": "Documental",
+    "ageRating": "G",
+    "synopsis": "Con cámaras de visión nocturna, la serie revela cómo viven los animales cuando cae el sol.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/2/21/Night_on_earth_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Your Name",
+    "type": "MOVIE",
+    "category": "Anime",
+    "ageRating": "PG",
+    "synopsis": "Dos adolescentes que no se conocen empiezan a intercambiar sus cuerpos mientras duermen, y un cometa lo cambia todo.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/0b/Your_Name_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Akira",
+    "type": "MOVIE",
+    "category": "Anime",
+    "ageRating": "R",
+    "synopsis": "En el Neo-Tokio de 2019, un joven pandillero adquiere poderes psíquicos que amenazan con destruir la ciudad.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/5/5d/AKIRA_%281988_poster%29.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Demon Slayer: Tren infinito",
+    "type": "MOVIE",
+    "category": "Anime",
+    "ageRating": "R",
+    "synopsis": "Tanjiro y sus compañeros suben a un tren donde han desaparecido decenas de pasajeros, y se enfrentan a un demonio que controla los sueños.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/2/21/Kimetsu_no_Yaiba_Mugen_Ressha_Hen_Poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "La princesa Mononoke",
+    "type": "MOVIE",
+    "category": "Anime",
+    "ageRating": "PG-13",
+    "synopsis": "Un joven príncipe maldito queda atrapado en la guerra entre los dioses del bosque y una aldea minera.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/8c/Princess_Mononoke_Japanese_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Suzume",
+    "type": "MOVIE",
+    "category": "Anime",
+    "ageRating": "PG",
+    "synopsis": "Una estudiante recorre Japón cerrando puertas misteriosas que liberan desastres sobre el país.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/7/7f/Suzume_no_Tojimari_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El niño y la garza",
+    "type": "MOVIE",
+    "category": "Anime",
+    "ageRating": "PG-13",
+    "synopsis": "Tras perder a su madre, Mahito sigue a una garza parlante hasta un mundo fantástico compartido por vivos y muertos.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/4/41/How_Do_You_Live_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Mi vecino Totoro",
+    "type": "MOVIE",
+    "category": "Anime",
+    "ageRating": "G",
+    "synopsis": "Dos hermanas se mudan al campo y descubren a Totoro, un amable espíritu del bosque.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/02/My_Neighbor_Totoro_-_Tonari_no_Totoro_%28Movie_Poster%29.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Indiana Jones y los cazadores del arca perdida",
+    "type": "MOVIE",
+    "category": "Aventura",
+    "ageRating": "PG",
+    "synopsis": "El arqueólogo Indiana Jones compite contra los nazis para encontrar el Arca de la Alianza.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/4/4c/Raiders_of_the_Lost_Ark.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Jurassic Park",
+    "type": "MOVIE",
+    "category": "Aventura",
+    "ageRating": "PG-13",
+    "synopsis": "Un parque temático con dinosaurios clonados se convierte en una pesadilla cuando falla la seguridad.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/e/e7/Jurassic_Park_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Piratas del Caribe: La maldición del Perla Negra",
+    "type": "MOVIE",
+    "category": "Aventura",
+    "ageRating": "PG-13",
+    "synopsis": "El excéntrico capitán Jack Sparrow se une a un herrero para rescatar a una joven de una tripulación pirata maldita.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/89/Pirates_of_the_Caribbean_-_The_Curse_of_the_Black_Pearl.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Volver al futuro",
+    "type": "MOVIE",
+    "category": "Aventura",
+    "ageRating": "PG",
+    "synopsis": "Marty McFly viaja accidentalmente a 1955 y debe lograr que sus padres se enamoren para poder existir.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d2/Back_to_the_Future.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Up: Una aventura de altura",
+    "type": "MOVIE",
+    "category": "Aventura",
+    "ageRating": "PG",
+    "synopsis": "Un anciano ata miles de globos a su casa para volar a Sudamérica, sin saber que lleva un pequeño explorador de polizón.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/05/Up_%282009_film%29.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El señor de los anillos: La comunidad del anillo",
+    "type": "MOVIE",
+    "category": "Fantasía",
+    "ageRating": "PG-13",
+    "synopsis": "El hobbit Frodo emprende un viaje para destruir el Anillo Único antes de que caiga en manos del señor oscuro Sauron.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/fb/Lord_Rings_Fellowship_Ring.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Harry Potter y la piedra filosofal",
+    "type": "MOVIE",
+    "category": "Fantasía",
+    "ageRating": "PG",
+    "synopsis": "En su undécimo cumpleaños, Harry descubre que es un mago y entra al colegio Hogwarts de Magia y Hechicería.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/7/7a/Harry_Potter_and_the_Philosopher%27s_Stone_banner.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El laberinto del fauno",
+    "type": "MOVIE",
+    "category": "Fantasía",
+    "ageRating": "R",
+    "synopsis": "En la España de la posguerra, una niña descubre un laberinto donde un fauno le encarga tres pruebas peligrosas.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/6/67/Pan%27s_Labyrinth.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Bohemian Rhapsody",
+    "type": "MOVIE",
+    "category": "Musical",
+    "ageRating": "PG-13",
+    "synopsis": "La historia de Queen y de Freddie Mercury, desde sus inicios hasta el legendario concierto de Live Aid.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/2/2e/Bohemian_Rhapsody_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El gran showman",
+    "type": "MOVIE",
+    "category": "Musical",
+    "ageRating": "PG",
+    "synopsis": "P. T. Barnum pasa de la nada a crear un espectáculo que revoluciona el entretenimiento.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/10/The_Greatest_Showman_poster.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Mamma Mia!",
+    "type": "MOVIE",
+    "category": "Musical",
+    "ageRating": "PG-13",
+    "synopsis": "A punto de casarse en una isla griega, Sophie invita a tres hombres que podrían ser su padre, al ritmo de ABBA.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/9/95/Mamma_Mia_%282008%29_US_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Tiempos violentos",
+    "type": "MOVIE",
+    "category": "Crimen",
+    "ageRating": "R",
+    "synopsis": "Dos sicarios, un boxeador, un gánster y su esposa cruzan sus historias en Los Ángeles.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/3/3b/Pulp_Fiction_%281994%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Joker",
+    "type": "MOVIE",
+    "category": "Crimen",
+    "ageRating": "R",
+    "synopsis": "Arthur Fleck, un comediante fracasado, se hunde en la locura y se convierte en el Joker.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/e/e1/Joker_%282019_film%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Los infiltrados",
+    "type": "MOVIE",
+    "category": "Crimen",
+    "ageRating": "R",
+    "synopsis": "Un policía infiltrado en la mafia y un mafioso infiltrado en la policía intentan descubrirse el uno al otro.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/5/50/Departed234.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Entre navajas y secretos",
+    "type": "MOVIE",
+    "category": "Crimen",
+    "ageRating": "PG-13",
+    "synopsis": "Tras la muerte de un famoso novelista, un detective investiga a su excéntrica familia.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1f/Knives_Out_poster.jpeg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Seven: Los siete pecados capitales",
+    "type": "MOVIE",
+    "category": "Suspenso",
+    "ageRating": "R",
+    "synopsis": "Dos detectives persiguen a un asesino en serie que elige a sus víctimas según los siete pecados capitales.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/6/68/Seven_%28movie%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Perdida",
+    "type": "MOVIE",
+    "category": "Suspenso",
+    "ageRating": "R",
+    "synopsis": "Cuando su esposa desaparece en su aniversario, Nick se convierte en el principal sospechoso.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/05/Gone_Girl_Poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "La isla siniestra",
+    "type": "MOVIE",
+    "category": "Suspenso",
+    "ageRating": "R",
+    "synopsis": "Un agente federal investiga la desaparición de una paciente en un hospital psiquiátrico aislado.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/7/76/Shutterislandposter.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El silencio de los inocentes",
+    "type": "MOVIE",
+    "category": "Suspenso",
+    "ageRating": "R",
+    "synopsis": "Una agente del FBI en formación pide ayuda al brillante y peligroso Hannibal Lecter para atrapar a un asesino.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/8/86/The_Silence_of_the_Lambs_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Avengers: Endgame",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "PG-13",
+    "synopsis": "Tras el chasquido de Thanos, los Vengadores que quedan se reúnen para intentar revertir la catástrofe.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/0d/Avengers_Endgame_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Pantera Negra",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "PG-13",
+    "synopsis": "T'Challa vuelve a Wakanda para ocupar el trono, pero un poderoso enemigo pone en peligro a su nación.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d6/Black_Panther_%28film%29_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Spider-Man: Sin camino a casa",
+    "type": "MOVIE",
+    "category": "Acción",
+    "ageRating": "PG-13",
+    "synopsis": "Con su identidad revelada, Peter Parker pide ayuda al Doctor Strange y abre la puerta a villanos de otros universos.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/00/Spider-Man_No_Way_Home_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Barbie",
+    "type": "MOVIE",
+    "category": "Comedia",
+    "ageRating": "PG-13",
+    "synopsis": "Barbie empieza a tener dudas sobre su mundo perfecto y viaja con Ken al mundo real.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/0/0b/Barbie_2023_poster.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El legado del diablo",
+    "type": "MOVIE",
+    "category": "Terror",
+    "ageRating": "R",
+    "synopsis": "Tras la muerte de la abuela, una familia descubre secretos aterradores sobre su linaje.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/d9/Hereditary.png",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "El resplandor",
+    "type": "MOVIE",
+    "category": "Terror",
+    "ageRating": "R",
+    "synopsis": "Un escritor acepta cuidar un hotel aislado durante el invierno, y el lugar empieza a apoderarse de su mente.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1d/The_Shining_%281980%29_U.K._release_poster_-_The_tide_of_terror_that_swept_America_IS_HERE.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Oppenheimer",
+    "type": "MOVIE",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "La historia de J. Robert Oppenheimer y la creación de la bomba atómica durante la Segunda Guerra Mundial.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/4/4a/Oppenheimer_%28film%29.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Todo en todas partes al mismo tiempo",
+    "type": "MOVIE",
+    "category": "Ciencia ficción",
+    "ageRating": "R",
+    "synopsis": "Una dueña de lavandería descubre que debe conectar con versiones de sí misma en otros universos para salvar el multiverso.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1e/Everything_Everywhere_All_at_Once.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ]
+  },
+  {
+    "name": "Demon Slayer: Kimetsu no Yaiba",
+    "type": "SERIES",
+    "category": "Anime",
+    "ageRating": "PG-13",
+    "synopsis": "Tanjiro se convierte en cazador de demonios para vengar a su familia y devolverle la humanidad a su hermana Nezuko.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/3/33/Demon_Slayer_Kimetsu_no_Yaiba_URA_Vol_1.png",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 25,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 26,
+            "durationSeconds": 1440
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 1440
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 1440
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Spy × Family",
+    "type": "SERIES",
+    "category": "Anime",
+    "ageRating": "PG-13",
+    "synopsis": "Un espía, una asesina y una niña telépata fingen ser una familia, sin que ninguno conozca el secreto de los otros.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/5/51/Spy_Family_vol_1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 25,
+            "durationSeconds": 1440
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 1440
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Jujutsu Kaisen",
+    "type": "SERIES",
+    "category": "Anime",
+    "ageRating": "R",
+    "synopsis": "Yuji Itadori se traga el dedo de una maldición poderosa y entra en una escuela de hechiceros para combatirlas.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/5/57/Jujutsu_Kaisen_S1_Vol.1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 24,
+            "durationSeconds": 1440
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 1440
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 1440
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "The Boys",
+    "type": "SERIES",
+    "category": "Acción",
+    "ageRating": "R",
+    "synopsis": "Un grupo de justicieros se enfrenta a superhéroes corruptos que abusan de su fama y de sus poderes.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/f/f6/The_Boys_Season_1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Better Call Saul",
+    "type": "SERIES",
+    "category": "Crimen",
+    "ageRating": "R",
+    "synopsis": "La transformación de Jimmy McGill, un abogado de poca monta, en Saul Goodman.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/1/1c/Better_Call_Saul_season_1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 5,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 6,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Loki",
+    "type": "SERIES",
+    "category": "Ciencia ficción",
+    "ageRating": "PG-13",
+    "synopsis": "El dios del engaño es atrapado por una agencia que vigila la línea del tiempo y debe ayudarla a reparar el caos.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/c/c9/Loki_season_1_poster.jpeg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "The Bear",
+    "type": "SERIES",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "Un joven chef de alta cocina vuelve a Chicago para hacerse cargo del caótico restaurante de su familia.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/7/74/The_Bear_2022_FX.png",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Brooklyn Nine-Nine",
+    "type": "SERIES",
+    "category": "Comedia",
+    "ageRating": "PG-13",
+    "synopsis": "Las aventuras del talentoso pero inmaduro detective Jake Peralta en una comisaría de Brooklyn.",
+    "isFree": true,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/4/45/Brooklyn_Nine-Nine_Season_1.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 3,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 23,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 4,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 5,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 19,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 20,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 21,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 22,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 6,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 14,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 15,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 16,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 17,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 18,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 7,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 11,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 12,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 13,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 8,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "La casa del dragón",
+    "type": "SERIES",
+    "category": "Fantasía",
+    "ageRating": "R",
+    "synopsis": "Doscientos años antes de Juego de tronos, la casa Targaryen se desangra en una guerra civil por el trono.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/d/df/House_of_the_Dragon_season_1.png",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 9,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 10,
+            "durationSeconds": 2700
+          }
+        ]
+      },
+      {
+        "seasonNumber": 2,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 6,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 7,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 8,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Chernobyl",
+    "type": "SERIES",
+    "category": "Drama",
+    "ageRating": "R",
+    "synopsis": "La historia del desastre nuclear de 1986 y de quienes se sacrificaron para contenerlo.",
+    "isFree": false,
+    "posterUrl": "https://upload.wikimedia.org/wikipedia/en/a/a7/Chernobyl_2019_Miniseries.jpg",
+    "regions": [
+      "CO",
+      "MX"
+    ],
+    "seasons": [
+      {
+        "seasonNumber": 1,
+        "episodes": [
+          {
+            "episodeNumber": 1,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 2,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 3,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 4,
+            "durationSeconds": 2700
+          },
+          {
+            "episodeNumber": 5,
+            "durationSeconds": 2700
+          }
+        ]
+      }
+    ]
+  }
+]
