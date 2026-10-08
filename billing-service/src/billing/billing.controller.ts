@@ -13,7 +13,9 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsIn, IsNotEmpty, IsString, Matches } from 'class-validator';
+import { Plan } from '@prisma/client';
+import { PaypalCheckoutService } from './paypal-checkout.service';
 import { BillingService } from './billing.service';
 import { SubscribeDto } from './dto/subscribe.dto';
 import { ChangePlanDto } from './dto/change-plan.dto';
@@ -40,6 +42,11 @@ export function assertOwnAccount(req: Request, accountId: string) {
   }
 }
 
+export class PaypalOrderDto extends CancelDto {
+  @IsIn(Object.values(Plan))
+  plan: Plan;
+}
+
 function assertAdmin(req: Request) {
   if (req.headers['x-account-id'] && req.headers['x-account-role'] !== 'ADMIN') {
     throw new ForbiddenException('Requiere rol de administrador.');
@@ -49,7 +56,39 @@ function assertAdmin(req: Request) {
 @ApiTags('billing')
 @Controller('api/billing')
 export class BillingController {
-  constructor(private readonly billingService: BillingService) {}
+  constructor(
+    private readonly billingService: BillingService,
+    private readonly paypalCheckout: PaypalCheckoutService,
+  ) {}
+
+  // --- PayPal Checkout (sandbox) ---------------------------------------
+  @Get('paypal/config')
+  @ApiOperation({ summary: 'Si PayPal está habilitado y su Client ID (público) para cargar los botones.' })
+  paypalConfig() {
+    return this.paypalCheckout.config();
+  }
+
+  @Post('paypal/orders')
+  @ApiOperation({ summary: 'Crea la orden de PayPal por el precio del plan (o la diferencia si cambia de plan).' })
+  createPaypalOrder(@Body() dto: PaypalOrderDto, @Req() req: Request) {
+    assertOwnAccount(req, dto.accountId);
+    return this.paypalCheckout.createOrder(dto.accountId, dto.plan);
+  }
+
+  @Post('paypal/orders/:orderId/capture')
+  @ApiOperation({ summary: 'Captura la orden aprobada en PayPal y activa el plan.' })
+  async capturePaypalOrder(
+    @Param('orderId') orderId: string,
+    @Body() dto: CancelDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    assertOwnAccount(req, dto.accountId);
+    if (!/^[A-Z0-9-]{5,40}$/i.test(orderId)) throw new ForbiddenException('Id de orden inválido.');
+    const result = await this.paypalCheckout.capture(orderId, dto.accountId);
+    res.status(result.httpStatus);
+    return result.body;
+  }
 
   @Post('subscribe')
   @ApiOperation({ summary: 'Crea una suscripción nueva y procesa el primer cobro.' })

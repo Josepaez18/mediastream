@@ -384,6 +384,12 @@ services:
       # El MISMO RabbitMQ que consume User-Service: así le llega payment.failed.
       RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
       STRIPE_SECRET_KEY: "sk_test_no_usada_en_esta_simulacion"
+      # PayPal sandbox: se leen del archivo .env de esta carpeta (git lo
+      # ignora). Sin ellas, PayPal queda deshabilitado y solo funciona la
+      # tarjeta simulada.
+      PAYPAL_CLIENT_ID: "${PAYPAL_CLIENT_ID:-}"
+      PAYPAL_CLIENT_SECRET: "${PAYPAL_CLIENT_SECRET:-}"
+      PAYPAL_API_BASE: "https://api-m.sandbox.paypal.com"
       CORS_ORIGINS: "*"
     depends_on:
       billing-db:

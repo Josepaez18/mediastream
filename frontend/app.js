@@ -1109,30 +1109,100 @@
             </div>`).join('')}
         </div>
         ${welcome ? '<p style="margin-top:26px"><a class="btn btn-ghost" href="#/inicio">Seguir con el plan Gratis</a></p>' : ''}
-        <p class="form-note" style="margin-top:22px">Los pagos son simulados (no se cobra dinero real). Tarjeta de prueba: 4242 4242 4242 4242.</p>
+        <p class="form-note" style="margin-top:22px">Pagos de prueba: PayPal en modo sandbox (cuentas de prueba, sin dinero real) o tarjeta simulada 4242 4242 4242 4242.</p>
       </div>`;
     bindTopbar();
     $$('[data-plan]').forEach((b) => b.addEventListener('click', () => openCheckout(b.dataset.plan, current)));
     $('[data-cancel]')?.addEventListener('click', () => cancelPlan());
   }
 
+  // ---- PayPal (sandbox): la config sale de Billing y el SDK se carga una sola vez.
+  let paypalConfigPromise = null;
+  let paypalSdkPromise = null;
+  function paypalConfig() {
+    paypalConfigPromise ||= api('/api/billing/paypal/config').then((r) => (r.ok ? r.data : { enabled: false }));
+    return paypalConfigPromise;
+  }
+  function loadPaypalSdk(clientId) {
+    paypalSdkPromise ||= new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?${new URLSearchParams({ 'client-id': clientId, currency: 'USD', intent: 'capture', components: 'buttons', locale: 'es_XC' })}`;
+      script.onload = () => resolve(window.paypal);
+      script.onerror = () => { paypalSdkPromise = null; reject(new Error('No se pudo cargar PayPal.')); };
+      document.head.appendChild(script);
+    });
+    return paypalSdkPromise;
+  }
+
+  /** Tras un cobro aprobado: espera a que User-Service aplique el plan y vuelve al inicio. */
+  async function finishPayment(planId, plan, statusEl) {
+    if (statusEl) statusEl.textContent = 'Activando tu plan…';
+    const applied = await waitForPlan(planId);
+    closeModal();
+    toast(applied ? `¡Listo! Ya tienes el plan ${plan.name}.` : 'Pago aprobado. Tu plan se activará en unos segundos.');
+    catalogCache.key = null;
+    go('#/inicio');
+  }
+
+  async function setupPaypal(planId, plan) {
+    const box = $('#paypalBox');
+    const err = $('#payErr');
+    const cfg = await paypalConfig();
+    if (!$('#paypalBox')) return; // se cerró la ventana
+    if (!cfg.enabled || !cfg.clientId) { box.hidden = true; $('#payDivider').hidden = true; return; }
+    let paypal;
+    try { paypal = await loadPaypalSdk(cfg.clientId); } catch (e) { box.innerHTML = `<p class="form-note">${esc(e.message)} Usa la tarjeta de prueba.</p>`; return; }
+    if (!$('#paypalButtons')) return; // se cerró la ventana mientras cargaba
+    const accountId = session.account.id;
+    box.querySelector('.paypal-loading')?.remove();
+    paypal.Buttons({
+      style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal', height: 44 },
+      createOrder: async () => {
+        err.textContent = '';
+        const r = await api('/api/billing/paypal/orders', { method: 'POST', body: { accountId, plan: planId } });
+        if (!r.ok) { err.textContent = r.message; throw new Error(r.message); }
+        return r.data.orderId;
+      },
+      onApprove: async (data, actions) => {
+        const status = $('#paypalStatus');
+        status.textContent = 'Confirmando el pago con PayPal…';
+        const r = await api(`/api/billing/paypal/orders/${encodeURIComponent(data.orderID)}/capture`, { method: 'POST', body: { accountId } });
+        if (!r.ok && r.code === 'PAYPAL_DECLINED') { status.textContent = ''; return actions.restart(); }
+        if (!r.ok) { status.textContent = ''; err.textContent = r.message; return; }
+        if (r.status === 202) { closeModal(); toast(r.data?.message || 'Tu pago quedó pendiente de revisión en PayPal.'); return; }
+        await finishPayment(planId, plan, status);
+      },
+      onCancel: () => { err.textContent = 'Cancelaste el pago en PayPal. Puedes intentarlo de nuevo.'; },
+      onError: () => { if (!err.textContent) err.textContent = 'PayPal no pudo procesar el pago. Inténtalo de nuevo o usa la tarjeta de prueba.'; },
+    }).render('#paypalButtons').catch(() => {});
+  }
+
   function openCheckout(planId, current) {
     const plan = PLANS.find((p) => p.id === planId);
     openModal(`
-      <form class="modal narrow" id="payForm">
+      <div class="modal narrow checkout">
         <button type="button" class="modal-close" data-close aria-label="Cerrar">✕</button>
         <h2 style="margin-top:0">${current === 'GRATIS' ? 'Suscribirte a' : 'Cambiar a'} ${esc(plan.name)}</h2>
         <p class="form-note">${money(plan.price)} al mes${current !== 'GRATIS' ? ' · se cobra la diferencia con tu plan actual' : ''}.</p>
-        <div class="field"><label for="card">Número de tarjeta</label>
-          <input class="input" id="card" inputmode="numeric" autocomplete="cc-number" value="4242 4242 4242 4242" required></div>
-        <div class="grid-2">
-          <div class="field"><label for="exp">Vencimiento</label><input class="input" id="exp" placeholder="MM/AA" value="12/29"></div>
-          <div class="field"><label for="cvc">CVC</label><input class="input" id="cvc" placeholder="123" value="123"></div>
+        <div id="paypalBox" class="paypal-box">
+          <div id="paypalButtons"></div>
+          <p class="form-note paypal-loading">Cargando PayPal…</p>
+          <p class="form-note" id="paypalStatus" aria-live="polite"></p>
         </div>
-        <p class="form-note">Prueba: 4242 4242 4242 4242 → aprobada · 4000 0000 0000 0002 → rechazada.</p>
-        <div class="form-error" id="payErr"></div>
-        <button class="btn btn-block" type="submit">Pagar ${money(plan.price)}</button>
-      </form>`);
+        <div class="pay-divider" id="payDivider"><span>o con tarjeta de prueba (simulada)</span></div>
+        <form id="payForm">
+          <div class="field"><label for="card">Número de tarjeta</label>
+            <input class="input" id="card" inputmode="numeric" autocomplete="cc-number" value="4242 4242 4242 4242" required></div>
+          <div class="grid-2">
+            <div class="field"><label for="exp">Vencimiento</label><input class="input" id="exp" placeholder="MM/AA" value="12/29"></div>
+            <div class="field"><label for="cvc">CVC</label><input class="input" id="cvc" placeholder="123" value="123"></div>
+          </div>
+          <p class="form-note">Prueba: 4242 4242 4242 4242 → aprobada · 4000 0000 0000 0002 → rechazada.</p>
+          <div class="form-error" id="payErr" aria-live="polite"></div>
+          <button class="btn btn-block" type="submit">Pagar ${money(plan.price)} con tarjeta</button>
+        </form>
+      </div>`);
+    setupPaypal(planId, plan);
     $('#payForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = $('button[type=submit]', e.target);
@@ -1150,19 +1220,14 @@
         r = await api('/api/billing/subscribe', { method: 'POST', body: { accountId, plan: planId, cardNumber } });
       }
       if (!r.ok) {
-        btn.disabled = false; btn.textContent = `Pagar ${money(plan.price)}`;
+        btn.disabled = false; btn.textContent = `Pagar ${money(plan.price)} con tarjeta`;
         err.textContent = r.status === 402 ? 'El pago fue rechazado. Prueba con otra tarjeta.' : r.message;
         return;
       }
       if (r.status === 202) {
         closeModal(); toast('Tu pago quedó pendiente de confirmación. Te avisaremos cuando se apruebe.'); return;
       }
-      btn.textContent = 'Activando tu plan…';
-      const applied = await waitForPlan(planId);
-      closeModal();
-      toast(applied ? `¡Listo! Ya tienes el plan ${plan.name}.` : 'Pago aprobado. Tu plan se activará en unos segundos.');
-      catalogCache.key = null;
-      go('#/inicio');
+      await finishPayment(planId, plan, btn);
     });
   }
 

@@ -558,3 +558,10 @@ body { background: radial-gradient(1100px 420px at 85% -120px, rgba(156, 106, 22
   .rank-num { font-size: 110px; margin-right: -10px; }
   .rank-item .card { width: 108px; }
 }
+
+/* ------------------------------------------------------------- pago PayPal */
+.paypal-box { margin: 16px 0 4px; min-height: 52px; }
+.paypal-box #paypalStatus:empty { display: none; }
+.pay-divider { display: flex; align-items: center; gap: 12px; margin: 14px 0 16px; color: var(--ink-faint); font-size: 13px; }
+.pay-divider::before, .pay-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.pay-divider[hidden] { display: none; }

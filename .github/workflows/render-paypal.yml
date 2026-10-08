@@ -1,0 +1,40 @@
+# Carga las credenciales de PayPal (sandbox) en Billing-Service de Render
+# desde los secretos de GitHub PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET, y lo
+# redespliega. Los valores nunca se imprimen.
+#   gh secret set PAYPAL_CLIENT_ID
+#   gh secret set PAYPAL_CLIENT_SECRET
+#   gh workflow run render-paypal.yml
+name: Render - credenciales de PayPal
+
+on:
+  workflow_dispatch:
+
+jobs:
+  paypal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copiar credenciales a Billing-Service y redesplegar
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID_BILLING }}
+          PAYPAL_CLIENT_ID: ${{ secrets.PAYPAL_CLIENT_ID }}
+          PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          for v in RENDER_API_KEY SERVICE_ID PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET; do
+            if [ -z "${!v}" ]; then echo "::error::Falta el secreto $v"; exit 1; fi
+          done
+          API=https://api.render.com/v1
+          AUTH="Authorization: Bearer $RENDER_API_KEY"
+          put() {
+            curl -fsS -X PUT "$API/services/$SERVICE_ID/env-vars/$1" -H "$AUTH" \
+              -H "Content-Type: application/json" -d "$(jq -n --arg v "$2" '{value: $v}')" -o /dev/null
+            echo "$1 actualizado"
+          }
+          put PAYPAL_CLIENT_ID "$PAYPAL_CLIENT_ID"
+          put PAYPAL_CLIENT_SECRET "$PAYPAL_CLIENT_SECRET"
+          put PAYPAL_API_BASE "https://api-m.sandbox.paypal.com"
+          sleep 5
+          curl -fsS -X POST "$API/services/$SERVICE_ID/deploys" -H "$AUTH" \
+            -H "Content-Type: application/json" -d '{}' -o /dev/null
+          echo "Redespliegue de Billing solicitado" | tee -a "$GITHUB_STEP_SUMMARY"

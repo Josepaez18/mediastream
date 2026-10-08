@@ -287,6 +287,14 @@ services:
       # Pasarela simulada: no se usa una clave real de Stripe (ver README).
       - key: STRIPE_SECRET_KEY
         value: sk_test_no_usada_en_esta_simulacion
+      # PayPal sandbox. Los valores los carga el workflow "Render - credenciales
+      # de PayPal" desde los secretos de GitHub (nunca se escriben aquí).
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_API_BASE
+        value: https://api-m.sandbox.paypal.com
 
   # -------------------------------------------------------- Notification
   # Sin base de datos relacional: Redis (deduplicación + historial).

@@ -210,3 +210,27 @@ curl -X POST http://localhost:3006/api/billing/webhook \
   Outbox para garantizar la entrega; se documenta como simplificación pedagógica en el código.
   Lo que sí está resuelto: Billing no se queda "sin broker" para siempre tras un fallo (vuelve
   a conectar en el siguiente evento) y los mensajes que ya están en la cola son persistentes.
+
+## PayPal (sandbox)
+
+Además de la tarjeta simulada, Billing cobra con **PayPal Checkout** en modo sandbox (dinero
+de prueba). El flujo:
+
+1. `POST /api/billing/paypal/orders` `{accountId, plan}` crea la orden en PayPal. El monto lo
+   calcula el servidor: el precio del plan, o la diferencia si la cuenta ya tiene otro plan. La
+   orden lleva `custom_id = "<accountId>:<plan>"`.
+2. El navegador la aprueba en la ventana de PayPal (botones del SDK de PayPal).
+3. `POST /api/billing/paypal/orders/{orderId}/capture` `{accountId}` comprueba que la orden sea
+   de esa cuenta, la captura y deja la suscripción ACTIVA con un pago `provider = PAYPAL`,
+   `external_id = orderId` (único: una misma orden nunca se aplica dos veces). Publica
+   `subscription.activated`, igual que el cobro con tarjeta.
+
+`GET /api/billing/paypal/config` le dice al frontend si PayPal está habilitado y su Client ID
+(público). Sin `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`, PayPal queda deshabilitado y la app
+solo ofrece la tarjeta simulada.
+
+**Credenciales:** en https://developer.paypal.com (modo *Sandbox*) → *Apps & Credentials* →
+*Create App*. En local van en el `.env` de la raíz de `MediaStream/` (Docker Compose las lee de
+ahí); en Render, en los secretos de GitHub `PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET`, que el
+workflow *Render - credenciales de PayPal* copia a Billing-Service. Para pagar en las pruebas se
+usa la cuenta **Personal** de *Testing Tools → Sandbox Accounts*.

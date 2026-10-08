@@ -79,6 +79,12 @@ model Payment {
   // cobro fue EXITOSO. Un pago FALLIDO o PENDIENTE todavía no fue pagado.
   paidAt DateTime? @map("paid_at")
 
+  // Medio de pago: SIMULADO (tarjetas de prueba) o PAYPAL (sandbox). Para
+  // PayPal, external_id es el id de la orden: único, así una misma orden
+  // nunca se aplica dos veces aunque el navegador reintente la captura.
+  provider   String  @default("SIMULADO")
+  externalId String? @unique @map("external_id")
+
   createdAt DateTime @default(now()) @map("created_at")
 
   // Índice explícito sobre subscription_id (documento, sección 6).
