@@ -29,12 +29,14 @@ export function isPublicRoute(method: string, path: string): boolean {
  *   · Cuentas, suscripciones y títulos: /api/{users,billing,catalog}/admin/*
  *   · Escrituras en el catálogo (crear, editar, borrar títulos)
  *   · Subida y transcodificación de vídeos (Media-Processing)
- *   · Panel de KPIs y ETL (Analytics)
+ *   · Panel de KPIs y ETL (Analytics). El ranking de lo más visto
+ *     (GET /api/analytics/top) lo puede leer cualquier usuario con sesión.
  */
 export function isAdminRoute(method: string, path: string): boolean {
   const m = method.toUpperCase();
   if (m === 'OPTIONS') return false;
   if (/^\/api\/(users|billing|catalog)\/admin(\/|$)/.test(path)) return true;
   if (/^\/api\/catalog(\/|$)/.test(path) && m !== 'GET' && m !== 'HEAD') return true;
+  if (/^\/api\/analytics\/top\/?$/.test(path) && (m === 'GET' || m === 'HEAD')) return false;
   return /^\/api\/(media|analytics)(\/|$)/.test(path);
 }

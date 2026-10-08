@@ -29,6 +29,35 @@ def _last_run(db: Session, status: str | None = None) -> dict | None:
     }
 
 
+@router.get("/top")
+def top(
+    region: str | None = Query(None, description="Solo las vistas de esa región (p. ej. CO)"),
+    type: str | None = Query(None, description="MOVIE o SERIES"),
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db),
+):
+    """
+    Ranking de lo más visto para la pantalla de inicio (Top 10). A diferencia
+    de /kpis, lo puede leer cualquier usuario con sesión: solo expone el
+    número de perfiles que vieron cada título, nada por persona.
+    """
+    # El ETL repite las mismas vistas en cada región donde está el título: sin
+    # filtro de región se toma el máximo, no la suma, para no contarlas dos veces.
+    views = func.max(PopularityByRegion.views).label("views")
+    query = (
+        select(PopularityByRegion.title_id, views)
+        .outerjoin(TitleDim, TitleDim.title_id == PopularityByRegion.title_id)
+        .group_by(PopularityByRegion.title_id)
+        .order_by(views.desc(), PopularityByRegion.title_id)
+        .limit(limit)
+    )
+    if region:
+        query = query.where(PopularityByRegion.region == region.strip().upper())
+    if type:
+        query = query.where(TitleDim.type == type.strip().upper())
+    return [{"titleId": str(title_id), "views": int(v)} for title_id, v in db.execute(query).all()]
+
+
 @router.get("/kpis")
 def kpis(
     region: str | None = Query(None, description="Filtra la popularidad por región (p. ej. CO)"),

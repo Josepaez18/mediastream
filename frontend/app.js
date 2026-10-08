@@ -46,6 +46,8 @@
     info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>',
     lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     back: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+    moon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    sun: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   };
 
   /* ================================================================ estado */
@@ -63,6 +65,20 @@
       try { localStorage.removeItem('ms.' + key); } catch { /* modo privado */ }
     },
   };
+
+  /* ============================================================ tema */
+  // index.html ya fijó el tema antes de pintar; aquí solo se cambia con el botón.
+  const isDark = () => document.documentElement.dataset.theme === 'dark';
+  const themeButton = (extra = '') =>
+    `<button class="icon-btn theme-btn ${extra}" data-theme-toggle aria-label="${isDark() ? 'Usar modo claro' : 'Usar modo oscuro'}" title="${isDark() ? 'Modo claro' : 'Modo oscuro'}">${isDark() ? ICON.sun : ICON.moon}</button>`;
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-theme-toggle]');
+    if (!btn) return;
+    const next = isDark() ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    store.set('theme', next);
+    $$('[data-theme-toggle]').forEach((b) => { b.outerHTML = themeButton(b.classList.contains('on-dark') ? 'on-dark' : ''); });
+  });
 
   const session = {
     token: store.get('token'),
@@ -199,6 +215,7 @@
   const CATEGORY_COLORS = {
     accion: 'e5484d', 'ciencia ficcion': '7ab8e8', drama: 'a393e6', documental: '46c08a',
     comedia: 'c5e05a', animacion: 'e693c0', infantil: 'e8b858', terror: '8a1c1c', romance: 'f08fb0',
+    anime: 'ff8fab', aventura: 'f2a65a', fantasia: '9c6ade', musical: 'f7c948', crimen: '5c677d', suspenso: '3d5a80',
   };
   const norm = (s) => String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
   function posterUrl(t, w = 300, h = 450) {
@@ -226,8 +243,8 @@
   /** Fondo grande (portada, detalle): la imagen propia o un degradado del color de la categoría. */
   function backdropStyle(t) {
     if (t?.posterUrl) return `background-image:url('${esc(t.posterUrl)}')`;
-    const c = '#' + (CATEGORY_COLORS[norm(t?.category)] || '3a3f4e');
-    return `background-image:radial-gradient(900px 500px at 75% 30%, ${c}cc, transparent 70%), linear-gradient(135deg, ${c}55, #0f1014 70%)`;
+    const c = '#' + (CATEGORY_COLORS[norm(t?.category)] || 'b39ddb');
+    return `background-image:radial-gradient(900px 500px at 75% 30%, ${c}cc, transparent 70%), linear-gradient(135deg, ${c}55, #ffffff 70%)`;
   }
 
   let catalogCache = { key: null, titles: [] };
@@ -296,8 +313,66 @@
   window.addEventListener('hashchange', render);
 
   /* ======================================================= login / registro */
+  // Mientras llega el catálogo (o si no responde) el mosaico usa estos títulos de muestra.
+  // Pósters reales fijos: la pantalla de entrada se ve bien aunque el catálogo
+  // todavía no responda (servicio dormido) o sus títulos no tengan imagen.
+  const SHOWCASE_SAMPLE = [
+    '2/2e/Inception_%282010%29_theatrical_poster.jpg',
+    'b/bc/Interstellar_film_poster.jpg',
+    '1/1c/The_Dark_Knight_%282008_film%29.jpg',
+    '9/98/Coco_%282017_film%29_poster.jpg',
+    '0/0b/Your_Name_poster.png',
+    '4/4a/Oppenheimer_%28film%29.jpg',
+    'b/b1/Stranger_Things_season_1.jpg',
+    '8/8e/Dune_%282021_film%29.jpg',
+    'e/e1/Joker_%282019_film%29_poster.jpg',
+    '0/0d/Avengers_Endgame_poster.jpg',
+    '8/83/Encanto_poster.jpg',
+    '6/6e/Mad_Max_Fury_Road.jpg',
+    'd/db/Spirited_Away_Japanese_poster.png',
+    'a/ab/La_La_Land_%28film%29.png',
+    'e/e7/Jurassic_Park_poster.jpg',
+    '0/0b/Barbie_2023_poster.jpg',
+    '3/3e/The_Last_of_Us_season_1_Blu-ray.png',
+    '1/18/Titanic_%281997_film%29_poster.png',
+    '0/00/Spider-Man_No_Way_Home_poster.jpg',
+    'f/fb/Lord_Rings_Fellowship_Ring.jpg',
+    '6/6c/The_Crown_season_1.jpeg',
+    'd/d2/Back_to_the_Future.jpg',
+    '5/53/Parasite_%282019_film%29.png',
+    '0/04/The_Mandalorian_season_1_poster.jpg',
+  ].map((path) => ({ posterUrl: 'https://upload.wikimedia.org/wikipedia/en/' + path }));
+
+  function mosaicColumns(titles) {
+    const cols = [[], [], [], []];
+    for (let i = 0; i < 24; i++) cols[i % 4].push(titles[i % titles.length]);
+    // Cada columna va duplicada para que el desplazamiento infinito no tenga saltos.
+    return cols.map((col) => `<div class="mosaic-col">${col.concat(col).map((t) =>
+      `<img src="${esc(posterUrl(t, 240, 360))}" alt="" loading="lazy">`).join('')}</div>`).join('');
+  }
+  async function fillAuthMosaic() {
+    // Solo se cambia por el catálogo real si trae suficientes títulos con imagen.
+    const titles = (await loadCatalog()).filter((t) => t.posterUrl);
+    const box = $('#authMosaic');
+    if (box && titles.length >= 12) box.innerHTML = mosaicColumns(titles);
+  }
+
   function authShell(inner) {
-    return `<div class="auth-page"><div class="auth-top"><a class="brand" href="#/login">MediaStream</a></div>${inner}</div>`;
+    queueMicrotask(fillAuthMosaic);
+    return `
+      <div class="auth-page">
+        <section class="auth-showcase" aria-hidden="true">
+          <div class="auth-mosaic" id="authMosaic">${mosaicColumns(SHOWCASE_SAMPLE)}</div>
+          <div class="auth-intro">
+            <span class="brand brand-xl">MediaStream</span>
+            <p>Películas y series ilimitadas. Empieza gratis y mejora tu plan cuando quieras.</p>
+          </div>
+        </section>
+        <div class="auth-side">
+          <div class="auth-tools">${themeButton()}</div>
+          ${inner}
+        </div>
+      </div>`;
   }
   function takeFlash() {
     const msg = store.get('flash'); store.del('flash'); return msg;
@@ -510,6 +585,7 @@
           ${ICON.search}<label class="sr-only" for="q">Buscar</label>
           <input id="q" placeholder="Títulos, géneros" value="${esc(parseRoute().query.get('q') || '')}">
         </form>
+        <div class="menu-wrap">${themeButton()}</div>
         ${p ? `<div class="menu-wrap"><button class="icon-btn" id="bellBtn" aria-label="Notificaciones">${ICON.bell}<span class="badge-count" id="bellCount" hidden></span></button></div>` : ''}
         <div class="menu-wrap">
           <button class="icon-btn" id="meBtn" aria-label="Cuenta">
@@ -614,14 +690,47 @@
     return `<section class="row"><h2>${esc(title)}</h2><div class="row-track">${items.map((t) => card(t, opts?.(t))).join('')}</div></section>`;
   }
 
+  // Top 10: el puesto en un número grande junto al póster.
+  function topRow(title, items) {
+    if (!items.length) return '';
+    return `<section class="row row-top"><h2>${esc(title)}</h2><div class="row-track">${items.map((t, i) =>
+      `<div class="rank-item"><span class="rank-num" aria-hidden="true">${i + 1}</span>${card(t)}</div>`).join('')}</div></section>`;
+  }
+
+  const CATEGORY_ICONS = {
+    accion: '💥', aventura: '🧭', anime: '🌸', animacion: '🎨', 'ciencia ficcion': '🚀', comedia: '😂', crimen: '🕵️',
+    documental: '🌍', drama: '🎭', fantasia: '🐉', infantil: '🧸', musical: '🎵', romance: '💜', suspenso: '🔪', terror: '👻',
+  };
+  function categoryChips(list, base, current) {
+    const counts = {};
+    for (const t of list) if (t.category) counts[t.category] = (counts[t.category] || 0) + 1;
+    const cats = Object.keys(counts).sort((a, b) => a.localeCompare(b, 'es'));
+    if (cats.length < 2) return '';
+    const chip = (label, href, on, icon = '') =>
+      `<a class="chip ${on ? 'on' : ''}" href="${href}">${icon ? `<span aria-hidden="true">${icon}</span>` : ''}${esc(label)}</a>`;
+    return `<nav class="chips" aria-label="Categorías">
+      ${chip('Todas', base, !current, '✨')}
+      ${cats.map((c) => chip(c, `${base}?cat=${encodeURIComponent(c)}`, norm(c) === norm(current), CATEGORY_ICONS[norm(c)] || '🎬')).join('')}
+    </nav>`;
+  }
+
+  // Lo más visto según Analytics; si todavía no hay vistas, se completa con el orden del catálogo.
+  function rankByViews(list, top) {
+    const views = new Map((top || []).map((x) => [String(x.titleId), x.views]));
+    return list.map((t, i) => ({ t, i, v: views.get(String(t.id)) || 0 }))
+      .sort((a, b) => b.v - a.v || a.i - b.i).slice(0, 10).map((x) => x.t);
+  }
+
   async function viewBrowse(route) {
     const active = route.name === 'buscar' ? '' : route.name;
     app.innerHTML = `${topbar(active)}<div class="loading"><div class="spinner"></div></div>`;
     bindTopbar();
-    const [titles, resumeRes, recoRes] = await Promise.all([
+    const [titles, resumeRes, recoRes, topMoviesRes, topSeriesRes] = await Promise.all([
       loadCatalog(),
       api(`/api/playback/resume/${session.profile.id}`),
       api(`/api/recommendations/${session.profile.id}?${new URLSearchParams({ limit: '15', region: session.region, ...(session.profile.isKids ? { isKids: 'true' } : {}) })}`),
+      api(`/api/analytics/top?${new URLSearchParams({ type: 'MOVIE', limit: '30' })}`),
+      api(`/api/analytics/top?${new URLSearchParams({ type: 'SERIES', limit: '30' })}`),
     ]);
     const byId = new Map(titles.map((t) => [String(t.id), t]));
     const flash = takeFlash();
@@ -635,13 +744,30 @@
     } else {
       const typeFilter = route.name === 'series' ? 'SERIES' : route.name === 'peliculas' ? 'MOVIE' : null;
       const list = typeFilter ? titles.filter((t) => t.type === typeFilter) : titles;
-      if (!list.length) {
+      const base = `#/${route.name}`;
+      const cat = route.query.get('cat');
+      if (cat && list.length) {
+        const inCat = list.filter((t) => norm(t.category) === norm(cat));
+        body = `<div class="page cat-page"><h1>${CATEGORY_ICONS[norm(cat)] || '🎬'} ${esc(cat)}</h1>
+            <p class="lead">${inCat.length} ${inCat.length === 1 ? 'título' : 'títulos'}${typeFilter ? (typeFilter === 'SERIES' ? ' · solo series' : ' · solo películas') : ''}</p></div>
+          ${categoryChips(list, base, cat)}
+          ${inCat.length ? `<div class="grid-results">${inCat.map((t) => card(t)).join('')}</div>` : '<p class="empty">No hay títulos en esta categoría.</p>'}`;
+      } else if (!list.length) {
         body = `<p class="empty">Todavía no hay títulos disponibles en tu región (${esc(session.region)}). ${isAdmin() ? 'Agrégalos desde el <a href="#/admin/catalogo">panel de administración</a>.' : ''}</p>`;
       } else {
         const resume = (resumeRes.ok ? resumeRes.data : []).filter((r) => !r.completed && byId.has(String(r.titleId)));
         const seenTitle = new Set();
         const resumeTitles = resume.filter((r) => !seenTitle.has(r.titleId) && seenTitle.add(r.titleId));
-        const reco = (recoRes.ok ? recoRes.data.items || [] : []).map((i) => byId.get(String(i.titleId))).filter(Boolean);
+        let reco = (recoRes.ok ? recoRes.data.items || [] : []).map((i) => byId.get(String(i.titleId))).filter(Boolean);
+        if (reco.length < 6) {
+          // Perfil nuevo, sin historial: se completa con títulos que puede ver, en un orden fijo por perfil.
+          const seed = Number(session.profile.id) || 1;
+          const extra = titles.filter((t) => canWatch(t) && !reco.includes(t))
+            .map((t) => ({ t, k: (Number(t.id) * 9301 + seed * 49297) % 233280 })).sort((a, b) => a.k - b.k).map((x) => x.t);
+          reco = reco.concat(extra).slice(0, 15);
+        }
+        const topMovies = typeFilter === 'SERIES' ? [] : rankByViews(titles.filter((t) => t.type === 'MOVIE'), topMoviesRes.ok ? topMoviesRes.data : []);
+        const topSeries = typeFilter === 'MOVIE' ? [] : rankByViews(titles.filter((t) => t.type === 'SERIES'), topSeriesRes.ok ? topSeriesRes.data : []);
         const free = list.filter((t) => t.isFree);
         const byCategory = {};
         for (const t of list) (byCategory[t.category || 'Otros'] ||= []).push(t);
@@ -650,11 +776,14 @@
         const progressOf = new Map(resumeTitles.map((r) => [String(r.titleId), r.percentWatched]));
         body = `
           ${heroBlock(hero)}
+          ${categoryChips(list, base, null)}
           <div class="rows">
-            ${flash ? `<div class="notice" style="margin:0 48px 20px">${esc(flash)}</div>` : ''}
-            ${effectivePlan() === 'GRATIS' && !isAdmin() ? `<div class="upsell" style="margin:0 48px 26px"><strong>Estás en el plan Gratis.</strong> Ves los títulos marcados como gratis; el resto tiene candado. <a href="#/planes">Ver planes</a></div>` : ''}
+            ${flash ? `<div class="notice" style="margin:0 28px 20px">${esc(flash)}</div>` : ''}
+            ${effectivePlan() === 'GRATIS' && !isAdmin() ? `<div class="upsell" style="margin:0 28px 26px"><strong>Estás en el plan Gratis.</strong> Ves los títulos marcados como gratis; el resto tiene candado. <a href="#/planes">Ver planes</a></div>` : ''}
             ${row('Seguir viendo', resumeTitles.map((r) => byId.get(String(r.titleId))).filter((t) => !typeFilter || t.type === typeFilter), (t) => ({ progress: progressOf.get(String(t.id)) }))}
-            ${row(`Recomendado para ${session.profile.name}`, reco.filter((t) => !typeFilter || t.type === typeFilter))}
+            ${topRow('Top 10 películas más vistas', topMovies)}
+            ${row('Recomendado para ti', reco.filter((t) => !typeFilter || t.type === typeFilter))}
+            ${topRow('Top 10 series más vistas', topSeries)}
             ${row(effectivePlan() === 'GRATIS' ? 'Gratis para ti' : 'Gratis en MediaStream', free)}
             ${row('Novedades', list.slice(0, 15))}
             ${Object.entries(byCategory).sort().map(([cat, items]) => row(cat, items)).join('')}

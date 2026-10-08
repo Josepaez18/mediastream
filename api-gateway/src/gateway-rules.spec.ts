@@ -49,6 +49,8 @@ describe('rutas de administración', () => {
     ['DELETE', '/api/catalog/titles/3', true],
     ['POST', '/api/media/ingest', true],
     ['GET', '/api/analytics/kpis', true],
+    ['POST', '/api/analytics/top', true],
+    ['GET', '/api/analytics/top', false],
     ['GET', '/api/catalog/titles', false],
     ['GET', '/api/users/profiles/1', false],
     ['POST', '/api/billing/subscribe', false],

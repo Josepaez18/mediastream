@@ -116,7 +116,10 @@ def test_migra_corre_el_etl_y_sirve_los_kpis(databases):
 
     app.dependency_overrides[get_db] = override
     try:
-        body = TestClient(app).get("/api/analytics/kpis", params={"region": "co"}).json()
+        client = TestClient(app)
+        body = client.get("/api/analytics/kpis", params={"region": "co"}).json()
+        top_movies = client.get("/api/analytics/top", params={"region": "co", "type": "movie"}).json()
+        top_series = client.get("/api/analytics/top", params={"type": "SERIES"}).json()
     finally:
         app.dependency_overrides.clear()
 
@@ -127,4 +130,6 @@ def test_migra_corre_el_etl_y_sirve_los_kpis(databases):
         ("Mareas", 1),
     ]
     assert body["abandonmentByEpisode"][0]["titleName"] == "Mareas"
+    assert top_movies == [{"titleId": "1", "views": 2}]
+    assert [t["titleId"] for t in top_series] == ["2"]
     assert body["lastEtl"]["status"] == "success"

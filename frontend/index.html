@@ -7,8 +7,15 @@
 <meta name="description" content="MediaStream: películas y series en streaming.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script>
+  // El tema se fija antes de pintar para que no parpadee: el que eligió el usuario o el del sistema.
+  try {
+    var saved = JSON.parse(localStorage.getItem('ms.theme'));
+    document.documentElement.dataset.theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  } catch (e) { document.documentElement.dataset.theme = 'light'; }
+</script>
 </head>
 <body>
   <!-- La app entera se dibuja aquí (app.js), según la ruta (#/login, #/inicio, …). -->
