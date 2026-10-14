@@ -12,7 +12,7 @@ import { PaymentEventsService } from '../events/payment-events.service';
 import { PaypalError, PaypalOrder, PaypalService } from '../paypal/paypal.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BillingResult } from './billing.service';
-import { PLAN_PRICES } from './plans';
+import { CURRENCY, PAYPAL_USD_PRICES, PLAN_PRICES, planChangeAmount } from './plans';
 
 const PAYMENTS_NEWEST_FIRST = { payments: { orderBy: { id: 'desc' as const } } };
 
@@ -52,27 +52,43 @@ export class PaypalCheckoutService {
   ) {}
 
   config() {
-    return { enabled: this.paypal.enabled, clientId: this.paypal.clientId || null, currency: 'USD', mode: this.paypal.mode };
+    return {
+      enabled: this.paypal.enabled,
+      clientId: this.paypal.clientId || null,
+      // Los precios se muestran en COP; PayPal cobra en USD (no opera en COP).
+      currency: 'USD',
+      planCurrency: CURRENCY,
+      usdPrices: PAYPAL_USD_PRICES,
+      mode: this.paypal.mode,
+    };
   }
 
-  /** Monto a cobrar: precio completo, o la diferencia si ya tiene un plan activo. */
+  /**
+   * Monto a cobrar: precio completo, o la diferencia si ya tiene un plan
+   * activo. `amount` es el precio del plan en COP (el que se registra);
+   * `usdAmount`, lo que se cobra en PayPal.
+   */
   async quote(accountId: bigint, plan: Plan) {
     const active = await this.prisma.subscription.findFirst({
       where: { accountId, status: SubscriptionStatus.ACTIVA },
       orderBy: { createdAt: 'desc' },
     });
-    if (!active) return { mode: 'subscribe' as const, amount: PLAN_PRICES[plan] };
+    if (!active) return { mode: 'subscribe' as const, amount: PLAN_PRICES[plan], usdAmount: PAYPAL_USD_PRICES[plan] };
     if (active.plan === plan) throw new ConflictException('La cuenta ya está en ese plan.');
-    const diff = Number(Math.abs(PLAN_PRICES[plan] - PLAN_PRICES[active.plan as Plan]).toFixed(2));
-    return { mode: 'change' as const, amount: diff || PLAN_PRICES[plan] };
+    const from = active.plan as Plan;
+    return {
+      mode: 'change' as const,
+      amount: planChangeAmount(PLAN_PRICES, from, plan),
+      usdAmount: planChangeAmount(PAYPAL_USD_PRICES, from, plan),
+    };
   }
 
   async createOrder(accountIdRaw: string, plan: Plan) {
-    const { mode, amount } = await this.quote(BigInt(accountIdRaw), plan);
-    const description = `MediaStream · Plan ${plan}${mode === 'change' ? ' (cambio de plan)' : ''}`;
-    const order = await this.call(() => this.paypal.createOrder(amount, description, `${accountIdRaw}:${plan}`));
-    this.logger.log(`Orden PayPal ${order.id} creada: cuenta ${accountIdRaw}, ${plan}, ${amount} USD`);
-    return { orderId: order.id, amount, mode };
+    const { mode, amount, usdAmount } = await this.quote(BigInt(accountIdRaw), plan);
+    const description = `MediaStream · Plan ${plan} (${amount} ${CURRENCY})${mode === 'change' ? ' · cambio de plan' : ''}`;
+    const order = await this.call(() => this.paypal.createOrder(usdAmount, description, `${accountIdRaw}:${plan}`));
+    this.logger.log(`Orden PayPal ${order.id} creada: cuenta ${accountIdRaw}, ${plan}, ${amount} ${CURRENCY} → ${usdAmount} USD`);
+    return { orderId: order.id, amount, currency: CURRENCY, usdAmount, mode };
   }
 
   async capture(orderId: string, accountIdRaw: string): Promise<BillingResult> {
@@ -116,22 +132,27 @@ export class PaypalCheckoutService {
       };
     }
 
-    const amount = Number(capture.amount.value);
+    const usdCharged = Number(capture.amount.value);
     const accountId = BigInt(owner.accountId);
-    const payment = {
-      amount,
-      status: PaymentStatus.EXITOSO,
-      paidAt: new Date(),
-      provider: 'PAYPAL',
-      externalId: orderId,
-    };
-
+    let amount: number;
     let subscription;
     try {
       const active = await this.prisma.subscription.findFirst({
         where: { accountId, status: SubscriptionStatus.ACTIVA },
         orderBy: { createdAt: 'desc' },
       });
+      // Se registra el precio del plan en COP (la moneda de MediaStream);
+      // PayPal cobró su equivalente en USD (usdCharged).
+      amount = active && active.plan !== owner.plan
+        ? planChangeAmount(PLAN_PRICES, active.plan as Plan, owner.plan)
+        : PLAN_PRICES[owner.plan];
+      const payment = {
+        amount,
+        status: PaymentStatus.EXITOSO,
+        paidAt: new Date(),
+        provider: 'PAYPAL',
+        externalId: orderId,
+      };
       subscription = active
         ? await this.prisma.subscription.update({
             where: { id: active.id },
@@ -156,7 +177,9 @@ export class PaypalCheckoutService {
       throw err;
     }
 
-    this.logger.log(`Orden PayPal ${orderId} capturada: cuenta ${owner.accountId} → plan ${owner.plan} (${amount} USD)`);
+    this.logger.log(
+      `Orden PayPal ${orderId} capturada: cuenta ${owner.accountId} → plan ${owner.plan} (${amount} ${CURRENCY}; PayPal cobró ${usdCharged} USD)`,
+    );
     await this.events.publishSubscriptionActivated(owner.accountId, owner.plan);
     return { httpStatus: HttpStatus.CREATED, body: subscription };
   }

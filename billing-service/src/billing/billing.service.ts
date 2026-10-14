@@ -14,7 +14,7 @@ import { PaymentEventsService } from '../events/payment-events.service';
 import { SubscribeDto } from './dto/subscribe.dto';
 import { ChangePlanDto } from './dto/change-plan.dto';
 import { WebhookDto, WebhookEventType } from './dto/webhook.dto';
-import { PLAN_PRICES } from './plans';
+import { PLAN_PRICES, planChangeAmount } from './plans';
 
 export interface BillingResult {
   httpStatus: number;
@@ -91,12 +91,10 @@ export class BillingService {
       throw new ConflictException('La cuenta ya está en ese plan.');
     }
 
-    const oldPrice = PLAN_PRICES[subscription.plan as Plan];
-    const newPrice = PLAN_PRICES[dto.newPlan];
     // Prorrateo simplificado para la demo: se cobra la diferencia entre
     // planes en vez de calcular los días exactos restantes del ciclo de
     // facturación (proración real de un sistema de facturación productivo).
-    const proratedAmount = Number(Math.abs(newPrice - oldPrice).toFixed(2)) || newPrice;
+    const proratedAmount = planChangeAmount(PLAN_PRICES, subscription.plan as Plan, dto.newPlan);
 
     const outcome = await this.stripe.charge(dto.cardNumber, proratedAmount);
 

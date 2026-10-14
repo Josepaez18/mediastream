@@ -76,11 +76,14 @@ y abre http://localhost:3000 (usa el Gateway de `localhost:8080`).
 
 | Plan | Precio | Catálogo | Perfiles |
 |---|---|---|---|
-| Gratis | $0 | Solo títulos marcados como gratis | 1 |
-| Básico | $7.99 | Todo | 2 |
-| Estándar | $12.99 | Todo | 4 |
-| Premium | $17.99 | Todo | 5 |
+| Gratis | $0 COP | Solo títulos marcados como gratis | 1 |
+| Básico | $0,1 COP | Todo | 2 |
+| Estándar | $0,2 COP | Todo | 4 |
+| Premium | $0,3 COP | Todo | 5 |
 
+- **Precios de prueba en pesos colombianos.** PayPal no opera en COP y su cobro mínimo es
+  0,01 USD, así que con PayPal se cobra 0,01 / 0,02 / 0,03 USD (también ascendente); el pago se
+  registra con el precio del plan en COP. La tarjeta simulada cobra directamente en COP.
 - **El plan vive en User-Service** y lo cambia Billing por eventos (`subscription.activated`,
   `subscription.canceled`, en el exchange `billing.events`): ningún servicio llama a otro.
 - **El AccessToken lleva rol, plan y estado.** El Gateway los pasa a cada servicio como

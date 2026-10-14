@@ -5,7 +5,7 @@ import { PaypalError, PaypalService } from '../paypal/paypal.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseCustomId, PaypalCheckoutService } from './paypal-checkout.service';
 
-const completed = (customId: string, value = '12.99') => ({
+const completed = (customId: string, value = '0.02') => ({
   id: 'ORDER1',
   status: 'COMPLETED',
   purchase_units: [{ custom_id: customId, payments: { captures: [{ id: 'CAP1', status: 'COMPLETED', amount: { value } }] } }],
@@ -42,13 +42,16 @@ describe('PaypalCheckoutService', () => {
     );
   });
 
-  it('el monto lo fija el servidor: precio del plan, o la diferencia si cambia de plan', async () => {
-    await service.createOrder('7', Plan.ESTANDAR);
-    expect(paypal.createOrder).toHaveBeenCalledWith(12.99, expect.stringContaining('ESTANDAR'), '7:ESTANDAR');
+  it('el monto lo fija el servidor: precio en COP y su cobro en USD para PayPal', async () => {
+    const order = await service.createOrder('7', Plan.ESTANDAR);
+    expect(order).toMatchObject({ amount: 0.2, currency: 'COP', usdAmount: 0.02 });
+    expect(paypal.createOrder).toHaveBeenCalledWith(0.02, expect.stringContaining('0.2 COP'), '7:ESTANDAR');
+  });
 
+  it('al cambiar de plan se cobra la diferencia (en COP y en USD)', async () => {
     prisma.subscription.findFirst.mockResolvedValue({ id: 1n, plan: Plan.BASICO });
     const change = await service.createOrder('7', Plan.PREMIUM);
-    expect(change).toMatchObject({ mode: 'change', amount: 10 });
+    expect(change).toMatchObject({ mode: 'change', amount: 0.2, usdAmount: 0.02 });
   });
 
   it('no deja pagar el plan que ya tiene', async () => {
@@ -61,7 +64,8 @@ describe('PaypalCheckoutService', () => {
     expect(result.httpStatus).toBe(HttpStatus.CREATED);
     const data = prisma.subscription.create.mock.calls[0][0].data;
     expect(data).toMatchObject({ accountId: 7n, plan: Plan.ESTANDAR, status: SubscriptionStatus.ACTIVA });
-    expect(data.payments.create).toMatchObject({ amount: 12.99, provider: 'PAYPAL', externalId: 'ORDER1' });
+    // Se registra el precio del plan en COP, no los USD que cobró PayPal.
+    expect(data.payments.create).toMatchObject({ amount: 0.2, provider: 'PAYPAL', externalId: 'ORDER1' });
     expect(events.publishSubscriptionActivated).toHaveBeenCalledWith('7', Plan.ESTANDAR);
   });
 
@@ -99,5 +103,16 @@ describe('PaypalCheckoutService', () => {
     expect(parseCustomId('7:PREMIUM')).toEqual({ accountId: '7', plan: 'PREMIUM' });
     expect(parseCustomId('7:ORO')).toBeNull();
     expect(parseCustomId(undefined)).toBeNull();
+  });
+});
+
+describe('precios de los planes', () => {
+  const { PLAN_PRICES, PAYPAL_USD_PRICES } = jest.requireActual('./plans');
+  it('son ascendentes: Básico < Estándar < Premium (en COP y en lo que cobra PayPal)', () => {
+    expect(PLAN_PRICES).toEqual({ BASICO: 0.1, ESTANDAR: 0.2, PREMIUM: 0.3 });
+    expect(PAYPAL_USD_PRICES.BASICO).toBeLessThan(PAYPAL_USD_PRICES.ESTANDAR);
+    expect(PAYPAL_USD_PRICES.ESTANDAR).toBeLessThan(PAYPAL_USD_PRICES.PREMIUM);
+    // PayPal no acepta cobros por debajo de 0,01 USD.
+    expect(Math.min(...Object.values(PAYPAL_USD_PRICES) as number[])).toBeGreaterThanOrEqual(0.01);
   });
 });

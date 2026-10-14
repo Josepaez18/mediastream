@@ -20,7 +20,9 @@
     String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-  const money = (n) => `$${Number(n || 0).toFixed(2)}`;
+  const COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const money = (n) => `${COP.format(Number(n || 0))} COP`;
+  const usd = (n) => `${Number(n || 0).toFixed(2)} USD`;
   const fmtDate = (iso) => {
     try { return new Date(iso).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' }); }
     catch { return iso; }
@@ -1078,9 +1080,9 @@
   /* ================================================================= planes */
   const PLANS = [
     { id: 'GRATIS', name: 'Gratis', price: 0, profiles: 1, features: ['Títulos seleccionados marcados como Gratis', '1 perfil', 'Sin tarjeta'], missing: ['Todo el catálogo'] },
-    { id: 'BASICO', name: 'Básico', price: 7.99, profiles: 2, features: ['Todo el catálogo', '2 perfiles', 'Recomendaciones personalizadas'] },
-    { id: 'ESTANDAR', name: 'Estándar', price: 12.99, profiles: 4, featured: true, features: ['Todo el catálogo', '4 perfiles', 'Recomendaciones personalizadas'] },
-    { id: 'PREMIUM', name: 'Premium', price: 17.99, profiles: 5, features: ['Todo el catálogo', '5 perfiles', 'Recomendaciones personalizadas', 'Ideal para toda la familia'] },
+    { id: 'BASICO', name: 'Básico', price: 0.1, profiles: 2, features: ['Todo el catálogo', '2 perfiles', 'Recomendaciones personalizadas'] },
+    { id: 'ESTANDAR', name: 'Estándar', price: 0.2, profiles: 4, featured: true, features: ['Todo el catálogo', '4 perfiles', 'Recomendaciones personalizadas'] },
+    { id: 'PREMIUM', name: 'Premium', price: 0.3, profiles: 5, features: ['Todo el catálogo', '5 perfiles', 'Recomendaciones personalizadas', 'Ideal para toda la familia'] },
   ];
   const planName = (id) => PLANS.find((p) => p.id === id)?.name || id;
 
@@ -1099,7 +1101,7 @@
             <div class="plan ${p.id === current ? 'current' : ''} ${p.featured ? 'featured' : ''}">
               ${p.id === current ? '<div class="tag-current">Tu plan actual</div>' : p.featured ? '<div class="tag-current" style="color:var(--gold)">El más elegido</div>' : '<div class="tag-current">&nbsp;</div>'}
               <h3>${p.name}</h3>
-              <div class="price">${p.price ? money(p.price) : '$0'}<small> /mes</small></div>
+              <div class="price">${money(p.price)}<small> /mes</small></div>
               <ul>${p.features.map((f) => `<li>${esc(f)}</li>`).join('')}${(p.missing || []).map((f) => `<li class="no">${esc(f)}</li>`).join('')}</ul>
               ${p.id === current
                 ? '<button class="btn btn-outline btn-block" disabled>Plan actual</button>'
@@ -1109,7 +1111,7 @@
             </div>`).join('')}
         </div>
         ${welcome ? '<p style="margin-top:26px"><a class="btn btn-ghost" href="#/inicio">Seguir con el plan Gratis</a></p>' : ''}
-        <p class="form-note" style="margin-top:22px">Pagos de prueba: PayPal en modo sandbox (cuentas de prueba, sin dinero real) o tarjeta simulada 4242 4242 4242 4242.</p>
+        <p class="form-note" style="margin-top:22px">Precios de prueba en pesos colombianos. PayPal (modo sandbox, sin dinero real) cobra su equivalente en dólares porque no opera en COP; también puedes usar la tarjeta simulada 4242 4242 4242 4242.</p>
       </div>`;
     bindTopbar();
     $$('[data-plan]').forEach((b) => b.addEventListener('click', () => openCheckout(b.dataset.plan, current)));
@@ -1144,12 +1146,19 @@
     go('#/inicio');
   }
 
-  async function setupPaypal(planId, plan) {
+  async function setupPaypal(planId, plan, current) {
     const box = $('#paypalBox');
     const err = $('#payErr');
     const cfg = await paypalConfig();
     if (!$('#paypalBox')) return; // se cerró la ventana
     if (!cfg.enabled || !cfg.clientId) { box.hidden = true; $('#payDivider').hidden = true; return; }
+    // PayPal no opera en pesos colombianos: cobra el equivalente de prueba en dólares.
+    const prices = cfg.usdPrices || {};
+    const usdAmount = current && current !== 'GRATIS' && prices[current]
+      ? (Math.abs(prices[planId] - prices[current]) || prices[planId])
+      : prices[planId];
+    const note = $('#paypalNote');
+    if (note && usdAmount) note.textContent = `PayPal no opera en pesos colombianos: cobrará ${usd(usdAmount)}.`;
     let paypal;
     try { paypal = await loadPaypalSdk(cfg.clientId); } catch (e) { box.innerHTML = `<p class="form-note">${esc(e.message)} Usa la tarjeta de prueba.</p>`; return; }
     if (!$('#paypalButtons')) return; // se cerró la ventana mientras cargaba
@@ -1161,6 +1170,7 @@
         err.textContent = '';
         const r = await api('/api/billing/paypal/orders', { method: 'POST', body: { accountId, plan: planId } });
         if (!r.ok) { err.textContent = r.message; throw new Error(r.message); }
+        if (note && r.data.usdAmount) note.textContent = `PayPal no opera en pesos colombianos: cobrará ${usd(r.data.usdAmount)}.`;
         return r.data.orderId;
       },
       onApprove: async (data, actions) => {
@@ -1187,6 +1197,7 @@
         <div id="paypalBox" class="paypal-box">
           <div id="paypalButtons"></div>
           <p class="form-note paypal-loading">Cargando PayPal…</p>
+          <p class="form-note paypal-note" id="paypalNote"></p>
           <p class="form-note" id="paypalStatus" aria-live="polite"></p>
         </div>
         <div class="pay-divider" id="payDivider"><span>o con tarjeta de prueba (simulada)</span></div>
@@ -1202,7 +1213,7 @@
           <button class="btn btn-block" type="submit">Pagar ${money(plan.price)} con tarjeta</button>
         </form>
       </div>`);
-    setupPaypal(planId, plan);
+    setupPaypal(planId, plan, current);
     $('#payForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = $('button[type=submit]', e.target);
