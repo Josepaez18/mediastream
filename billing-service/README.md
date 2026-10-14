@@ -213,8 +213,10 @@ curl -X POST http://localhost:3006/api/billing/webhook \
 
 ## PayPal (sandbox)
 
-Además de la tarjeta simulada, Billing cobra con **PayPal Checkout** en modo sandbox (dinero
-de prueba). El flujo:
+El único medio de pago para los usuarios es **PayPal Checkout** en modo sandbox (dinero de
+prueba). La tarjeta simulada (`/subscribe`, `PUT /plan`) y el webhook simulado quedan solo para el
+administrador detrás del Gateway y para llamadas directas al servicio (scripts de desarrollo). El
+flujo de PayPal:
 
 1. `POST /api/billing/paypal/orders` `{accountId, plan}` crea la orden en PayPal. El monto lo
    calcula el servidor: el precio del plan, o la diferencia si la cuenta ya tiene otro plan. La
@@ -227,7 +229,7 @@ de prueba). El flujo:
 
 `GET /api/billing/paypal/config` le dice al frontend si PayPal está habilitado y su Client ID
 (público). Sin `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`, PayPal queda deshabilitado y la app
-solo ofrece la tarjeta simulada.
+avisa que los pagos no están disponibles.
 
 **Credenciales:** en https://developer.paypal.com (modo *Sandbox*) → *Apps & Credentials* →
 *Create App*. En local van en el `.env` de la raíz de `MediaStream/` (Docker Compose las lee de

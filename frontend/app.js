@@ -1079,7 +1079,7 @@
 
   /* ================================================================= planes */
   const PLANS = [
-    { id: 'GRATIS', name: 'Gratis', price: 0, profiles: 1, features: ['Títulos seleccionados marcados como Gratis', '1 perfil', 'Sin tarjeta'], missing: ['Todo el catálogo'] },
+    { id: 'GRATIS', name: 'Gratis', price: 0, profiles: 1, features: ['Títulos seleccionados marcados como Gratis', '1 perfil', 'Sin pagos'], missing: ['Todo el catálogo'] },
     { id: 'BASICO', name: 'Básico', price: 0.1, profiles: 2, features: ['Todo el catálogo', '2 perfiles', 'Recomendaciones personalizadas'] },
     { id: 'ESTANDAR', name: 'Estándar', price: 0.2, profiles: 4, featured: true, features: ['Todo el catálogo', '4 perfiles', 'Recomendaciones personalizadas'] },
     { id: 'PREMIUM', name: 'Premium', price: 0.3, profiles: 5, features: ['Todo el catálogo', '5 perfiles', 'Recomendaciones personalizadas', 'Ideal para toda la familia'] },
@@ -1095,7 +1095,7 @@
       <div class="page">
         <h1>${welcome ? 'Elige tu plan' : 'Planes'}</h1>
         <p class="lead">${welcome ? 'Tu cuenta ya está lista con el plan Gratis. Puedes seguir así o pasarte a un plan de pago.' : 'Cambia de plan o cancela cuando quieras. El cambio se aplica a toda la cuenta.'}</p>
-        ${session.account?.status === 'MOROSA' ? '<div class="notice bad">Tu último pago fue rechazado. Vuelve a suscribirte con otra tarjeta para recuperar el acceso completo.</div>' : ''}
+        ${session.account?.status === 'MOROSA' ? '<div class="notice bad">Tu último pago fue rechazado. Vuelve a suscribirte con PayPal para recuperar el acceso completo.</div>' : ''}
         <div class="plans">
           ${PLANS.map((p) => `
             <div class="plan ${p.id === current ? 'current' : ''} ${p.featured ? 'featured' : ''}">
@@ -1111,7 +1111,7 @@
             </div>`).join('')}
         </div>
         ${welcome ? '<p style="margin-top:26px"><a class="btn btn-ghost" href="#/inicio">Seguir con el plan Gratis</a></p>' : ''}
-        <p class="form-note" style="margin-top:22px">Precios de prueba en pesos colombianos. PayPal (modo sandbox, sin dinero real) cobra su equivalente en dólares porque no opera en COP; también puedes usar la tarjeta simulada 4242 4242 4242 4242.</p>
+        <p class="form-note" style="margin-top:22px">Precios de prueba en pesos colombianos. El pago es con PayPal en modo sandbox (cuentas de prueba, sin dinero real), que cobra su equivalente en dólares porque no opera en COP.</p>
       </div>`;
     bindTopbar();
     $$('[data-plan]').forEach((b) => b.addEventListener('click', () => openCheckout(b.dataset.plan, current)));
@@ -1151,7 +1151,10 @@
     const err = $('#payErr');
     const cfg = await paypalConfig();
     if (!$('#paypalBox')) return; // se cerró la ventana
-    if (!cfg.enabled || !cfg.clientId) { box.hidden = true; $('#payDivider').hidden = true; return; }
+    if (!cfg.enabled || !cfg.clientId) {
+      box.innerHTML = '<div class="notice bad">Los pagos con PayPal no están disponibles en este momento. Inténtalo más tarde.</div>';
+      return;
+    }
     // PayPal no opera en pesos colombianos: cobra el equivalente de prueba en dólares.
     const prices = cfg.usdPrices || {};
     const usdAmount = current && current !== 'GRATIS' && prices[current]
@@ -1160,7 +1163,7 @@
     const note = $('#paypalNote');
     if (note && usdAmount) note.textContent = `PayPal no opera en pesos colombianos: cobrará ${usd(usdAmount)}.`;
     let paypal;
-    try { paypal = await loadPaypalSdk(cfg.clientId); } catch (e) { box.innerHTML = `<p class="form-note">${esc(e.message)} Usa la tarjeta de prueba.</p>`; return; }
+    try { paypal = await loadPaypalSdk(cfg.clientId); } catch (e) { box.innerHTML = `<div class="notice bad">${esc(e.message)} Revisa tu conexión y vuelve a abrir esta ventana.</div>`; return; }
     if (!$('#paypalButtons')) return; // se cerró la ventana mientras cargaba
     const accountId = session.account.id;
     box.querySelector('.paypal-loading')?.remove();
@@ -1183,7 +1186,7 @@
         await finishPayment(planId, plan, status);
       },
       onCancel: () => { err.textContent = 'Cancelaste el pago en PayPal. Puedes intentarlo de nuevo.'; },
-      onError: () => { if (!err.textContent) err.textContent = 'PayPal no pudo procesar el pago. Inténtalo de nuevo o usa la tarjeta de prueba.'; },
+      onError: () => { if (!err.textContent) err.textContent = 'PayPal no pudo procesar el pago. Inténtalo de nuevo.'; },
     }).render('#paypalButtons').catch(() => {});
   }
 
@@ -1193,53 +1196,16 @@
       <div class="modal narrow checkout">
         <button type="button" class="modal-close" data-close aria-label="Cerrar">✕</button>
         <h2 style="margin-top:0">${current === 'GRATIS' ? 'Suscribirte a' : 'Cambiar a'} ${esc(plan.name)}</h2>
-        <p class="form-note">${money(plan.price)} al mes${current !== 'GRATIS' ? ' · se cobra la diferencia con tu plan actual' : ''}.</p>
+        <p class="form-note">${money(plan.price)} al mes${current !== 'GRATIS' ? ' · se cobra la diferencia con tu plan actual' : ''}. Pago con PayPal en modo de pruebas (sandbox): no se cobra dinero real.</p>
         <div id="paypalBox" class="paypal-box">
           <div id="paypalButtons"></div>
           <p class="form-note paypal-loading">Cargando PayPal…</p>
           <p class="form-note paypal-note" id="paypalNote"></p>
           <p class="form-note" id="paypalStatus" aria-live="polite"></p>
         </div>
-        <div class="pay-divider" id="payDivider"><span>o con tarjeta de prueba (simulada)</span></div>
-        <form id="payForm">
-          <div class="field"><label for="card">Número de tarjeta</label>
-            <input class="input" id="card" inputmode="numeric" autocomplete="cc-number" value="4242 4242 4242 4242" required></div>
-          <div class="grid-2">
-            <div class="field"><label for="exp">Vencimiento</label><input class="input" id="exp" placeholder="MM/AA" value="12/29"></div>
-            <div class="field"><label for="cvc">CVC</label><input class="input" id="cvc" placeholder="123" value="123"></div>
-          </div>
-          <p class="form-note">Prueba: 4242 4242 4242 4242 → aprobada · 4000 0000 0000 0002 → rechazada.</p>
-          <div class="form-error" id="payErr" aria-live="polite"></div>
-          <button class="btn btn-block" type="submit">Pagar ${money(plan.price)} con tarjeta</button>
-        </form>
+        <div class="form-error" id="payErr" aria-live="polite"></div>
       </div>`);
     setupPaypal(planId, plan, current);
-    $('#payForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = $('button[type=submit]', e.target);
-      const err = $('#payErr');
-      btn.disabled = true; btn.textContent = 'Procesando…'; err.textContent = '';
-      const cardNumber = $('#card').value.replace(/\s+/g, '');
-      const accountId = session.account.id;
-      let r = current === 'GRATIS'
-        ? await api('/api/billing/subscribe', { method: 'POST', body: { accountId, plan: planId, cardNumber } })
-        : await api('/api/billing/plan', { method: 'PUT', body: { accountId, newPlan: planId, cardNumber } });
-      // Si el plan se asignó a mano (admin) o la suscripción no coincide, se intenta la otra vía.
-      if (!r.ok && current === 'GRATIS' && r.status === 409) {
-        r = await api('/api/billing/plan', { method: 'PUT', body: { accountId, newPlan: planId, cardNumber } });
-      } else if (!r.ok && current !== 'GRATIS' && r.status === 404) {
-        r = await api('/api/billing/subscribe', { method: 'POST', body: { accountId, plan: planId, cardNumber } });
-      }
-      if (!r.ok) {
-        btn.disabled = false; btn.textContent = `Pagar ${money(plan.price)} con tarjeta`;
-        err.textContent = r.status === 402 ? 'El pago fue rechazado. Prueba con otra tarjeta.' : r.message;
-        return;
-      }
-      if (r.status === 202) {
-        closeModal(); toast('Tu pago quedó pendiente de confirmación. Te avisaremos cuando se apruebe.'); return;
-      }
-      await finishPayment(planId, plan, btn);
-    });
   }
 
   /** El plan lo cambia User-Service al recibir el evento de Billing: se espera a que llegue. */

@@ -6,13 +6,13 @@
  *   · Registro, inicio de sesión y refresh: todavía no hay token (el refresh
  *     usa su propia cookie httpOnly, que solo valida User-Service).
  *   · Lectura del catálogo: se puede explorar sin haber iniciado sesión.
- *   · Webhook de Stripe: lo llama la pasarela, no un usuario; Billing valida
- *     la firma del aviso.
+ *
+ * El webhook de pago simulado ya NO es público: el único medio de pago para
+ * los usuarios es PayPal, y ese aviso simulado queda para administración.
  */
 const PUBLIC_RULES: { methods: string[]; pattern: RegExp }[] = [
   { methods: ['POST'], pattern: /^\/api\/users\/(register|login|refresh)\/?$/ },
   { methods: ['GET', 'HEAD'], pattern: /^\/api\/catalog(\/.*)?$/ },
-  { methods: ['POST'], pattern: /^\/api\/billing\/webhook\/?$/ },
 ];
 
 export function isPublicRoute(method: string, path: string): boolean {
@@ -29,6 +29,7 @@ export function isPublicRoute(method: string, path: string): boolean {
  *   · Cuentas, suscripciones y títulos: /api/{users,billing,catalog}/admin/*
  *   · Escrituras en el catálogo (crear, editar, borrar títulos)
  *   · Subida y transcodificación de vídeos (Media-Processing)
+ *   · Aviso de pago simulado (POST /api/billing/webhook)
  *   · Panel de KPIs y ETL (Analytics). El ranking de lo más visto
  *     (GET /api/analytics/top) lo puede leer cualquier usuario con sesión.
  */
@@ -36,6 +37,7 @@ export function isAdminRoute(method: string, path: string): boolean {
   const m = method.toUpperCase();
   if (m === 'OPTIONS') return false;
   if (/^\/api\/(users|billing|catalog)\/admin(\/|$)/.test(path)) return true;
+  if (/^\/api\/billing\/webhook\/?$/.test(path)) return true;
   if (/^\/api\/catalog(\/|$)/.test(path) && m !== 'GET' && m !== 'HEAD') return true;
   if (/^\/api\/analytics\/top\/?$/.test(path) && (m === 'GET' || m === 'HEAD')) return false;
   return /^\/api\/(media|analytics)(\/|$)/.test(path);

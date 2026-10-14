@@ -35,14 +35,14 @@ destino. Esas cabeceras se **borran** si las manda el cliente: solo el Gateway p
 Un token expirado responde 401 y el cliente lo renueva con `POST /api/users/refresh` (la cookie
 httpOnly del refresh token solo la valida User-Service).
 
-Rutas públicas (sin token): `POST /api/users/register|login|refresh`, lectura del catálogo
-(`GET /api/catalog/*`) y `POST /api/billing/webhook` (lo llama la pasarela, no un usuario).
+Rutas públicas (sin token): `POST /api/users/register|login|refresh` y lectura del catálogo
+(`GET /api/catalog/*`).
 
 El token también trae el **rol, el plan y el estado** de la cuenta: se pasan como
 `x-account-role`, `x-account-plan` y `x-account-status` (y se borran si los manda el cliente).
 
 **Rutas de administración** (403 si el rol no es ADMIN): `/api/users/admin/*`,
-`/api/billing/admin/*`, `/api/catalog/admin/*`, las escrituras del catálogo
+`/api/billing/admin/*`, `/api/billing/webhook` (aviso de pago simulado), `/api/catalog/admin/*`, las escrituras del catálogo
 (`POST`/`PATCH`/`DELETE /api/catalog/*`), `/api/media/*` y `/api/analytics/*`.
 
 **Rate limiting.** Ventana fija de un minuto, por cuenta si hay sesión y si no por IP:

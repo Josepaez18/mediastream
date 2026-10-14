@@ -47,6 +47,22 @@ export class PaypalOrderDto extends CancelDto {
   plan: Plan;
 }
 
+/**
+ * El cobro con tarjeta simulada y el aviso de pago simulado (webhook) ya no
+ * son medios de pago para los usuarios: el único es PayPal (sandbox). Detrás
+ * del Gateway solo el administrador puede usarlos; las llamadas directas al
+ * servicio (scripts de desarrollo y de verificación, sin cabeceras del
+ * Gateway) siguen funcionando.
+ */
+export function assertSimulatedPaymentAllowed(req: Request) {
+  if (req.headers['x-account-id'] && req.headers['x-account-role'] !== 'ADMIN') {
+    throw new ForbiddenException({
+      message: 'El pago con tarjeta ya no está disponible: suscríbete con PayPal.',
+      code: 'PAYPAL_ONLY',
+    });
+  }
+}
+
 function assertAdmin(req: Request) {
   if (req.headers['x-account-id'] && req.headers['x-account-role'] !== 'ADMIN') {
     throw new ForbiddenException('Requiere rol de administrador.');
@@ -91,8 +107,9 @@ export class BillingController {
   }
 
   @Post('subscribe')
-  @ApiOperation({ summary: 'Crea una suscripción nueva y procesa el primer cobro.' })
+  @ApiOperation({ summary: 'Cobro con tarjeta simulada (solo administración y scripts; los usuarios pagan con PayPal).' })
   async subscribe(@Body() dto: SubscribeDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    assertSimulatedPaymentAllowed(req);
     assertOwnAccount(req, dto.accountId);
     const result = await this.billingService.subscribe(dto);
     res.status(result.httpStatus);
@@ -100,8 +117,9 @@ export class BillingController {
   }
 
   @Put('plan')
-  @ApiOperation({ summary: 'Cambia el plan de una suscripción activa y cobra la diferencia.' })
+  @ApiOperation({ summary: 'Cambio de plan con tarjeta simulada (solo administración y scripts; los usuarios pagan con PayPal).' })
   async changePlan(@Body() dto: ChangePlanDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    assertSimulatedPaymentAllowed(req);
     assertOwnAccount(req, dto.accountId);
     const result = await this.billingService.changePlan(dto);
     res.status(result.httpStatus);
@@ -135,7 +153,8 @@ export class BillingController {
   @ApiOperation({
     summary: 'Notificación entrante de la pasarela de pago sobre un cobro recurrente.',
   })
-  webhook(@Body() dto: WebhookDto) {
+  webhook(@Body() dto: WebhookDto, @Req() req: Request) {
+    assertSimulatedPaymentAllowed(req);
     return this.billingService.handleWebhook(dto);
   }
 }

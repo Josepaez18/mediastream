@@ -19,3 +19,19 @@ describe('assertOwnAccount', () => {
     expect(() => assertOwnAccount(req({}), '4')).not.toThrow();
   });
 });
+
+describe('assertSimulatedPaymentAllowed (solo PayPal para los usuarios)', () => {
+  const { assertSimulatedPaymentAllowed } = jest.requireActual('./billing.controller');
+  const req2 = (headers: Record<string, string>) => ({ headers }) as any;
+
+  it('un usuario detrás del Gateway no puede pagar con tarjeta simulada ni usar el webhook', () => {
+    expect(() => assertSimulatedPaymentAllowed(req2({ 'x-account-id': '3', 'x-account-role': 'USER' }))).toThrow(
+      ForbiddenException,
+    );
+  });
+
+  it('el administrador y las llamadas directas (scripts) sí', () => {
+    expect(() => assertSimulatedPaymentAllowed(req2({ 'x-account-id': '1', 'x-account-role': 'ADMIN' }))).not.toThrow();
+    expect(() => assertSimulatedPaymentAllowed(req2({}))).not.toThrow();
+  });
+});

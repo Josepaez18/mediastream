@@ -39,7 +39,7 @@ La primera vez tarda varios minutos (nueve imágenes, más FFmpeg para Media).
 | Playback | http://localhost:3003 | `/docs` | `playback_db` · 5434 | Token DRM, progreso, "seguir viendo" |
 | Media Processing | http://localhost:3004 | `/docs` | `media_processing_db` · 5436 | Transcodificación con FFmpeg, publica `media.ready` |
 | Recommendation | http://localhost:3005 | `/docs` | `recommendation_db` · 5437 (pgvector) | Sugerencias híbridas: contenido + colaborativo |
-| Billing | http://localhost:3006 | `/docs` | `billing_service_db` · 5438 | Suscripciones, pagos (Stripe simulado), publica `payment.failed` |
+| Billing | http://localhost:3006 | `/docs` | `billing_service_db` · 5438 | Suscripciones, pagos con PayPal (sandbox), publica `payment.failed` |
 | Notification | http://localhost:3007 | `/docs` | — (Redis) | Avisos de estrenos, series en curso y pagos rechazados |
 | Analytics | http://localhost:3008 | `/docs` | `analytics_db` · 5439 | KPIs de audiencia con ETL sobre réplicas de Playback y Catalog |
 | **API Gateway** | http://localhost:8080 | — | — | Enrutamiento, JWT, rate limiting, request-id, CORS |
@@ -68,7 +68,7 @@ y abre http://localhost:3000 (usa el Gateway de `localhost:8080`).
 | ¿Quién está viendo? | Perfiles de la cuenta (el límite depende del plan); perfiles infantiles con control parental |
 | Inicio | Portada, "Seguir viendo", "Recomendado para ti", gratis y por categoría; búsqueda; avisos |
 | Reproductor | Video de muestra libre de derechos; guarda el progreso en Playback y sugiere el siguiente episodio |
-| Planes | Gratis, Básico, Estándar y Premium con pago simulado; cambiar o cancelar |
+| Planes | Gratis, Básico, Estándar y Premium; pago **solo con PayPal (sandbox)**; cambiar o cancelar |
 | Cuenta | Plan, estado, región, historial de pagos y notificaciones |
 | Administración | Solo rol ADMIN: resumen e ingresos, catálogo (crear, editar, publicar, marcar gratis, borrar), usuarios (suspender, plan, rol, borrar), suscripciones, subir videos y estado de los servicios |
 
@@ -83,7 +83,11 @@ y abre http://localhost:3000 (usa el Gateway de `localhost:8080`).
 
 - **Precios de prueba en pesos colombianos.** PayPal no opera en COP y su cobro mínimo es
   0,01 USD, así que con PayPal se cobra 0,01 / 0,02 / 0,03 USD (también ascendente); el pago se
-  registra con el precio del plan en COP. La tarjeta simulada cobra directamente en COP.
+  registra con el precio del plan en COP.
+- **El único medio de pago es PayPal (sandbox).** La tarjeta simulada y el aviso de pago
+  simulado (`/api/billing/subscribe`, `PUT /api/billing/plan`, `/api/billing/webhook`) ya no
+  están disponibles para los usuarios: detrás del Gateway solo los usa el administrador, y
+  siguen funcionando en llamadas directas a Billing (scripts de desarrollo y verificación).
 - **El plan vive en User-Service** y lo cambia Billing por eventos (`subscription.activated`,
   `subscription.canceled`, en el exchange `billing.events`): ningún servicio llama a otro.
 - **El AccessToken lleva rol, plan y estado.** El Gateway los pasa a cada servicio como
@@ -287,7 +291,7 @@ el suyo igual), y que no haya imports cruzados. Apaga y enciende
 6. **Recommendation** (`:3005`): carga títulos variados y una audiencia simulada
    (ver `recommendation-service/README.md`); las recomendaciones del perfil `1` cambian
    solas mientras reproduces.
-7. **Billing** (`:3006`): suscribe la cuenta con la tarjeta `4242 4242 4242 4242`, luego
+7. **Billing** (`:3006`, consola de desarrollo, sin pasar por el Gateway): suscribe la cuenta con la tarjeta simulada `4242 4242 4242 4242`, luego
    en *Aviso de pago* marca un pago rechazado. Vuelve a iniciar sesión en User: la cuenta
    aparece `MOROSA`, sin que Billing haya llamado a User.
 8. **Notification** (`:3007`): `GET /api/notifications/1?accountId=1` muestra el estreno
