@@ -56,12 +56,18 @@
   color-scheme: dark;
 }
 
+/* Tipografía: Nunito Sans para leer y Bebas Neue (letra de cartel de cine) para el logo y los títulos grandes. */
+:root {
+  --font-body: 'Nunito Sans', 'Segoe UI', Arial, sans-serif;
+  --font-display: 'Bebas Neue', 'Arial Narrow', Impact, sans-serif;
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -76,10 +82,11 @@ h1, h2, h3 { font-weight: 400; }
 
 /* ------------------------------------------------------------------ marca */
 .brand {
-  font-family: 'Poppins', 'Roboto', sans-serif;
-  font-weight: 600;
-  font-size: 26px;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: 0.02em;
   color: var(--accent);
   background: linear-gradient(90deg, #6b3fb3, #9c6ade 45%, #c39bf0);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
@@ -177,13 +184,13 @@ h1, h2, h3 { font-weight: 400; }
 .profile-tile:hover { color: var(--ink); }
 .avatar {
   width: 140px; height: 140px; border-radius: 50%; display: grid; place-items: center;
-  font-family: 'Poppins', sans-serif; font-size: 56px; font-weight: 500; color: #fff;
+  font-family: var(--font-display); font-size: 68px; font-weight: 400; color: #fff;
   border: 4px solid var(--surface); box-shadow: 0 0 0 1px var(--line); transition: box-shadow .15s;
 }
 .profile-tile:hover .avatar { box-shadow: 0 0 0 3px var(--accent); }
 .profile-tile .name { margin-top: 10px; font-size: 16px; }
 .profile-tile .kids { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-text); }
-.avatar.add { background: var(--bg-2); border: 2px dashed var(--line); box-shadow: none; color: var(--ink-faint); font-family: 'Roboto', sans-serif; font-size: 60px; font-weight: 300; }
+.avatar.add { background: var(--bg-2); border: 2px dashed var(--line); box-shadow: none; color: var(--ink-faint); font-family: var(--font-body); font-size: 60px; font-weight: 300; }
 .profile-tile .remove {
   position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; border-radius: 50%;
   background: var(--surface); border: 1px solid var(--line); color: var(--ink-dim); display: grid; place-items: center; font-size: 16px;
@@ -228,7 +235,7 @@ h1, h2, h3 { font-weight: 400; }
   background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center;
 }
 .menu-wrap { position: relative; }
-.avatar-sm { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 500; font-family: 'Poppins', sans-serif; color: #fff; }
+.avatar-sm { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 400; font-family: var(--font-display); font-size: 19px; color: #fff; }
 .dropdown {
   position: absolute; right: 0; top: calc(100% + 10px); min-width: 240px; background: var(--surface);
   border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 8px; z-index: 40;
@@ -262,7 +269,7 @@ h1, h2, h3 { font-weight: 400; }
               linear-gradient(to top, rgba(var(--fade-rgb),.9), rgba(var(--fade-rgb),0) 55%);
 }
 .hero-content { position: relative; max-width: 620px; }
-.hero h1 { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: clamp(32px, 5vw, 56px); line-height: 1.08; margin: 0 0 14px; letter-spacing: -0.02em; }
+.hero h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(40px, 6.5vw, 76px); line-height: .95; margin: 0 0 14px; letter-spacing: 0.01em; }
 .hero p { color: var(--ink-dim); font-size: 16px; margin: 0 0 22px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 .hero .btn-light { background: var(--accent); color: #fff; border-color: transparent; }
@@ -310,7 +317,7 @@ h1, h2, h3 { font-weight: 400; }
 .detail-hero { position: relative; height: 380px; background-size: cover; background-position: center 25%; }
 .detail-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgb(var(--fade-rgb)) 4%, rgba(var(--fade-rgb),.55) 45%, rgba(var(--fade-rgb),0)); }
 .detail-hero .inner { position: absolute; left: 36px; right: 36px; bottom: 22px; z-index: 2; }
-.detail-hero h2 { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 38px; margin: 0 0 14px; line-height: 1.08; }
+.detail-hero h2 { font-family: var(--font-display); font-weight: 400; font-size: 50px; margin: 0 0 14px; line-height: .95; letter-spacing: 0.01em; }
 .detail-hero .btn-light { background: var(--accent); color: #fff; border-color: transparent; }
 .detail-hero .btn-light:hover { background: var(--accent-hover); }
 .detail-body { padding: 8px 36px 34px; }
@@ -352,7 +359,7 @@ h1, h2, h3 { font-weight: 400; }
   border-radius: var(--radius-lg); padding: 18px 20px; width: 300px;
 }
 .player-msg { margin: auto; text-align: center; max-width: 520px; padding: 24px; }
-.player-msg h2 { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; margin: 0 0 10px; }
+.player-msg h2 { font-family: var(--font-display); font-weight: 400; font-size: 40px; line-height: 1; margin: 0 0 10px; letter-spacing: 0.01em; }
 .player-msg p { color: var(--ink-dim); }
 .player-msg a:not(.btn) { color: #d7c2f7; }
 
@@ -537,8 +544,8 @@ body { background: radial-gradient(1100px 420px at 85% -120px, rgba(156, 106, 22
 .row-top .row-track { gap: 4px; }
 .rank-item { display: flex; align-items: flex-end; flex: 0 0 auto; scroll-snap-align: start; }
 .rank-num {
-  font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 150px; line-height: .78;
-  letter-spacing: -0.08em; margin-right: -14px; padding-left: 6px; user-select: none;
+  font-family: var(--font-display); font-weight: 400; font-size: 170px; line-height: .78;
+  letter-spacing: -0.03em; margin-right: -4px; padding-left: 6px; user-select: none;
   color: var(--bg); -webkit-text-stroke: 3px var(--accent);
   background: linear-gradient(180deg, rgba(156, 106, 222, .05), rgba(156, 106, 222, .35));
   -webkit-background-clip: text; background-clip: text;
