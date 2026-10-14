@@ -1126,7 +1126,7 @@
   function loadPaypalSdk(clientId) {
     paypalSdkPromise ||= new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = `https://www.paypal.com/sdk/js?${new URLSearchParams({ 'client-id': clientId, currency: 'USD', intent: 'capture', components: 'buttons', locale: 'es_XC' })}`;
+      script.src = `https://www.paypal.com/sdk/js?${new URLSearchParams({ 'client-id': clientId, currency: 'USD', intent: 'capture', components: 'buttons', locale: 'es_US' })}`;
       script.onload = () => resolve(window.paypal);
       script.onerror = () => { paypalSdkPromise = null; reject(new Error('No se pudo cargar PayPal.')); };
       document.head.appendChild(script);
