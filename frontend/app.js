@@ -887,6 +887,7 @@
         <div class="detail-body">
           <div class="meta-line">
             ${t.isFree ? '<span class="pill free">Gratis</span>' : '<span class="pill accent">Planes de pago</span>'}
+            ${youtubeId(t.trailerUrl) ? '<span class="pill">▶ Tráiler</span>' : ''}
             <span>${t.type === 'SERIES' ? `Serie · ${(t.seasons || []).length} temporada(s)` : 'Película'}</span>
             ${t.category ? `<span>· ${esc(t.category)}</span>` : ''}
             ${t.ageRating ? `<span class="pill">${esc(t.ageRating)}</span>` : ''}
@@ -951,60 +952,170 @@
     const subtitle = episode ? `T${episode.seasonNumber} · Episodio ${episode.episodeNumber}` : (t.category || '');
     const nextEp = episode ? episodes[episodes.indexOf(episode) + 1] : null;
 
+    // Video de muestra: cuando el título no tiene tráiler o YouTube no deja reproducirlo.
+    const startSample = () => {
+      app.innerHTML = `
+        <div class="player" id="player">
+          <div class="player-top">
+            <button class="icon-btn" id="backBtn" aria-label="Volver">${ICON.back}</button>
+            <div><div class="t">${esc(t.name)}</div><div class="s">${esc(subtitle)}</div></div>
+          </div>
+          <video id="video" controls autoplay playsinline preload="auto"></video>
+        </div>`;
+      const video = $('#video');
+      const player = $('#player');
+      const sources = videoSources(titleId, episode?.id);
+      let sourceIndex = 0;
+      let leaving = false;
+      video.src = sources[0];
+      let started = false;
+      let resumeAt = 0;
+      let recoveries = 0;
+      let recovering = false;
+      video.addEventListener('loadedmetadata', () => { started = true; });
+      video.addEventListener('timeupdate', () => { if (video.currentTime > 0 && !recovering) resumeAt = video.currentTime; });
+      video.addEventListener('error', () => {
+        // Al salir del reproductor el navegador aborta la descarga y lanza
+        // 'error' (MEDIA_ERR_ABORTED): no es una fuente caída, no se cambia.
+        if (leaving || video.error?.code === 1) return;
+        if (started) {
+          // Ya se estaba viendo (p. ej. un corte de red al adelantar): se recarga
+          // la MISMA fuente en el mismo punto, para no cambiar de video.
+          if (recoveries++ < 3) {
+            const at = resumeAt;
+            recovering = true;
+            video.load();
+            video.addEventListener('loadedmetadata', () => {
+              video.currentTime = Math.min(at, video.duration - 1);
+              video.addEventListener('seeked', () => { recovering = false; }, { once: true });
+              video.play().catch(() => {});
+            }, { once: true });
+            return;
+          }
+          return playerMessage('Se perdió la conexión con el video', 'Revisa tu conexión e inténtalo de nuevo; tu progreso quedó guardado.');
+        }
+        // Nunca cargó: se prueba la siguiente fuente de muestra.
+        sourceIndex += 1;
+        if (sourceIndex < sources.length) { video.src = sources[sourceIndex]; video.play().catch(() => {}); }
+        else playerMessage('No se pudo cargar el video', 'Las fuentes de video de muestra no responden. Inténtalo más tarde.');
+      });
+      let lastSaved = 0;
+      let idleTimer;
+
+      let pendingSave = Promise.resolve();
+      // Devuelve siempre el guardado en curso (aunque esta llamada se descarte
+      // por repetida), para que quien espere sepa cuándo terminó.
+      const save = (completedNow = false) => {
+        if (recovering || !video.duration || !isFinite(video.duration) || video.readyState < 1) return pendingSave;
+        const position = completedNow ? Math.floor(video.duration) : Math.floor(video.currentTime);
+        if (!completedNow && Math.abs(position - lastSaved) < 3) return pendingSave;
+        lastSaved = position;
+        pendingSave = api('/api/playback/progress', {
+          method: 'POST',
+          body: {
+            profileId: session.profile.id,
+            titleId: String(titleId),
+            ...(episode ? { episodeId: String(episode.id) } : {}),
+            positionSeconds: position,
+            durationSeconds: Math.floor(video.duration),
+            deviceId: 'web',
+          },
+        });
+        return pendingSave;
+      };
+
+      video.addEventListener('loadedmetadata', () => { if (last && last < video.duration - 5) video.currentTime = last; });
+      video.addEventListener('timeupdate', () => { if (Math.floor(video.currentTime) % 10 === 0) save(); });
+      video.addEventListener('pause', () => save());
+      video.addEventListener('ended', () => {
+        save(true);
+        if (nextEp) showNextUp(t, nextEp);
+      });
+      const wake = () => { player.classList.remove('idle'); clearTimeout(idleTimer); idleTimer = setTimeout(() => player.classList.add('idle'), 2500); };
+      player.addEventListener('mousemove', wake);
+      wake();
+      // Al volver se espera a que el progreso quede guardado: así "Seguir viendo"
+      // ya lo muestra en el inicio.
+      $('#backBtn').addEventListener('click', async () => {
+        if (leaving) return;
+        video.pause();
+        await save();
+        leaving = true;
+        history.length > 1 ? history.back() : go('#/inicio');
+      });
+      onLeave(() => {
+        if (!leaving) save();
+        leaving = true;
+        video.pause();
+        clearTimeout(idleTimer);
+        video.removeAttribute('src');
+        video.load();
+      });
+    };
+
+    const ytId = youtubeId(t.trailerUrl);
+    if (ytId) return playTrailer({ t, titleId, episode, nextEp, last, subtitle, ytId, fallback: startSample });
+    startSample();
+  }
+
+  /* ---------------------------------------------------- tráiler (YouTube) */
+  function youtubeId(url) {
+    const m = String(url || '').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+  let ytApiPromise = null;
+  function loadYouTubeApi() {
+    ytApiPromise ||= new Promise((resolve, reject) => {
+      if (window.YT?.Player) return resolve(window.YT);
+      const previous = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { previous?.(); resolve(window.YT); };
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.onerror = () => { ytApiPromise = null; reject(new Error('No se pudo cargar YouTube.')); };
+      document.head.appendChild(script);
+      setTimeout(() => { if (!window.YT?.Player) { ytApiPromise = null; reject(new Error('YouTube no respondió.')); } }, 15000);
+    });
+    return ytApiPromise;
+  }
+
+  /**
+   * Reproduce el tráiler del título con el reproductor de YouTube. Guarda el
+   * progreso igual que el video de muestra (cada 10 s, al pausar, al salir y
+   * al terminar). Si YouTube no deja reproducirlo (inserción deshabilitada,
+   * video retirado), se pasa al video de muestra.
+   */
+  async function playTrailer({ t, titleId, episode, nextEp, last, subtitle, ytId, fallback }) {
     app.innerHTML = `
       <div class="player" id="player">
         <div class="player-top">
           <button class="icon-btn" id="backBtn" aria-label="Volver">${ICON.back}</button>
-          <div><div class="t">${esc(t.name)}</div><div class="s">${esc(subtitle)}</div></div>
+          <div><div class="t">${esc(t.name)}</div><div class="s">${esc(subtitle ? subtitle + ' · ' : '')}Tráiler</div></div>
         </div>
-        <video id="video" controls autoplay playsinline preload="auto"></video>
+        <div class="yt-wrap"><div id="ytPlayer"></div></div>
       </div>`;
-    const video = $('#video');
-    const player = $('#player');
-    const sources = videoSources(titleId, episode?.id);
-    let sourceIndex = 0;
     let leaving = false;
-    video.src = sources[0];
-    let started = false;
-    let resumeAt = 0;
-    let recoveries = 0;
-    let recovering = false;
-    video.addEventListener('loadedmetadata', () => { started = true; });
-    video.addEventListener('timeupdate', () => { if (video.currentTime > 0 && !recovering) resumeAt = video.currentTime; });
-    video.addEventListener('error', () => {
-      // Al salir del reproductor el navegador aborta la descarga y lanza
-      // 'error' (MEDIA_ERR_ABORTED): no es una fuente caída, no se cambia.
-      if (leaving || video.error?.code === 1) return;
-      if (started) {
-        // Ya se estaba viendo (p. ej. un corte de red al adelantar): se recarga
-        // la MISMA fuente en el mismo punto, para no cambiar de video.
-        if (recoveries++ < 3) {
-          const at = resumeAt;
-          recovering = true;
-          video.load();
-          video.addEventListener('loadedmetadata', () => {
-            video.currentTime = Math.min(at, video.duration - 1);
-            video.addEventListener('seeked', () => { recovering = false; }, { once: true });
-            video.play().catch(() => {});
-          }, { once: true });
-          return;
-        }
-        return playerMessage('Se perdió la conexión con el video', 'Revisa tu conexión e inténtalo de nuevo; tu progreso quedó guardado.');
-      }
-      // Nunca cargó: se prueba la siguiente fuente de muestra.
-      sourceIndex += 1;
-      if (sourceIndex < sources.length) { video.src = sources[sourceIndex]; video.play().catch(() => {}); }
-      else playerMessage('No se pudo cargar el video', 'Las fuentes de video de muestra no responden. Inténtalo más tarde.');
-    });
+    let failed = false;
+    let yt = null;
+    let timer;
     let lastSaved = 0;
-    let idleTimer;
-
     let pendingSave = Promise.resolve();
-    // Devuelve siempre el guardado en curso (aunque esta llamada se descarte
-    // por repetida), para que quien espere sepa cuándo terminó.
-    const save = (completedNow = false) => {
-      if (recovering || !video.duration || !isFinite(video.duration) || video.readyState < 1) return pendingSave;
-      const position = completedNow ? Math.floor(video.duration) : Math.floor(video.currentTime);
+    $('#backBtn').addEventListener('click', async () => {
+      if (leaving) return;
+      try { yt?.pauseVideo?.(); } catch { /* aún no listo */ }
+      await save();
+      leaving = true;
+      history.length > 1 ? history.back() : go('#/inicio');
+    });
+
+    let YT;
+    try { YT = await loadYouTubeApi(); } catch { return fallback(); }
+    if (!$('#ytPlayer')) return; // se salió mientras cargaba
+
+    function save(completedNow = false) {
+      if (failed || !yt?.getDuration) return pendingSave;
+      const duration = Math.floor(yt.getDuration() || 0);
+      if (!duration) return pendingSave;
+      const position = completedNow ? duration : Math.floor(yt.getCurrentTime() || 0);
       if (!completedNow && Math.abs(position - lastSaved) < 3) return pendingSave;
       lastSaved = position;
       pendingSave = api('/api/playback/progress', {
@@ -1014,39 +1125,47 @@
           titleId: String(titleId),
           ...(episode ? { episodeId: String(episode.id) } : {}),
           positionSeconds: position,
-          durationSeconds: Math.floor(video.duration),
+          durationSeconds: duration,
           deviceId: 'web',
         },
       });
       return pendingSave;
-    };
+    }
 
-    video.addEventListener('loadedmetadata', () => { if (last && last < video.duration - 5) video.currentTime = last; });
-    video.addEventListener('timeupdate', () => { if (Math.floor(video.currentTime) % 10 === 0) save(); });
-    video.addEventListener('pause', () => save());
-    video.addEventListener('ended', () => {
-      save(true);
-      if (nextEp) showNextUp(t, nextEp);
-    });
-    const wake = () => { player.classList.remove('idle'); clearTimeout(idleTimer); idleTimer = setTimeout(() => player.classList.add('idle'), 2500); };
-    player.addEventListener('mousemove', wake);
-    wake();
-    // Al volver se espera a que el progreso quede guardado: así "Seguir viendo"
-    // ya lo muestra en el inicio.
-    $('#backBtn').addEventListener('click', async () => {
-      if (leaving) return;
-      video.pause();
-      await save();
-      leaving = true;
-      history.length > 1 ? history.back() : go('#/inicio');
+    yt = new YT.Player('ytPlayer', {
+      videoId: ytId,
+      width: '100%',
+      height: '100%',
+      playerVars: { autoplay: 1, rel: 0, modestbranding: 1, playsinline: 1, hl: 'es', cc_lang_pref: 'es' },
+      events: {
+        onReady: (e) => {
+          const duration = e.target.getDuration() || 0;
+          if (last && last < duration - 5) e.target.seekTo(last, true);
+          e.target.playVideo();
+          timer = setInterval(() => { if (yt.getPlayerState?.() === YT.PlayerState.PLAYING) save(); }, 10000);
+        },
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.PAUSED) save();
+          if (e.data === YT.PlayerState.ENDED) {
+            save(true);
+            if (nextEp) showNextUp(t, nextEp);
+          }
+        },
+        onError: () => {
+          if (failed || leaving) return;
+          failed = true;
+          clearInterval(timer);
+          try { yt.destroy(); } catch { /* nada */ }
+          toast('Este tráiler no está disponible; reproduciendo un video de muestra.');
+          fallback();
+        },
+      },
     });
     onLeave(() => {
       if (!leaving) save();
       leaving = true;
-      video.pause();
-      clearTimeout(idleTimer);
-      video.removeAttribute('src');
-      video.load();
+      clearInterval(timer);
+      try { yt?.destroy?.(); } catch { /* nada */ }
     });
   }
 
@@ -1437,6 +1556,7 @@
           <div class="field"><label for="f_regions">Regiones (separadas por coma)</label><input class="input" id="f_regions" value="${esc((t?.regions || ['CO', 'MX']).join(', '))}"></div>
         </div>
         <div class="field"><label for="f_poster">URL de la imagen (opcional)</label><input class="input" id="f_poster" type="url" placeholder="https://…" value="${esc(t?.posterUrl || '')}"></div>
+        <div class="field"><label for="f_trailer">Tráiler en YouTube (opcional)</label><input class="input" id="f_trailer" type="url" placeholder="https://www.youtube.com/watch?v=…" value="${esc(t?.trailerUrl || '')}"></div>
         ${!editing ? `
           <div class="grid-2" id="seriesFields" hidden>
             <div class="field"><label for="f_seasons">Temporadas</label><input class="input" id="f_seasons" type="number" min="1" max="20" value="1"></div>
@@ -1462,7 +1582,9 @@
         ageRating: $('#f_age').value,
         isFree: $('#f_free').checked,
         posterUrl: $('#f_poster').value.trim(),
+        trailerUrl: $('#f_trailer').value.trim(),
       };
+      if (common.trailerUrl && !youtubeId(common.trailerUrl)) { $('#f_err').textContent = 'El tráiler debe ser un enlace de YouTube.'; return; }
       if (!common.name) { $('#f_err').textContent = 'El nombre es obligatorio.'; return; }
       let res;
       if (editing) {
@@ -1480,6 +1602,7 @@
           body: {
             ...common,
             posterUrl: common.posterUrl || undefined,
+            trailerUrl: common.trailerUrl || undefined,
             type,
             seasons,
             publishImmediately: $('#f_pub').checked,

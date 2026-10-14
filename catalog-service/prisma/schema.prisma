@@ -36,6 +36,8 @@ model Title {
   isFree         Boolean        @default(false) @map("is_free")
   // Imagen del título (opcional); sin ella el frontend genera un póster.
   posterUrl      String?        @map("poster_url")
+  // Tráiler (URL de YouTube); el reproductor lo usa en vez del video de muestra.
+  trailerUrl     String?        @map("trailer_url")
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
 

@@ -565,3 +565,9 @@ body { background: radial-gradient(1100px 420px at 85% -120px, rgba(156, 106, 22
 
 .paypal-note:empty { display: none; }
 .paypal-note { margin-top: 8px; text-align: center; }
+
+/* ----------------------------------------------------------- tráiler (YouTube) */
+.yt-wrap { position: absolute; inset: 0; background: #000; }
+.yt-wrap iframe, .yt-wrap #ytPlayer { width: 100%; height: 100%; border: 0; display: block; }
+.player .yt-wrap ~ .next-up, .player .next-up { z-index: 3; }
+.player:has(.yt-wrap) .player-top { padding-right: 70px; }

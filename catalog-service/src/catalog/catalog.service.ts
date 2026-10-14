@@ -119,6 +119,7 @@ export class CatalogService {
         ageRating: dto.ageRating,
         isFree: dto.isFree ?? false,
         posterUrl: dto.posterUrl || null,
+        trailerUrl: dto.trailerUrl || null,
         status: dto.publishImmediately ? TitleStatus.AVAILABLE : TitleStatus.PENDING,
         seasons: dto.seasons
           ? {
@@ -157,7 +158,7 @@ export class CatalogService {
     const existing = await this.prisma.title.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException(`Título ${id} no encontrado`);
 
-    const { regions, posterUrl, ...fields } = dto;
+    const { regions, posterUrl, trailerUrl, ...fields } = dto;
     const regionList = regions
       ? [...new Set(regions.map((r) => r.trim().toUpperCase()).filter(Boolean))]
       : undefined;
@@ -176,6 +177,7 @@ export class CatalogService {
         data: {
           ...fields,
           ...(posterUrl !== undefined ? { posterUrl: posterUrl.trim() || null } : {}),
+          ...(trailerUrl !== undefined ? { trailerUrl: trailerUrl.trim() || null } : {}),
         },
       });
     });
@@ -248,6 +250,7 @@ export class CatalogService {
       ageRating: title.ageRating,
       isFree: title.isFree ?? false,
       posterUrl: title.posterUrl ?? null,
+      trailerUrl: title.trailerUrl ?? null,
       createdAt: title.createdAt,
       updatedAt: title.updatedAt,
     };

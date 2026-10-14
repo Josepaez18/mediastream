@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TitleStatus } from '@prisma/client';
-import { ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { YOUTUBE_URL } from './create-title.dto';
 
 // Uso administrativo: PATCH /api/catalog/titles/{id}. Todo es opcional;
 // solo se cambia lo que se envía.
@@ -35,6 +36,12 @@ export class UpdateTitleDto {
   @IsOptional()
   @IsString()
   posterUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Tráiler en YouTube; cadena vacía para quitarlo' })
+  @IsOptional()
+  @IsString()
+  @Matches(YOUTUBE_URL, { message: 'trailerUrl debe ser un enlace de YouTube (o vacío para quitarlo).' })
+  trailerUrl?: string;
 
   @ApiPropertyOptional({ enum: TitleStatus, description: 'AVAILABLE publica el título; UNAVAILABLE lo retira' })
   @IsOptional()

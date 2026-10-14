@@ -54,6 +54,13 @@ describe('Catalog: administración', () => {
     expect(tx.availability.deleteMany).not.toHaveBeenCalled();
   });
 
+  it('editar: guarda el tráiler y una cadena vacía lo quita', async () => {
+    await service.updateTitle(5n, { trailerUrl: 'https://www.youtube.com/watch?v=RV9L7ui9Cn8' });
+    expect(tx.title.update.mock.calls[0][0].data).toEqual({ trailerUrl: 'https://www.youtube.com/watch?v=RV9L7ui9Cn8' });
+    await service.updateTitle(5n, { trailerUrl: '' });
+    expect(tx.title.update.mock.calls[1][0].data).toEqual({ trailerUrl: null });
+  });
+
   it('borrar un título inexistente → 404', async () => {
     prisma.title.findUnique.mockResolvedValue(null);
     await expect(service.deleteTitle(9n)).rejects.toBeInstanceOf(NotFoundException);

@@ -8,11 +8,15 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
   Min,
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TitleType } from '@prisma/client';
+
+// youtube.com/watch?v=…, youtu.be/…, youtube.com/embed/… o /shorts/…
+export const YOUTUBE_URL = /^$|^https?:\/\/(www\.|m\.)?(youtube\.com\/(watch\?v=|embed\/|shorts\/)|youtu\.be\/)[A-Za-z0-9_-]{11}/;
 
 class AvailabilityInputDto {
   @ApiProperty({ example: 'CO', description: 'Código de región/país' })
@@ -106,6 +110,12 @@ export class CreateTitleDto {
   @IsOptional()
   @IsString()
   posterUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://www.youtube.com/watch?v=RV9L7ui9Cn8', description: 'Tráiler en YouTube' })
+  @IsOptional()
+  @IsString()
+  @Matches(YOUTUBE_URL, { message: 'trailerUrl debe ser un enlace de YouTube (o vacío para quitarlo).' })
+  trailerUrl?: string;
 
   @ApiPropertyOptional({
     example: false,

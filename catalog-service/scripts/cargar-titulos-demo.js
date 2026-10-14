@@ -1,12 +1,12 @@
 /**
  * Carga el catálogo de demostración: películas y series reales, cada una con
- * su póster, categoría, clasificación, regiones y (las series) sus temporadas
- * y episodios. Los datos están en scripts/titulos-demo.json; los marcados con
+ * su póster, su tráiler de YouTube (si se encontró uno verificado), categoría,
+ * clasificación, regiones y (las series) sus temporadas y episodios. Los datos están en scripts/titulos-demo.json; los marcados con
  * "isFree" se ven con el plan GRATIS.
  *
  * Escribe en la base de datos PROPIA de Catalog-Service (catalog_db): cada
  * servicio carga sus propios datos. Es idempotente: si ya existe un título con
- * el mismo nombre, solo le completa la imagen y la marca de gratis.
+ * el mismo nombre, solo le completa la imagen, el tráiler y la marca de gratis.
  *
  * Uso (desde la carpeta MediaStream):
  *   docker compose exec catalog-service node scripts/cargar-titulos-demo.js
@@ -28,10 +28,11 @@ async function main() {
   for (const t of TITLES) {
     const existing = await prisma.title.findFirst({ where: { name: t.name } });
     if (existing) {
-      if (existing.posterUrl !== t.posterUrl || existing.isFree !== t.isFree) {
-        await prisma.title.update({ where: { id: existing.id }, data: { posterUrl: t.posterUrl, isFree: t.isFree } });
+      const trailerUrl = t.trailerUrl || existing.trailerUrl || null;
+      if (existing.posterUrl !== t.posterUrl || existing.isFree !== t.isFree || existing.trailerUrl !== trailerUrl) {
+        await prisma.title.update({ where: { id: existing.id }, data: { posterUrl: t.posterUrl, isFree: t.isFree, trailerUrl } });
         updated++;
-        console.log(`  ~  ${t.name}  (id ${existing.id}: imagen/gratis actualizados)`);
+        console.log(`  ~  ${t.name}  (id ${existing.id}: imagen/tráiler/gratis actualizados)`);
       } else {
         skipped++;
       }
@@ -46,6 +47,7 @@ async function main() {
         ageRating: t.ageRating,
         isFree: t.isFree,
         posterUrl: t.posterUrl,
+        trailerUrl: t.trailerUrl || null,
         status: 'AVAILABLE',
         availabilities: {
           create: (t.regions || ['CO', 'MX']).map((region) => ({ region, availableFrom })),
