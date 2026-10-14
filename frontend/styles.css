@@ -56,7 +56,7 @@
   color-scheme: dark;
 }
 
-/* Tipografía: una sola letra (Outfit) en toda la página; los títulos solo cambian de grosor y tamaño. */
+/* Tipografía: Outfit en toda la página (los títulos solo cambian de grosor y tamaño); los números del Top 10 conservan Poppins. */
 :root {
   --font: 'Outfit', 'Segoe UI', Arial, sans-serif;
 }
@@ -542,8 +542,8 @@ body { background: radial-gradient(1100px 420px at 85% -120px, rgba(156, 106, 22
 .row-top .row-track { gap: 4px; }
 .rank-item { display: flex; align-items: flex-end; flex: 0 0 auto; scroll-snap-align: start; }
 .rank-num {
-  font-weight: 800; font-size: 150px; line-height: .78;
-  letter-spacing: -0.04em; margin-right: 8px; padding-left: 6px; user-select: none;
+  font-family: 'Poppins', var(--font); font-weight: 600; font-size: 150px; line-height: .78;
+  letter-spacing: -0.08em; margin-right: -14px; padding-left: 6px; user-select: none;
   color: var(--bg); -webkit-text-stroke: 3px var(--accent);
   background: linear-gradient(180deg, rgba(156, 106, 222, .05), rgba(156, 106, 222, .35));
   -webkit-background-clip: text; background-clip: text;
