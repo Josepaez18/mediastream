@@ -87,6 +87,14 @@ describe('PaypalCheckoutService', () => {
     expect(events.publishSubscriptionActivated).not.toHaveBeenCalled();
   });
 
+  it('orden sin aprobar en PayPal → 409 PAYPAL_NOT_APPROVED, sin activar', async () => {
+    paypal.captureOrder.mockRejectedValue(new PaypalError('not approved', 422, 'ORDER_NOT_APPROVED'));
+    const err = await service.capture('ORDER1', '7').catch((e) => e);
+    expect(err.getStatus()).toBe(409);
+    expect(err.getResponse()).toMatchObject({ code: 'PAYPAL_NOT_APPROVED' });
+    expect(events.publishSubscriptionActivated).not.toHaveBeenCalled();
+  });
+
   it('custom_id inválido o de un plan desconocido no se acepta', () => {
     expect(parseCustomId('7:PREMIUM')).toEqual({ accountId: '7', plan: 'PREMIUM' });
     expect(parseCustomId('7:ORO')).toBeNull();

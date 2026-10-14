@@ -95,6 +95,12 @@ export class PaypalCheckoutService {
           HttpStatus.PAYMENT_REQUIRED,
         );
       }
+      if (err instanceof PaypalError && err.issue === 'ORDER_NOT_APPROVED') {
+        throw new HttpException(
+          { message: 'El pago todavía no fue aprobado en la ventana de PayPal.', code: 'PAYPAL_NOT_APPROVED' },
+          HttpStatus.CONFLICT,
+        );
+      }
       if (err instanceof PaypalError && err.issue === 'ORDER_ALREADY_CAPTURED') {
         captured = await this.call(() => this.paypal.getOrder(orderId));
       } else {
