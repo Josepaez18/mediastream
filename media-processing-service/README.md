@@ -1,5 +1,103 @@
 # Media-Processing-Service — MediaStream
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Ingesta y transcodificación de video. Recibe el archivo maestro de un título, crea un trabajo (`media_job`) y lo procesa con FFmpeg en 1080p, 720p, 480p y 240p con su manifiesto HLS. Al terminar publica `media.ready` (o `media.processing.failed` si falla) para que Catalog actualice el estado del título.
+
+Publica en RabbitMQ (exchange `media.events`) `media.ready` y `media.processing.failed`.
+
+### Tecnologías
+
+Python 3.12, FastAPI 0.115, SQLAlchemy 2, Alembic, PostgreSQL 16, RabbitMQ (aio-pika) y FFmpeg.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-media-zadq.onrender.com |
+| Documentación (Swagger) | https://mediastream-media-zadq.onrender.com/docs |
+| Estado del servicio | https://mediastream-media-zadq.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-media-processing-service |
+
+### Base de datos
+
+Base propia: `media_processing_db` (PostgreSQL 16). Ningún otro servicio escribe en ella.
+
+- **Tablas:** `media_job`.
+- **Esquema:** migraciones en `alembic/versions/` (se aplican solas al arrancar el contenedor).
+- **Datos de ejemplo:** `database/seed.sql`.
+- **Respaldo completo (esquema y datos):** `database/backup.sql`.
+- **En producción:** base separada dentro de la instancia Render Postgres `mediastream-db`; la conexión llega por las variables `DATABASE_URL` y `DATABASE_NAME`, nunca en el código.
+
+Restaurar el respaldo en local:
+
+```bash
+docker compose up -d media-db
+docker compose exec -T media-db psql -U media_user -d media_processing_db < database/backup.sql
+```
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| POST | `/api/media/ingest` | Recibe el archivo maestro y crea el trabajo de transcodificación |
+| GET | `/api/media/jobs/{job_id}` | Estado de un trabajo |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto HTTP del servicio | `3004` |
+| `DATABASE_URL` | Conexión a su base PostgreSQL | `postgresql+psycopg2://media_user:media_pass@localhost:5436/media_processing_db` |
+| `RABBITMQ_URL` | Conexión a RabbitMQ | `amqp://guest:guest@localhost:5672/` |
+| `RABBITMQ_EXCHANGE` | Exchange donde se publican los eventos de media | `media.events` |
+| `MEDIA_READY_ROUTING_KEY` | Routing key del evento media.ready | `media.ready` |
+| `MEDIA_FAILED_ROUTING_KEY` | Routing key del evento media.processing.failed | `media.processing.failed` |
+| `OBJECT_STORAGE_BUCKET` | Bucket del almacenamiento de objetos | `mediastream-media` |
+| `OBJECT_STORAGE_ENDPOINT` | Endpoint del almacenamiento de objetos | `https://storage.example.com` |
+| `OBJECT_STORAGE_ACCESS_KEY` | Llave de acceso del almacenamiento | (vacío) |
+| `OBJECT_STORAGE_SECRET_KEY` | Llave secreta del almacenamiento | (vacío) |
+| `CDN_BASE_URL` | Base del CDN que sirve los manifiestos HLS | `https://cdn.mediastream.example.com` |
+| `WORK_DIR` | Carpeta temporal de trabajo de FFmpeg | `/tmp/media-processing` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `*` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `DATABASE_NAME` | Nombre de su base dentro de la instancia compartida de Render Postgres (se crea al arrancar si no existe) (solo en Render) | `media_processing_db` |
+| `PUBLIC_*_URL` | URLs públicas de los demás servicios (solo en Render) | `https://mediastream-…onrender.com` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-media-processing-service.git
+cd mediastream-media-processing-service
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+python -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+alembic upgrade head
+uvicorn app.main:app --reload --port 3004
+pytest   # pruebas
+```
+
+Queda en http://localhost:3004.
+<!-- ficha:fin -->
+
+
 Tercer microservicio de la plataforma: procesa los archivos de vídeo
 maestro subidos por el equipo de contenido, generando múltiples
 resoluciones y bitrates (adaptive bitrate streaming / HLS) y publicando

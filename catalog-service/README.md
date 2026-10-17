@@ -1,5 +1,98 @@
 # Catalog-Service — MediaStream
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Catálogo de películas y series: títulos, temporadas, episodios y disponibilidad por región (licencias con fecha de inicio y fin). Marca qué títulos son gratis, guarda el póster y el tráiler de YouTube, y cambia el estado de cada título con los eventos de Media-Processing (`media.ready` lo deja AVAILABLE; `media.processing.failed`, UNAVAILABLE). El listado se cachea en Redis.
+
+Consume de RabbitMQ (exchange `media.events`) `media.ready` y `media.processing.failed`. Playback, Recommendation, Notification y Analytics lo consultan por REST.
+
+### Tecnologías
+
+Node.js 20, NestJS 10, Prisma 5, PostgreSQL 16, Redis (ioredis), RabbitMQ (amqplib), Swagger y Jest.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-catalog-t9f9.onrender.com |
+| Documentación (Swagger) | https://mediastream-catalog-t9f9.onrender.com/docs |
+| Estado del servicio | https://mediastream-catalog-t9f9.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-catalog-service |
+
+### Base de datos
+
+Base propia: `catalog_db` (PostgreSQL 16 + caché en Redis). Ningún otro servicio escribe en ella.
+
+- **Tablas:** `title`, `season`, `episode`, `availability`.
+- **Esquema:** migraciones en `prisma/migrations/` (se aplican solas al arrancar el contenedor).
+- **Datos de ejemplo:** `database/seed.sql`.
+- **Respaldo completo (esquema y datos):** `database/backup.sql`.
+- **En producción:** base separada dentro de la instancia Render Postgres `mediastream-db`; la conexión llega por las variables `DATABASE_URL` y `DATABASE_NAME`, nunca en el código.
+
+Restaurar el respaldo en local:
+
+```bash
+docker compose up -d catalog-db
+docker compose exec -T catalog-db psql -U catalog_user -d catalog_db < database/backup.sql
+```
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| GET | `/api/catalog/titles` | Lista los títulos disponibles en una región (caché en Redis) |
+| GET | `/api/catalog/titles/:id` | Detalle de un título con temporadas y episodios |
+| GET | `/api/catalog/titles/:id/availability` | Disponibilidad regional vigente de un título |
+| POST | `/api/catalog/titles` | Administrador: crea un título |
+| PATCH | `/api/catalog/titles/:id` | Administrador: edita datos, gratis, estado, regiones, póster y tráiler |
+| DELETE | `/api/catalog/titles/:id` | Administrador: elimina un título |
+| GET | `/api/catalog/admin/titles` | Administrador: todos los títulos en cualquier estado y región |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto HTTP del servicio | `3002` |
+| `DATABASE_URL` | Conexión a su base PostgreSQL | `postgresql://catalog_user:catalog_pass@localhost:5432/catalog_db?schema=public` |
+| `REDIS_URL` | Conexión a Redis | `redis://localhost:6379` |
+| `RABBITMQ_URL` | Conexión a RabbitMQ | `amqp://guest:guest@localhost:5672` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `http://localhost:3000` |
+| `DATABASE_NAME` | Nombre de su base dentro de la instancia compartida de Render Postgres (se crea al arrancar si no existe) (solo en Render) | `catalog_db` |
+| `PUBLIC_*_URL` | URLs públicas de los demás servicios (solo en Render) | `https://mediastream-…onrender.com` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-catalog-service.git
+cd mediastream-catalog-service
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+npm ci
+cp .env.example .env
+npx prisma migrate deploy
+npm run start:dev
+npm test   # pruebas
+```
+
+Queda en http://localhost:3002.
+<!-- ficha:fin -->
+
+
 Microservicio de catálogo de MediaStream, implementado según el documento
 *"Arquitectura Plataforma Tecnológicas - Momento 1"*.
 

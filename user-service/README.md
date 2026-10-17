@@ -1,5 +1,108 @@
 # User Service — MediaStream
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Identidad y acceso de la plataforma. Registra cuentas, inicia sesión con JWT (access y refresh token) y administra los perfiles de cada cuenta, con un límite según el plan (GRATIS 1, BÁSICO 2, ESTÁNDAR 4, PREMIUM 5). Guarda el rol (USER o ADMIN), el plan y el estado de la cuenta: pasa a MOROSA o SUSPENDIDA cuando Billing publica `payment.failed`, y cambia de plan con `subscription.activated` y `subscription.canceled`.
+
+Consume de RabbitMQ (exchange `billing.events`) los eventos `payment.failed`, `subscription.activated` y `subscription.canceled`.
+
+### Tecnologías
+
+Node.js 20, NestJS 10, Prisma 5, PostgreSQL 16, RabbitMQ (amqplib y microservicios de Nest), JWT, bcrypt, Swagger y Jest.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-user-3um7.onrender.com |
+| Documentación (Swagger) | https://mediastream-user-3um7.onrender.com/docs |
+| Estado del servicio | https://mediastream-user-3um7.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-user-service |
+
+### Base de datos
+
+Base propia: `user_service_db` (PostgreSQL 16). Ningún otro servicio escribe en ella.
+
+- **Tablas:** `accounts`, `profiles`.
+- **Esquema:** migraciones en `prisma/migrations/` (se aplican solas al arrancar el contenedor).
+- **Datos de ejemplo:** `database/seed.sql`.
+- **Respaldo completo (esquema y datos):** `database/backup.sql`.
+- **En producción:** base separada dentro de la instancia Render Postgres `mediastream-db`; la conexión llega por las variables `DATABASE_URL` y `DATABASE_NAME`, nunca en el código.
+
+Restaurar el respaldo en local:
+
+```bash
+docker compose up -d user-db
+docker compose exec -T user-db psql -U user_service -d user_service_db < database/backup.sql
+```
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| POST | `/api/users/register` | Crea la cuenta con su primer perfil |
+| POST | `/api/users/login` | Inicia sesión y devuelve el access y el refresh token |
+| POST | `/api/users/refresh` | Renueva el access token |
+| GET | `/api/users/me` | Datos de la cuenta autenticada: rol, plan y estado |
+| GET | `/api/users/profiles/:account_id` | Perfiles de una cuenta |
+| POST | `/api/users/profiles` | Crea un perfil (respeta el límite del plan) |
+| DELETE | `/api/users/profiles/:id` | Elimina un perfil |
+| GET | `/api/users/admin/accounts` | Administrador: lista las cuentas |
+| PATCH | `/api/users/admin/accounts/:id` | Administrador: cambia rol, plan o estado |
+| DELETE | `/api/users/admin/accounts/:id` | Administrador: elimina una cuenta |
+| POST | `/api/users/debug/payment-failed` | Simula el evento payment.failed (pruebas) |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `DATABASE_URL` | Conexión a su base PostgreSQL | `postgresql://user_service:user_service@localhost:5435/user_service_db?schema=public` |
+| `RABBITMQ_URL` | Conexión a RabbitMQ | `amqp://guest:guest@localhost:5672` |
+| `JWT_ACCESS_SECRET` | Secreto con el que se firman y validan los access token | `dev-access-secret` |
+| `JWT_REFRESH_SECRET` | Secreto de los refresh token | `dev-refresh-secret` |
+| `JWT_ACCESS_TTL` | Duración del access token | `15m` |
+| `JWT_REFRESH_TTL` | Duración del refresh token | `7d` |
+| `PORT` | Puerto HTTP del servicio | `3001` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `*` |
+| `DATABASE_NAME` | Nombre de su base dentro de la instancia compartida de Render Postgres (se crea al arrancar si no existe) (solo en Render) | `user_service_db` |
+| `ADMIN_EMAIL` | Correo de la cuenta administradora que se crea al arrancar | `admin@mediastream.com` |
+| `ADMIN_PASSWORD` | Contraseña de esa cuenta administradora | `cambia-esta-clave` |
+| `PUBLIC_*_URL` | URLs públicas de los demás servicios (solo en Render) | `https://mediastream-…onrender.com` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-user-service.git
+cd mediastream-user-service
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+npm ci
+cp .env.example .env
+npx prisma migrate deploy
+npm run start:dev
+npm test   # pruebas
+```
+
+Queda en http://localhost:3001.
+<!-- ficha:fin -->
+
+
 Microservicio de **Usuarios y Suscripciones** (gestión de identidad, autenticación y perfiles
 familiares), implementado según el documento *"Arquitectura Plataforma Tecnológicas — Momento 1"*.
 

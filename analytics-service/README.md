@@ -1,5 +1,99 @@
 # Analytics-Service
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Indicadores de negocio. Un ETL periódico lee las réplicas de solo lectura de Playback y Catalog y calcula horas vistas por día, abandono por episodio y popularidad por región. Con esos datos arma el Top 10 que muestra el frontend y el panel de KPIs del administrador.
+
+Lee (solo lectura) las bases de Playback y Catalog; no escribe en ellas.
+
+### Tecnologías
+
+Python 3.12, FastAPI 0.115, SQLAlchemy 2, Alembic y PostgreSQL 16.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-analytics.onrender.com |
+| Documentación (Swagger) | https://mediastream-analytics.onrender.com/docs |
+| Estado del servicio | https://mediastream-analytics.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-analytics-service |
+
+### Base de datos
+
+Base propia: `analytics_db` (PostgreSQL 16). Ningún otro servicio escribe en ella.
+
+- **Tablas:** `hours_watched_daily`, `abandonment_by_episode`, `popularity_by_region`, `title_dim`, `etl_run`.
+- **Esquema:** migraciones en `alembic/versions/` (se aplican solas al arrancar el contenedor).
+- **Datos de ejemplo:** `database/seed.sql`.
+- **Respaldo completo (esquema y datos):** `database/backup.sql`.
+- **En producción:** base separada dentro de la instancia Render Postgres `mediastream-db`; la conexión llega por las variables `DATABASE_URL` y `DATABASE_NAME`, nunca en el código.
+
+Restaurar el respaldo en local:
+
+```bash
+docker compose up -d analytics-db
+docker compose exec -T analytics-db psql -U analytics_user -d analytics_db < database/backup.sql
+```
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| GET | `/api/analytics/top` | Top 10 de títulos por región |
+| GET | `/api/analytics/kpis` | Administrador: horas vistas, abandono y popularidad |
+| POST | `/api/analytics/etl/run` | Administrador: ejecuta el ETL en el momento |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto HTTP del servicio | `3008` |
+| `DATABASE_URL` | Conexión a su base PostgreSQL | `postgresql+psycopg2://analytics_user:analytics_pass@localhost:5439/analytics_db` |
+| `PLAYBACK_REPLICA_URL` | Réplica de solo lectura de la base de Playback (fuente del ETL) | `postgresql+psycopg2://playback_user:playback_pass@localhost:5434/playback_db` |
+| `CATALOG_REPLICA_URL` | Réplica de solo lectura de la base de Catalog (fuente del ETL) | `postgresql+psycopg2://catalog_user:catalog_pass@localhost:5433/catalog_db` |
+| `ETL_INTERVAL_SECONDS` | Cada cuánto se recalculan los KPIs (s) | `300` |
+| `ETL_INITIAL_DELAY_SECONDS` | Espera antes del primer ETL (s) | `10` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `*` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `DATABASE_NAME` | Nombre de su base dentro de la instancia compartida de Render Postgres (se crea al arrancar si no existe) (solo en Render) | `analytics_db` |
+| `PLAYBACK_REPLICA_DATABASE_NAME` | Nombre de la base de Playback en Render (solo en Render) | `playback_db` |
+| `CATALOG_REPLICA_DATABASE_NAME` | Nombre de la base de Catalog en Render (solo en Render) | `catalog_db` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-analytics-service.git
+cd mediastream-analytics-service
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+python -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+alembic upgrade head
+uvicorn app.main:app --reload --port 3008
+pytest   # pruebas
+```
+
+Queda en http://localhost:3008.
+<!-- ficha:fin -->
+
+
 Microservicio de **analítica de audiencia** de MediaStream (Python + FastAPI). Expone un panel
 de KPIs calculado con un **ETL periódico sobre réplicas de solo lectura** de Playback-DB y
 Catalog-DB, para que las consultas pesadas no compitan con los servicios transaccionales.

@@ -1,5 +1,104 @@
 # Playback-Service
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Reproducción. Antes de emitir el token de reproducción (DRM simulado) valida con Catalog que el título exista, esté AVAILABLE y tenga licencia en la región, y que el plan de la cuenta permita verlo. Guarda el progreso de cada perfil ("seguir viendo") y publica `playback.progress` y `playback.completed`. Hacia Catalog usa timeout, reintentos con backoff y circuit breaker.
+
+Llama por REST a Catalog-Service. Publica en Redis `playback.progress` y `playback.completed`, que consumen Recommendation y Notification.
+
+### Tecnologías
+
+Node.js 20, NestJS 10, Prisma 5, PostgreSQL 16, Redis (caché y Pub/Sub), JWT, Swagger y Jest.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-playback-0ciy.onrender.com |
+| Documentación (Swagger) | https://mediastream-playback-0ciy.onrender.com/docs |
+| Estado del servicio | https://mediastream-playback-0ciy.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-playback-service |
+
+### Base de datos
+
+Base propia: `playback_db` (PostgreSQL 16 + Redis). Ningún otro servicio escribe en ella.
+
+- **Tablas:** `watch_progress`.
+- **Esquema:** migraciones en `prisma/migrations/` (se aplican solas al arrancar el contenedor).
+- **Datos de ejemplo:** `database/seed.sql`.
+- **Respaldo completo (esquema y datos):** `database/backup.sql`.
+- **En producción:** base separada dentro de la instancia Render Postgres `mediastream-db`; la conexión llega por las variables `DATABASE_URL` y `DATABASE_NAME`, nunca en el código.
+
+Restaurar el respaldo en local:
+
+```bash
+docker compose up -d playback-db
+docker compose exec -T playback-db psql -U playback_user -d playback_db < database/backup.sql
+```
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| GET | `/api/playback/token/:titleId` | Emite el token de reproducción tras validar título, región y plan |
+| POST | `/api/playback/progress` | Guarda el progreso y publica los eventos de reproducción |
+| GET | `/api/playback/resume/:profileId` | "Seguir viendo" de un perfil |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto HTTP del servicio | `3003` |
+| `DATABASE_URL` | Conexión a su base PostgreSQL | `postgresql://playback_user:playback_pass@localhost:5434/playback_db?schema=public` |
+| `REDIS_URL` | Conexión a Redis | `redis://localhost:6379` |
+| `CATALOG_SERVICE_URL` | URL de Catalog-Service | `http://localhost:3002` |
+| `CATALOG_TIMEOUT_MS` | Tiempo máximo de cada llamada a Catalog (ms) | `2000` |
+| `CATALOG_RETRIES` | Reintentos hacia Catalog | `2` |
+| `CATALOG_RETRY_BASE_MS` | Espera base del backoff exponencial (ms) | `200` |
+| `CATALOG_CB_FAILURE_THRESHOLD` | Fallos seguidos que abren el circuit breaker | `3` |
+| `CATALOG_CB_OPEN_MS` | Tiempo que el circuit breaker queda abierto (ms) | `30000` |
+| `CATALOG_CACHE_TTL_SECONDS` | Caché corta de cada respuesta de Catalog (s) | `60` |
+| `CATALOG_LAST_KNOWN_TTL_SECONDS` | Cuánto se guarda la última información conocida de un título (s) | `86400` |
+| `DRM_JWT_SECRET` | Clave de firma del token de reproducción (DRM simulado) | `cambiar-esta-clave-en-produccion` |
+| `DRM_TOKEN_TTL_SECONDS` | Duración del token de reproducción (s) | `300` |
+| `CDN_BASE_URL` | Base del CDN que sirve los manifiestos HLS | `https://cdn.mediastream.local` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `http://localhost:3000` |
+| `DATABASE_NAME` | Nombre de su base dentro de la instancia compartida de Render Postgres (se crea al arrancar si no existe) (solo en Render) | `playback_db` |
+| `PUBLIC_*_URL` | URLs públicas de los demás servicios (solo en Render) | `https://mediastream-…onrender.com` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-playback-service.git
+cd mediastream-playback-service
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+npm ci
+cp .env.example .env
+npx prisma migrate deploy
+npm run start:dev
+npm test   # pruebas
+```
+
+Queda en http://localhost:3003.
+<!-- ficha:fin -->
+
+
 Microservicio de reproducción de **MediaStream**. Gestiona el estado de reproducción de cada
 usuario (posición exacta, dispositivo utilizado), genera tokens de acceso DRM de corta duración
 para los streams, y aplica las reglas de gestión de derechos digitales según el contenido.

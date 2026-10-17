@@ -1,5 +1,89 @@
 # API Gateway
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Puerta de entrada única del frontend. Enruta cada `/api/<servicio>/**` al microservicio correspondiente, valida el JWT y pasa la identidad en cabeceras (`x-account-id`, `x-account-role`, `x-account-plan`), restringe las rutas de administrador, aplica límite de peticiones por minuto y responde 503 mientras un servicio de Render se despierta.
+
+Reenvía por REST a los 8 microservicios.
+
+### Tecnologías
+
+Node.js 20, NestJS 10, http-proxy-middleware 3, jsonwebtoken y Jest.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-gateway-5wjw.onrender.com |
+| Estado del servicio | https://mediastream-gateway-5wjw.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-api-gateway |
+
+### Base de datos
+
+Sin base de datos (los límites de peticiones viven en memoria).
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| * | `/api/users/**, /api/catalog/**, /api/playback/**, …` | Reenvío al microservicio correspondiente |
+| GET | `/health/services` | Estado de los 8 microservicios en una sola respuesta |
+| GET | `/health/headers` | Diagnóstico: cabeceras que recibe el gateway |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto HTTP del servicio | `8080` |
+| `JWT_ACCESS_SECRET` | Secreto con el que se firman y validan los access token | `dev-access-secret` |
+| `USER_SERVICE_URL` | URL de User-Service | `http://localhost:3001` |
+| `CATALOG_SERVICE_URL` | URL de Catalog-Service | `http://localhost:3002` |
+| `PLAYBACK_SERVICE_URL` | URL de Playback-Service | `http://localhost:3003` |
+| `MEDIA_SERVICE_URL` | URL de Media-Service | `http://localhost:3004` |
+| `RECOMMENDATION_SERVICE_URL` | URL de Recommendation-Service | `http://localhost:3005` |
+| `BILLING_SERVICE_URL` | URL de Billing-Service | `http://localhost:3006` |
+| `NOTIFICATION_SERVICE_URL` | URL de Notification-Service | `http://localhost:3007` |
+| `ANALYTICS_SERVICE_URL` | URL de Analytics-Service | `http://localhost:3008` |
+| `PROXY_TIMEOUT_MS` | Tiempo máximo de espera de un microservicio antes de responder 504 | `15000` |
+| `RATE_LIMIT_DEFAULT` | Solicitudes por minuto (general) | `120` |
+| `RATE_LIMIT_READ` | Solicitudes por minuto (lecturas) | `300` |
+| `RATE_LIMIT_SENSITIVE` | Solicitudes por minuto (login y registro) | `10` |
+| `RATE_LIMIT_BILLING` | Solicitudes por minuto (pagos) | `20` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `*` |
+| `PUBLIC_*_URL` | URLs públicas de los demás servicios (solo en Render) | `https://mediastream-…onrender.com` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-api-gateway.git
+cd mediastream-api-gateway
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+npm ci
+cp .env.example .env
+npm run start:dev
+npm test   # pruebas
+```
+
+Queda en http://localhost:8080.
+<!-- ficha:fin -->
+
+
 Único punto de entrada de MediaStream para los clientes (sección 5 del documento). Recibe todas
 las peticiones HTTP y las enruta al microservicio correspondiente; el cliente nunca conoce las
 direcciones internas de los servicios.

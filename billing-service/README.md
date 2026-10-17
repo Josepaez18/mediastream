@@ -1,5 +1,104 @@
 # Billing Service — MediaStream
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Suscripciones y pagos. Cobra los planes con PayPal en modo sandbox (precios de prueba en COP, cobrados en USD), cambia de plan cobrando la diferencia y cancela suscripciones. Una misma orden de PayPal nunca se aplica dos veces. Publica `subscription.activated`, `subscription.canceled` y `payment.failed` para que User-Service actualice el plan y el estado de la cuenta.
+
+Publica en RabbitMQ (exchange `billing.events`) `subscription.activated`, `subscription.canceled` y `payment.failed`. Usa la API externa de PayPal.
+
+### Tecnologías
+
+Node.js 20, NestJS 10, Prisma 5, PostgreSQL 16, RabbitMQ (amqplib), PayPal Checkout (Orders v2, sandbox), Swagger y Jest.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-billing-c7bf.onrender.com |
+| Documentación (Swagger) | https://mediastream-billing-c7bf.onrender.com/docs |
+| Estado del servicio | https://mediastream-billing-c7bf.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-billing-service |
+
+### Base de datos
+
+Base propia: `billing_service_db` (PostgreSQL 16). Ningún otro servicio escribe en ella.
+
+- **Tablas:** `subscriptions`, `payments`.
+- **Esquema:** migraciones en `prisma/migrations/` (se aplican solas al arrancar el contenedor).
+- **Datos de ejemplo:** `database/seed.sql`.
+- **Respaldo completo (esquema y datos):** `database/backup.sql`.
+- **En producción:** base separada dentro de la instancia Render Postgres `mediastream-db`; la conexión llega por las variables `DATABASE_URL` y `DATABASE_NAME`, nunca en el código.
+
+Restaurar el respaldo en local:
+
+```bash
+docker compose up -d billing-db
+docker compose exec -T billing-db psql -U billing_service -d billing_service_db < database/backup.sql
+```
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| GET | `/api/billing/paypal/config` | Client ID público de PayPal y si está habilitado |
+| POST | `/api/billing/paypal/orders` | Crea la orden de PayPal para un plan |
+| POST | `/api/billing/paypal/orders/:orderId/capture` | Captura el pago y activa la suscripción |
+| PUT | `/api/billing/plan` | Cambio de plan con pago simulado (solo administrador; los usuarios cambian de plan con PayPal) |
+| POST | `/api/billing/cancel` | Cancela la suscripción (la cuenta vuelve a GRATIS) |
+| GET | `/api/billing/history/:accountId` | Historial de suscripciones y pagos de una cuenta |
+| POST | `/api/billing/subscribe` | Suscripción con pago simulado (solo administrador) |
+| GET | `/api/billing/admin/overview` | Administrador: resumen de suscripciones e ingresos |
+| POST | `/api/billing/webhook` | Administrador: simula la respuesta de la pasarela (pago fallido) |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `DATABASE_URL` | Conexión a su base PostgreSQL | `postgresql://billing_service:billing_service@localhost:5438/billing_service_db?schema=public` |
+| `RABBITMQ_URL` | Conexión a RabbitMQ | `amqp://guest:guest@localhost:5672` |
+| `STRIPE_SECRET_KEY` | Reservada para una integración con Stripe (no se usa) | `sk_test_no_usada_en_esta_simulacion` |
+| `PORT` | Puerto HTTP del servicio | `3006` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `*` |
+| `DATABASE_NAME` | Nombre de su base dentro de la instancia compartida de Render Postgres (se crea al arrancar si no existe) (solo en Render) | `billing_service_db` |
+| `PAYPAL_CLIENT_ID` | Client ID de la app de PayPal (sandbox) | (vacío) |
+| `PAYPAL_CLIENT_SECRET` | Secret de la app de PayPal (sandbox) | (vacío) |
+| `PAYPAL_API_BASE` | API de PayPal (sandbox) | `https://api-m.sandbox.paypal.com` |
+| `PUBLIC_*_URL` | URLs públicas de los demás servicios (solo en Render) | `https://mediastream-…onrender.com` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-billing-service.git
+cd mediastream-billing-service
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+npm ci
+cp .env.example .env
+npx prisma migrate deploy
+npm run start:dev
+npm test   # pruebas
+```
+
+Queda en http://localhost:3006.
+<!-- ficha:fin -->
+
+
 Microservicio de **Facturación** (suscripciones, cambios de plan, historial y notificaciones
 de pago), implementado según el documento *"Arquitectura Plataformas Tecnológicas — Momento 1"*
 (sección "6. Billing-Service" y sección 4 "Estrategia de Comunicación entre Microservicios").

@@ -1,5 +1,106 @@
 # Recommendation-Service — MediaStream
 
+<!-- ficha:inicio -->
+## Ficha del microservicio
+
+Forma parte de **MediaStream**, una plataforma de streaming construida con microservicios. La plataforma completa (docker-compose, `render.yaml` y CI/CD) está en [Josepaez18/mediastream](https://github.com/Josepaez18/mediastream). Más abajo está el detalle técnico.
+
+### Responsabilidad
+
+Recomendaciones personalizadas. Calcula un vector (embedding de 64 dimensiones) por título y por perfil y combina filtrado por contenido (similitud con pgvector) y filtrado colaborativo (perfiles parecidos). Aprende de los eventos de reproducción y no recomienda lo que el perfil ya vio.
+
+Escucha en Redis `playback.progress` y `playback.completed` (de Playback) y sincroniza los títulos desde Catalog por REST.
+
+### Tecnologías
+
+Python 3.12, FastAPI 0.115, SQLAlchemy 2, Alembic, PostgreSQL 16 con pgvector, NumPy, Redis (Pub/Sub) y httpx.
+
+### Enlaces
+
+| | |
+| --- | --- |
+| Despliegue (Render) | https://mediastream-recommendation-rvk4.onrender.com |
+| Documentación (Swagger) | https://mediastream-recommendation-rvk4.onrender.com/docs |
+| Estado del servicio | https://mediastream-recommendation-rvk4.onrender.com/health |
+| Repositorio | https://github.com/Josepaez18/mediastream-recommendation-service |
+
+### Base de datos
+
+Base propia: `recommendation_db` (PostgreSQL 16 + pgvector). Ningún otro servicio escribe en ella.
+
+- **Tablas:** `content_embedding`, `profile_embedding`, `profile_interaction`.
+- **Esquema:** migraciones en `alembic/versions/` (se aplican solas al arrancar el contenedor).
+- **Datos de ejemplo:** `database/seed.sql`.
+- **Respaldo completo (esquema y datos):** `database/backup.sql`.
+- **En producción:** base separada dentro de la instancia Render Postgres `mediastream-db`; la conexión llega por las variables `DATABASE_URL` y `DATABASE_NAME`, nunca en el código.
+
+Restaurar el respaldo en local:
+
+```bash
+docker compose up -d recommendation-db
+docker compose exec -T recommendation-db psql -U reco_user -d recommendation_db < database/backup.sql
+```
+
+### Endpoints principales
+
+| Método | Ruta | Qué hace |
+| --- | --- | --- |
+| GET | `/api/recommendations/{profile_id}` | Sugerencias personalizadas de un perfil (filtra por región y perfil infantil) |
+| GET | `/api/recommendations/titles/{title_id}/similar` | Títulos parecidos a uno dado |
+| GET | `/api/recommendations/{profile_id}/profile` | Estado del modelo de un perfil: historial, vector y perfiles parecidos |
+| GET | `/api/recommendations/debug/events` | Demo: últimos eventos consumidos |
+| POST | `/api/recommendations/debug/sync-catalog` | Demo: sincroniza ahora los títulos de Catalog |
+| GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+
+### Variables de entorno
+
+Copia `.env.example` como `.env`. El `.env` real nunca se sube al repositorio (está en `.gitignore`); en Render las variables se configuran en el panel del servicio.
+
+| Variable | Para qué sirve | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto HTTP del servicio | `3005` |
+| `DATABASE_URL` | Conexión a su base PostgreSQL | `postgresql+psycopg2://reco_user:reco_pass@localhost:5437/recommendation_db` |
+| `REDIS_URL` | Conexión a Redis | `redis://localhost:6379` |
+| `PROGRESS_CHANNEL` | Canal Redis de playback.progress | `playback.progress` |
+| `COMPLETED_CHANNEL` | Canal Redis de playback.completed | `playback.completed` |
+| `CATALOG_SERVICE_URL` | URL de Catalog-Service | `http://localhost:3002` |
+| `CATALOG_TIMEOUT_SECONDS` | Tiempo máximo de cada llamada a Catalog (s) | `2` |
+| `CATALOG_RETRIES` | Reintentos hacia Catalog | `2` |
+| `CATALOG_SYNC_REGIONS` | Regiones que se sincronizan desde Catalog | `CO,MX,GLOBAL` |
+| `CATALOG_SYNC_INTERVAL_SECONDS` | Cada cuánto se sincroniza el catálogo (s) | `60` |
+| `CONTENT_WEIGHT` | Peso del filtrado por contenido en la recomendación híbrida | `0.6` |
+| `NEIGHBORS` | Perfiles parecidos que se consultan en el filtrado colaborativo | `10` |
+| `CORS_ORIGINS` | Orígenes del frontend permitidos, separados por coma | `*` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `DATABASE_NAME` | Nombre de su base dentro de la instancia compartida de Render Postgres (se crea al arrancar si no existe) (solo en Render) | `recommendation_db` |
+| `PUBLIC_*_URL` | URLs públicas de los demás servicios (solo en Render) | `https://mediastream-…onrender.com` |
+
+### Instalación y ejecución
+
+Con Docker (levanta el servicio con lo que necesita):
+
+```bash
+git clone https://github.com/Josepaez18/mediastream-recommendation-service.git
+cd mediastream-recommendation-service
+cp .env.example .env
+docker compose up -d
+```
+
+Sin Docker para el servicio (necesita su base y el broker corriendo):
+
+```bash
+python -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+alembic upgrade head
+uvicorn app.main:app --reload --port 3005
+pytest   # pruebas
+```
+
+Queda en http://localhost:3005.
+<!-- ficha:fin -->
+
+
 Microservicio de recomendaciones: analiza continuamente el historial de visualización
 de cada perfil para generar sugerencias personalizadas, combinando **filtrado
 colaborativo** (usuarios similares) y **filtrado basado en contenido** (géneros,
