@@ -1,0 +1,48 @@
+# Integración continua de este microservicio: lint, pruebas y migraciones
+# contra un PostgreSQL real en cada push y Pull Request. La imagen Docker y el
+# despliegue en Render los hace el pipeline del repositorio de la plataforma
+# (https://github.com/Josepaez18/mediastream).
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: Lint y pruebas
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Generar el cliente de Prisma
+        run: npx prisma generate
+      - name: Lint (ESLint)
+        run: npm run lint
+      - name: Pruebas (Jest)
+        run: npm test -- --ci
+      - name: Migraciones contra PostgreSQL real
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/catalog_db?schema=public
+        run: npx prisma migrate deploy

@@ -19,8 +19,15 @@ MediaStream/
 ├── api-gateway/                   ← NestJS · punto de entrada único (sin estado)
 ├── frontend/                      ← único frontend (HTML/CSS/JS estático)
 └── scripts/
-    └── verificar-independencia.sh
+    ├── verificar-independencia.sh
+    └── publicar-repos.sh          ← publica cada servicio en su propio repositorio
 ```
+
+**Repositorios por microservicio:** cada carpeta se publica también en su propio
+repositorio (`Josepaez18/mediastream-<carpeta>`), con su README, migraciones, datos de
+ejemplo y respaldo de su base en `database/`. Este repositorio es el de la plataforma:
+aquí están el docker-compose de todo, `render.yaml` y el pipeline que despliega. Los
+enlaces de cada repositorio, despliegue y base están en [entrega.md](entrega.md).
 
 ---
 

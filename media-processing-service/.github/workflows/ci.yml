@@ -1,0 +1,46 @@
+# Integración continua de este microservicio: lint, pruebas y migraciones
+# contra un PostgreSQL real en cada push y Pull Request. La imagen Docker y el
+# despliegue en Render los hace el pipeline del repositorio de la plataforma
+# (https://github.com/Josepaez18/mediastream).
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: Lint y pruebas
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+      - name: Lint (Flake8)
+        run: flake8 .
+      - name: Instalar FFmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
+      - name: Pruebas unitarias y de integración (pytest)
+        env:
+          TEST_ADMIN_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: pytest -v

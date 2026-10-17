@@ -1,0 +1,30 @@
+# Integración continua de este microservicio: lint, pruebas y migraciones
+# contra un PostgreSQL real en cada push y Pull Request. La imagen Docker y el
+# despliegue en Render los hace el pipeline del repositorio de la plataforma
+# (https://github.com/Josepaez18/mediastream).
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: Lint y pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Lint (ESLint)
+        run: npm run lint
+      - name: Pruebas (Jest)
+        run: npm test -- --ci
+      - name: Build (TypeScript)
+        run: npm run build
