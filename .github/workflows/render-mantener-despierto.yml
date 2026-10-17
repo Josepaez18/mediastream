@@ -1,0 +1,46 @@
+# Mantiene despiertos los servicios de Render durante una revisión o una
+# demostración. En el plan free, Render duerme cada servicio tras 15 minutos
+# sin tráfico y tarda cerca de un minuto en despertarlo; este workflow llama al
+# /health de cada uno cada 5 minutos durante las horas indicadas.
+#
+# Se lanza a mano: Actions → "Render - mantener despierto" → Run workflow,
+# idealmente 10 minutos antes de la revisión. Cada hora que los servicios
+# pasan despiertos consume horas gratis de Render (750 h al mes entre todos),
+# así que conviene usarlo solo mientras dure la revisión.
+name: Render - mantener despierto
+
+on:
+  workflow_dispatch:
+    inputs:
+      horas:
+        description: Cuántas horas mantenerlos despiertos (de 1 a 5)
+        required: true
+        default: "2"
+
+jobs:
+  despertar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 320
+    steps:
+      - name: Llamar a cada servicio cada 5 minutos
+        env:
+          HORAS: ${{ inputs.horas }}
+        run: |
+          set -u
+          case "$HORAS" in 1|2|3|4|5) ;; *) echo "::error::horas debe ser un número de 1 a 5"; exit 1 ;; esac
+          SERVICIOS="user-3um7 catalog-t9f9 playback-0ciy media-zadq recommendation-rvk4 billing-c7bf notification analytics gateway-5wjw"
+          fin=$(( $(date +%s) + HORAS * 3600 ))
+          ronda=1
+          while [ "$(date +%s)" -lt "$fin" ]; do
+            echo "== Ronda $ronda ($(date -u +%H:%M) UTC)"
+            for s in $SERVICIOS; do
+              (
+                code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "https://mediastream-$s.onrender.com/health")
+                echo "  $code  mediastream-$s"
+              ) &
+            done
+            wait
+            ronda=$((ronda + 1))
+            sleep 300
+          done
+          echo "Listo: se mantuvieron despiertos durante $HORAS hora(s)."
