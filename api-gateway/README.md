@@ -185,3 +185,7 @@ TOKEN=$(curl -s -X POST localhost:8080/api/users/login -H 'Content-Type: applica
 curl -s localhost:8080/api/playback/resume/1 -H "Authorization: Bearer $TOKEN"
 curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/api/playback/resume/1   # 401 sin token
 ```
+
+## Colaborador
+
+- **Juan Negrette** ([@juseneal26-cmyk](https://github.com/juseneal26-cmyk)) — colaboró en el API Gateway.
