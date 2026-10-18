@@ -259,3 +259,7 @@ docker compose exec user-service node scripts/simulate-payment-failed.js 1
 - **Guard local de AccessToken**: en producción esta validación la hace el API Gateway
   (sección 5); aquí se incluye para poder levantar y probar User-Service de forma
   aislada mientras el resto del equipo construye el Gateway.
+
+## Colaborador
+
+- **José Páez Teherán** ([@Josepaez18](https://github.com/Josepaez18)) — colaboró en el User Service.
