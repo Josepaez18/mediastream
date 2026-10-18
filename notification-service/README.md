@@ -140,3 +140,7 @@ En local sin Docker: `npm ci`, copiar `.env.example` a `.env` y `npm run start:d
 npm run lint
 npm test
 ```
+
+## Colaboradora
+
+- **Yulissa Garces** ([@garcesyulissa6-maker](https://github.com/garcesyulissa6-maker)) — colaboró en el Notification Service.
