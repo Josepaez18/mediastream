@@ -340,3 +340,7 @@ sería el punto de integración con un proveedor de licencias (Widevine, PlayRea
 el payload actual (`sub`, `titleId`, `region`, `deviceId`, `sessionId`, `scope`) es
 precisamente el conjunto de datos que se enviaría al servidor de licencias. La estructura del
 código permite reemplazar `JwtService` por el SDK del proveedor sin tocar controllers ni DTOs.
+
+## Colaborador
+
+- **Juan Negrette** ([@juseneal26-cmyk](https://github.com/juseneal26-cmyk)) — colaboró en el Playback Service.
