@@ -265,3 +265,7 @@ catalog-service/
 | Validación de datos (class-validator)                       | `src/catalog/dto/*.ts` + `ValidationPipe` global  |
 | Database-per-service                                        | Base de datos `catalog_db` propia (docker-compose)|
 | Documentación interactiva de la API                          | Swagger UI en `/docs` (`@nestjs/swagger` en `main.ts` y los DTOs) |
+
+## Colaborador
+
+- **José Páez Teherán** ([@Josepaez18](https://github.com/Josepaez18)) — colaboró en el Catalog Service.
