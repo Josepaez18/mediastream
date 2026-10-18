@@ -298,3 +298,7 @@ pytest
 
 Los tests cubren el modelo de embeddings (determinismo, normalización, que la misma
 categoría se parezca más que una distinta, fuerza del interés y vector de perfil).
+
+## Colaboradora
+
+- **Yulissa Garces** ([@garcesyulissa6-maker](https://github.com/garcesyulissa6-maker)) — colaboró en el Recommendation Service.
