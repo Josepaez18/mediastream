@@ -335,3 +335,7 @@ avisa que los pagos no están disponibles.
 ahí); en Render, en los secretos de GitHub `PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET`, que el
 workflow *Render - credenciales de PayPal* copia a Billing-Service. Para pagar en las pruebas se
 usa la cuenta **Personal** de *Testing Tools → Sandbox Accounts*.
+
+## Colaborador
+
+- **José Páez Teherán** ([@Josepaez18](https://github.com/Josepaez18)) — colaboró en el Billing Service.
