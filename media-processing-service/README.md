@@ -219,3 +219,7 @@ en el **3004** (3003 es Playback).
 docker build -t media-processing-service .
 docker run --env-file .env -p 3004:3004 media-processing-service
 ```
+
+## Colaboradora
+
+- **Yulissa Garces** ([@garcesyulissa6-maker](https://github.com/garcesyulissa6-maker)) — colaboró en el Media Processing Service.
