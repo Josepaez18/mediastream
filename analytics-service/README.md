@@ -166,3 +166,7 @@ pytest
 La prueba de integración (migraciones, ETL contra réplicas reales, bloqueo de escrituras y
 endpoint de KPIs) solo corre si `TEST_ADMIN_DATABASE_URL` apunta a un PostgreSQL; el pipeline
 de CI la define.
+
+## Colaborador
+
+- **Juan Negrette** ([@juseneal26-cmyk](https://github.com/juseneal26-cmyk)) — colaboró en el Analytics Service.
