@@ -12,6 +12,8 @@ on:
         required: true
         default: NOTIFICATION
 
+permissions: {}
+
 jobs:
   copiar:
     runs-on: ubuntu-latest

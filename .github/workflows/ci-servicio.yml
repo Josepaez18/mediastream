@@ -1,0 +1,183 @@
+# =============================================================================
+# CI común a todos los microservicios: la única definición de lint, pruebas y
+# escaneo de secretos. La usan:
+#
+#   - _pipeline-servicio.yml (este repositorio), con `directorio` = carpeta del
+#     servicio, antes de construir la imagen y desplegar.
+#   - el ci.yml de cada repositorio de servicio (Josepaez18/mediastream-<servicio>):
+#       uses: Josepaez18/mediastream/.github/workflows/ci-servicio.yml@v1
+#
+# No recibe secretos: las pruebas usan un PostgreSQL efímero del runner y el
+# GITHUB_TOKEN queda en solo lectura. Si un job falla, el que llama se detiene
+# ahí (el "punto de corte": no hay imagen ni deploy).
+# =============================================================================
+name: CI de un microservicio
+
+on:
+  workflow_call:
+    inputs:
+      runtime:
+        description: node | python
+        required: true
+        type: string
+      directorio:
+        description: Carpeta del servicio ("." en los repositorios de servicio)
+        required: false
+        type: string
+        default: "."
+      base_datos:
+        description: Base de datos para las migraciones de Prisma
+        required: false
+        type: string
+        default: ci_db
+      postgres_image:
+        description: Imagen de PostgreSQL para las pruebas de integración
+        required: false
+        type: string
+        default: postgres:16-alpine
+      prisma:
+        description: Generar el cliente de Prisma y aplicar las migraciones
+        required: false
+        type: boolean
+        default: false
+      build:
+        description: Compilar TypeScript (npm run build)
+        required: false
+        type: boolean
+        default: false
+      ffmpeg:
+        description: Instalar FFmpeg para las pruebas (Media-Processing)
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Lint y pruebas
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.directorio }}
+    services:
+      postgres:
+        image: ${{ inputs.postgres_image }}
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validar el runtime
+        if: inputs.runtime != 'node' && inputs.runtime != 'python'
+        env:
+          RUNTIME: ${{ inputs.runtime }}
+        run: |
+          echo "::error::runtime debe ser node o python (llegó '$RUNTIME')"
+          exit 1
+
+      # ---------------------------------------------------------- Node.js
+      - name: Node.js 20
+        if: inputs.runtime == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ inputs.directorio }}/package-lock.json
+      - name: Instalar dependencias (npm ci)
+        if: inputs.runtime == 'node'
+        run: npm ci
+      - name: Generar el cliente de Prisma
+        if: inputs.runtime == 'node' && inputs.prisma
+        run: npx prisma generate
+      - name: Lint (ESLint)
+        if: inputs.runtime == 'node'
+        run: npm run lint
+      - name: Pruebas (Jest)
+        if: inputs.runtime == 'node'
+        run: npm test -- --ci
+      - name: Build (TypeScript)
+        if: inputs.runtime == 'node' && inputs.build
+        run: npm run build
+      - name: Migraciones contra PostgreSQL real (Prisma)
+        if: inputs.runtime == 'node' && inputs.prisma
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/${{ inputs.base_datos }}?schema=public
+        run: npx prisma migrate deploy
+
+      # ----------------------------------------------------------- Python
+      - name: Python 3.12
+        if: inputs.runtime == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ${{ inputs.directorio }}/requirements*.txt
+      - name: Instalar dependencias (pip)
+        if: inputs.runtime == 'python'
+        run: pip install -r requirements-dev.txt
+      - name: Lint (Flake8)
+        if: inputs.runtime == 'python'
+        run: flake8 .
+      - name: Instalar FFmpeg
+        if: inputs.runtime == 'python' && inputs.ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
+      - name: Pruebas unitarias y de integración (pytest)
+        if: inputs.runtime == 'python'
+        env:
+          TEST_ADMIN_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: pytest -v
+
+  secretos:
+    name: Escaneo de secretos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Instalar gitleaks (binario oficial verificado con SHA-256)
+        env:
+          VERSION: 8.28.0
+          SHA256: a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb
+        run: |
+          set -euo pipefail
+          archivo="gitleaks_${VERSION}_linux_x64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$archivo" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/${archivo}"
+          echo "${SHA256}  $RUNNER_TEMP/$archivo" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          tar -xzf "$RUNNER_TEMP/$archivo" -C "$RUNNER_TEMP/gitleaks" gitleaks
+          echo "$RUNNER_TEMP/gitleaks" >> "$GITHUB_PATH"
+      - name: Configuración (reglas por defecto + valores de ejemplo permitidos)
+        # Solo se permiten estos tres valores, por valor exacto, en cualquier
+        # archivo: son ejemplos de la documentación y de desarrollo local, no
+        # credenciales. Cualquier otro valor sigue haciendo fallar el job.
+        run: |
+          cat > "$RUNNER_TEMP/gitleaks.toml" <<'EOF'
+          [extend]
+          useDefault = true
+
+          [[allowlists]]
+          description = "Valores de ejemplo de la documentación (no son credenciales)"
+          regexTarget = "secret"
+          regexes = [
+            '''^clave-segura-123$''',
+            '''^eyJhbGciOiJIUzI1NiIs\.\.\.$''',
+            '''^guest:guest$''',
+          ]
+          EOF
+      - name: Escanear los archivos del servicio (gitleaks dir)
+        env:
+          DIRECTORIO: ${{ inputs.directorio }}
+        run: gitleaks dir "$DIRECTORIO" --config "$RUNNER_TEMP/gitleaks.toml" --redact --no-banner --verbose --exit-code 1

@@ -10,12 +10,14 @@ on:
       - "user-service/**"
       - ".github/workflows/user-service.yml"
       - ".github/workflows/_pipeline-servicio.yml"
+      - ".github/workflows/ci-servicio.yml"
   pull_request:
     branches: [develop]
     paths:
       - "user-service/**"
       - ".github/workflows/user-service.yml"
       - ".github/workflows/_pipeline-servicio.yml"
+      - ".github/workflows/ci-servicio.yml"
   workflow_dispatch:
 
 concurrency:
@@ -33,4 +35,7 @@ jobs:
       runtime: node
       secret_suffix: USER
       database: user_service_db
-    secrets: inherit
+    secrets:
+      render_api_key: ${{ secrets.RENDER_API_KEY }}
+      render_service_id: ${{ secrets.RENDER_SERVICE_ID_USER }}
+      render_staging_service_id: ${{ secrets.RENDER_STAGING_SERVICE_ID_USER }}

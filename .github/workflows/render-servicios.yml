@@ -5,6 +5,8 @@ name: Render - listar servicios
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   listar:
     runs-on: ubuntu-latest

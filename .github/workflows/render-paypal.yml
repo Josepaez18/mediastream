@@ -9,6 +9,8 @@ name: Render - credenciales de PayPal
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   paypal:
     runs-on: ubuntu-latest

@@ -17,6 +17,8 @@ on:
         required: true
         default: "2"
 
+permissions: {}
+
 jobs:
   despertar:
     runs-on: ubuntu-latest

@@ -10,12 +10,14 @@ on:
       - "media-processing-service/**"
       - ".github/workflows/media-processing-service.yml"
       - ".github/workflows/_pipeline-servicio.yml"
+      - ".github/workflows/ci-servicio.yml"
   pull_request:
     branches: [develop]
     paths:
       - "media-processing-service/**"
       - ".github/workflows/media-processing-service.yml"
       - ".github/workflows/_pipeline-servicio.yml"
+      - ".github/workflows/ci-servicio.yml"
   workflow_dispatch:
 
 concurrency:
@@ -33,4 +35,7 @@ jobs:
       runtime: python
       secret_suffix: MEDIA
       ffmpeg: true
-    secrets: inherit
+    secrets:
+      render_api_key: ${{ secrets.RENDER_API_KEY }}
+      render_service_id: ${{ secrets.RENDER_SERVICE_ID_MEDIA }}
+      render_staging_service_id: ${{ secrets.RENDER_STAGING_SERVICE_ID_MEDIA }}

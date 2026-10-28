@@ -326,17 +326,49 @@ real) solo corren si `TEST_ADMIN_DATABASE_URL` está definida; el pipeline la de
 
 ## Pipeline CI/CD y despliegue en Render
 
-Secciones 7 y 8 del documento de arquitectura:
+Secciones 7 y 8 del documento de arquitectura. El CI está escrito una sola vez y lo
+reutilizan este repositorio y los nueve repositorios de servicio:
 
-- **`.github/workflows/`**: un workflow por microservicio, todos con el mismo pipeline
-  (`_pipeline-servicio.yml`): `npm ci`/`pip install` → lint → tests (unitarios y de
-  integración contra PostgreSQL) → imagen Docker → GitHub Container Registry (etiquetada
-  con el SHA) → deploy hook de Render con esa misma imagen. Solo corre el del servicio que
-  cambió; en los Pull Requests hacia `develop` solo corren lint y tests.
+- **`.github/workflows/ci-servicio.yml`** (reutilizable, `workflow_call`): la única
+  definición del CI. Job *Lint y pruebas*: `npm ci`/`pip install` → lint (ESLint/Flake8)
+  → pruebas (Jest/pytest, las de integración contra un PostgreSQL efímero) → migraciones
+  de Prisma o build de TypeScript, según el servicio. Job *Escaneo de secretos*: gitleaks
+  8.28.0 descargado de GitHub Releases, verificado con su SHA-256 y corrido en modo
+  `gitleaks dir`. No recibe secretos.
+- **`ci.yml` de cada repositorio de servicio** (`mediastream-<servicio>`): una llamada a
+  `Josepaez18/mediastream/.github/workflows/ci-servicio.yml@v1` con lo que necesita ese
+  servicio (`runtime`, `prisma`, `base_datos`, `build`, `ffmpeg`, `postgres_image`).
+  Corre en cada push a `main`/`develop`, en los Pull Requests y a mano. No construye
+  imágenes, no despliega y no usa secretos.
+- **`.github/workflows/<servicio>.yml` → `_pipeline-servicio.yml`**: el pipeline completo
+  de cada servicio: el mismo CI (`ci-servicio.yml` con `directorio: <servicio>`) → imagen
+  Docker → GitHub Container Registry (etiquetada con el SHA) → API de Render
+  (`POST /services/{id}/deploys`) con esa misma imagen. Solo corre el del servicio que
+  cambió; en los Pull Requests hacia `develop` solo corre el CI.
 - **`render.yaml`**: Blueprint de Render con los nueve Web Services (desde las imágenes de
   GHCR), una instancia de Render Postgres con una base propia por servicio, Render Key
-  Value (Redis) y RabbitMQ en CloudAMQP. Notification y el Gateway no tienen base, así que
-  su pipeline omite los pasos de Prisma (`prisma: false`).
+  Value (Redis) y RabbitMQ en CloudAMQP.
+
+**Punto de corte.** Si falla el lint, una prueba o el escaneo de secretos, el pipeline se
+detiene ahí: no se construye la imagen ni se despliega.
+
+**Credenciales.**
+
+- Cada workflow de servicio le pasa al pipeline solo `render_api_key`, `render_service_id`
+  y `render_staging_service_id`, uno por uno (no `secrets: inherit`); solo el job de deploy
+  los lee.
+- Los repositorios de servicio no tienen secretos.
+- El `GITHUB_TOKEN` tiene lo mínimo: `contents: read` en el CI, `packages: write` solo en
+  el job que publica la imagen y ningún permiso (`permissions: {}`) en el deploy ni en los
+  workflows `render-*.yml`. Los checkout usan `persist-credentials: false`.
+- Las acciones de Docker están fijadas por SHA de commit, y gitleaks por versión y SHA-256.
+- gitleaks permite solo tres valores de ejemplo, por valor exacto: `clave-segura-123`,
+  `eyJhbGciOiJIUzI1NiIs...` y `guest:guest`. Cualquier otro hallazgo hace fallar el CI.
+
+**Cambiar el CI compartido.** Los repositorios de servicio usan la etiqueta `v1`. Un
+cambio compatible se publica moviendo la etiqueta (`git tag -f v1 && git push -f origin v1`);
+uno que cambie los inputs va en una etiqueta nueva (`v2`) y en el `ci.yml` de cada carpeta.
+Después, `bash scripts/publicar-repos.sh` actualiza los repositorios de servicio.
 
 El paso a paso (cuentas, secretos y verificación) está en la guía
 **MediaStream — Despliegue en Render**.
