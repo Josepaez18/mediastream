@@ -384,3 +384,57 @@ services:
           type: web
           name: mediastream-user
           envVarKey: JWT_ACCESS_SECRET
+
+  # ----------------------------------------------------------- Monitoreo
+  # Prometheus y Grafana. Son los únicos servicios que Render SÍ construye:
+  # no son código de la plataforma, sino las imágenes oficiales con la
+  # configuración de la carpeta monitoring/ adentro (los 9 targets, el
+  # datasource y el tablero). Solo se reconstruyen cuando cambia esa carpeta.
+  #
+  # Plan gratis: se duermen tras 15 minutos sin visitas y, como no tienen
+  # disco, el historial empieza de cero cada vez que despiertan. Para una
+  # revisión, el workflow "Render - mantener despierto" también los llama.
+
+  # Consulta GET /metrics de los 9 servicios por su URL pública
+  # (monitoring/prometheus.render.yml). Estado de los targets en /targets.
+  - type: web
+    name: mediastream-prometheus
+    runtime: docker
+    dockerfilePath: ./monitoring/prometheus.Dockerfile
+    dockerContext: ./monitoring
+    buildFilter:
+      paths:
+        - monitoring/**
+    plan: free
+    region: virginia
+    healthCheckPath: /-/healthy
+    envVars:
+      - key: PORT
+        value: "9090"
+
+  # Tablero "MediaStream — Servicios". Se ve sin iniciar sesión (solo
+  # lectura); la contraseña de admin la genera Render y se consulta en
+  # Dashboard → mediastream-grafana → Environment (GF_SECURITY_ADMIN_PASSWORD).
+  - type: web
+    name: mediastream-grafana
+    runtime: docker
+    dockerfilePath: ./monitoring/grafana.Dockerfile
+    dockerContext: ./monitoring
+    buildFilter:
+      paths:
+        - monitoring/**
+    plan: free
+    region: virginia
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "3000"
+      # URL pública de mediastream-prometheus (en el plan gratis no hay red
+      # privada). Si Render le asigna otra URL, corrígela aquí.
+      - key: PROMETHEUS_URL
+        value: https://mediastream-prometheus.onrender.com
+      # Su propia URL pública, para los enlaces y redirecciones que arma Grafana.
+      - key: GF_SERVER_ROOT_URL
+        value: https://mediastream-grafana.onrender.com
+      - key: GF_SECURITY_ADMIN_PASSWORD
+        generateValue: true

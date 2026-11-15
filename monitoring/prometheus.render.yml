@@ -1,0 +1,63 @@
+# =============================================================================
+# Prometheus — MediaStream desplegado en Render
+#
+# Los mismos 9 jobs que prometheus.yml (local), pero cada servicio se consulta
+# por su URL pública con HTTPS: en el plan gratis de Render los servicios no
+# reciben tráfico por la red privada.
+#
+# Estas URLs son las mismas del grupo `mediastream-urls` de render.yaml. Si
+# Render le asigna otra URL a un servicio, corrígela en los dos archivos.
+#
+# Plan gratis: un servicio dormido (15 min sin tráfico) responde 502 a este
+# scrape y aparece como DOWN hasta que alguien lo despierta desde fuera
+# (workflow "Render - mantener despierto").
+# =============================================================================
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: user-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-user-3um7.onrender.com"]
+
+  - job_name: catalog-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-catalog-t9f9.onrender.com"]
+
+  - job_name: playback-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-playback-0ciy.onrender.com"]
+
+  - job_name: media-processing-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-media-zadq.onrender.com"]
+
+  - job_name: recommendation-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-recommendation-rvk4.onrender.com"]
+
+  - job_name: billing-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-billing-c7bf.onrender.com"]
+
+  - job_name: notification-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-notification.onrender.com"]
+
+  - job_name: analytics-service
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-analytics.onrender.com"]
+
+  - job_name: api-gateway
+    scheme: https
+    static_configs:
+      - targets: ["mediastream-gateway-5wjw.onrender.com"]

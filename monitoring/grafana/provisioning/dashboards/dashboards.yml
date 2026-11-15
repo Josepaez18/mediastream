@@ -1,0 +1,14 @@
+# Carga al arrancar los tableros versionados en monitoring/grafana/dashboards
+# (archivos JSON). Un cambio en el JSON se refleja solo en unos segundos.
+apiVersion: 1
+
+providers:
+  - name: MediaStream
+    orgId: 1
+    folder: MediaStream
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

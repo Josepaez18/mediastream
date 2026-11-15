@@ -510,6 +510,51 @@ services:
     networks:
       - mediastream-net
 
+  # ------------------------------------------------------------------ monitoreo
+  # Prometheus consulta GET /metrics de los 9 servicios cada 15 s (por la red
+  # interna, con el nombre de cada contenedor) y Grafana dibuja con esos datos
+  # el tablero "MediaStream — Servicios": estado UP/DOWN, peticiones por
+  # segundo, latencia p95 y tasa de errores, con un selector de servicio.
+  # Ninguno de los dos afecta a la plataforma: si se apagan, todo sigue igual.
+  #
+  #   Prometheus  http://localhost:9090/targets
+  #   Grafana     http://localhost:3030   (el 3000 del host lo usa el frontend)
+  #
+  # Toda la configuración está versionada en monitoring/. En Render se
+  # despliegan con esos mismos archivos (ver render.yaml).
+
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    container_name: mediastream-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - mediastream-net
+
+  grafana:
+    image: grafana/grafana:12.4.15
+    container_name: mediastream-grafana
+    restart: unless-stopped
+    ports:
+      - "3030:3000"
+    environment:
+      PROMETHEUS_URL: "http://prometheus:9090"
+      # Solo desarrollo: el tablero se ve sin iniciar sesión (solo lectura) y
+      # es la página de inicio. Para editar: admin / admin.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: "/var/lib/grafana/dashboards/mediastream.json"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - mediastream-net
+
 volumes:
   user_db_data:
   catalog_db_data:

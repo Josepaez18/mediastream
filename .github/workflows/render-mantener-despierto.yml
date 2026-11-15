@@ -30,14 +30,21 @@ jobs:
         run: |
           set -u
           case "$HORAS" in 1|2|3|4|5) ;; *) echo "::error::horas debe ser un número de 1 a 5"; exit 1 ;; esac
-          SERVICIOS="user-3um7 catalog-t9f9 playback-0ciy media-zadq recommendation-rvk4 billing-c7bf notification analytics gateway-5wjw"
+          # Prometheus y Grafana van al final: si están dormidos no hay métricas
+          # ni tablero (su ruta de salud no es /health).
+          SERVICIOS="user-3um7 catalog-t9f9 playback-0ciy media-zadq recommendation-rvk4 billing-c7bf notification analytics gateway-5wjw prometheus grafana"
           fin=$(( $(date +%s) + HORAS * 3600 ))
           ronda=1
           while [ "$(date +%s)" -lt "$fin" ]; do
             echo "== Ronda $ronda ($(date -u +%H:%M) UTC)"
             for s in $SERVICIOS; do
               (
-                code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "https://mediastream-$s.onrender.com/health")
+                case "$s" in
+                  prometheus) ruta=/-/healthy ;;
+                  grafana) ruta=/api/health ;;
+                  *) ruta=/health ;;
+                esac
+                code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "https://mediastream-$s.onrender.com$ruta")
                 echo "  $code  mediastream-$s"
               ) &
             done

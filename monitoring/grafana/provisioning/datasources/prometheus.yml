@@ -1,0 +1,20 @@
+# Datasource de Prometheus, creado al arrancar Grafana (no se configura a mano).
+#
+# PROMETHEUS_URL la define cada entorno:
+#   · local   (docker-compose.yml)  http://prometheus:9090
+#   · Render  (render.yaml)         la URL pública del servicio mediastream-prometheus
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus # el tablero referencia el datasource por este uid
+    type: prometheus
+    access: proxy
+    url: ${PROMETHEUS_URL}
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      # Igual al scrape_interval de Prometheus: Grafana lo usa para calcular
+      # la ventana de rate() ($__rate_interval).
+      timeInterval: 15s

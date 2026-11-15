@@ -1,0 +1,54 @@
+# =============================================================================
+# Prometheus — MediaStream en local (docker compose)
+#
+# Consulta GET /metrics de los 9 servicios cada 15 s por la red interna de
+# Docker (mediastream-net), usando el nombre de cada contenedor y su puerto.
+# Cada servicio es un job: la etiqueta `job` es la que usa el tablero de
+# Grafana para elegir el servicio.
+#
+# La versión del despliegue (Render) es prometheus.render.yml: los mismos
+# 9 jobs, pero por la URL pública de cada servicio.
+#
+#   Targets:   http://localhost:9090/targets
+#   Consulta:  up            → 1 si el servicio respondió su último scrape
+# =============================================================================
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: user-service
+    static_configs:
+      - targets: ["user-service:3001"]
+
+  - job_name: catalog-service
+    static_configs:
+      - targets: ["catalog-service:3002"]
+
+  - job_name: playback-service
+    static_configs:
+      - targets: ["playback-service:3003"]
+
+  - job_name: media-processing-service
+    static_configs:
+      - targets: ["media-processing-service:3004"]
+
+  - job_name: recommendation-service
+    static_configs:
+      - targets: ["recommendation-service:3005"]
+
+  - job_name: billing-service
+    static_configs:
+      - targets: ["billing-service:3006"]
+
+  - job_name: notification-service
+    static_configs:
+      - targets: ["notification-service:3007"]
+
+  - job_name: analytics-service
+    static_configs:
+      - targets: ["analytics-service:3008"]
+
+  - job_name: api-gateway
+    static_configs:
+      - targets: ["api-gateway:8080"]
