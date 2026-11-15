@@ -105,7 +105,8 @@ describeWithDb('User-Service + PostgreSQL (integración)', () => {
       .expect(409);
 
     // 3. Login: valida contra el hash guardado y entrega el refresh token en cookie httpOnly.
-    await http.post('/api/users/login').send({ email, password: 'otra-clave-123' }).expect(401);
+    const wrongPassword = [...password].reverse().join('');
+    await http.post('/api/users/login').send({ email, password: wrongPassword }).expect(401);
     const login = await http.post('/api/users/login').send({ email, password }).expect(200);
     expect(login.body.accessToken.split('.')).toHaveLength(3);
     expect(login.body.account).toMatchObject({ id: accountId, plan: 'GRATIS', role: 'USER' });
