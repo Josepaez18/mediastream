@@ -7,9 +7,9 @@
 #   - el ci.yml de cada repositorio de servicio (Josepaez18/mediastream-<servicio>):
 #       uses: Josepaez18/mediastream/.github/workflows/ci-servicio.yml@v1
 #
-# No recibe secretos: las pruebas usan un PostgreSQL efímero del runner y el
-# GITHUB_TOKEN queda en solo lectura. Si un job falla, el que llama se detiene
-# ahí (el "punto de corte": no hay imagen ni deploy).
+# No recibe secretos: las pruebas usan un PostgreSQL y un Redis efímeros del
+# runner y el GITHUB_TOKEN queda en solo lectura. Si un job falla, el que
+# llama se detiene ahí (el "punto de corte": no hay imagen ni deploy).
 #
 # Las pruebas corren con cobertura (Jest --coverage / pytest-cov) y el
 # reporte de la carpeta coverage/ del servicio se sube como artefacto
@@ -79,6 +79,16 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
+      # Para las pruebas de integración que usan Redis (Catalog, Notification).
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -110,6 +120,11 @@ jobs:
         run: npm run lint
       - name: Pruebas unitarias y de integración con cobertura (Jest)
         if: inputs.runtime == 'node'
+        # Las de integración crean su propia base temporal (y le aplican las
+        # migraciones) en este PostgreSQL, y usan este Redis.
+        env:
+          TEST_ADMIN_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          TEST_REDIS_URL: redis://localhost:6379
         run: npm test -- --ci --coverage
       - name: Build (TypeScript)
         if: inputs.runtime == 'node' && inputs.build
