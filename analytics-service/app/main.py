@@ -7,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.middleware.exception_handlers import register_exception_handlers
+from app.middleware.metrics import PrometheusMiddleware
 from app.middleware.request_id import RequestIdMiddleware
-from app.routers import analytics, health
+from app.routers import analytics, health, metrics
 from app.workers.etl_scheduler import run_scheduler
 
 logging.basicConfig(level=logging.INFO)
@@ -48,5 +49,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Métricas para Prometheus: cuenta y cronometra cada petición. Se agrega al
+# final para que sea la capa más externa y mida la petición completa.
+app.add_middleware(PrometheusMiddleware)
+
 app.include_router(analytics.router)
 app.include_router(health.router)
+app.include_router(metrics.router)

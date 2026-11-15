@@ -8,8 +8,9 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.middleware.exception_handlers import register_exception_handlers
+from app.middleware.metrics import PrometheusMiddleware
 from app.middleware.request_id import RequestIdMiddleware
-from app.routers import console_config, debug, health, recommendations
+from app.routers import console_config, debug, health, metrics, recommendations
 from app.workers.catalog_sync import run_catalog_sync
 from app.workers.playback_events import run_subscriber
 
@@ -58,9 +59,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Métricas para Prometheus: cuenta y cronometra cada petición. Se agrega al
+# final para que sea la capa más externa y mida la petición completa.
+app.add_middleware(PrometheusMiddleware)
+
 # Rutas de la API primero; la consola estática al final para no taparlas.
 app.include_router(debug.router)
 app.include_router(recommendations.router)
 app.include_router(health.router)
+app.include_router(metrics.router)
 app.include_router(console_config.router)
 app.mount("/", StaticFiles(directory="app/static", html=True), name="console")
