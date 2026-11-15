@@ -12,6 +12,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint src",
     "test": "jest",
+    "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",

@@ -10,6 +10,10 @@
 # No recibe secretos: las pruebas usan un PostgreSQL efímero del runner y el
 # GITHUB_TOKEN queda en solo lectura. Si un job falla, el que llama se detiene
 # ahí (el "punto de corte": no hay imagen ni deploy).
+#
+# Las pruebas corren con cobertura (Jest --coverage / pytest-cov) y el
+# reporte de la carpeta coverage/ del servicio se sube como artefacto
+# ("cobertura-<servicio>"), también cuando alguna prueba falla.
 # =============================================================================
 name: CI de un microservicio
 
@@ -104,9 +108,9 @@ jobs:
       - name: Lint (ESLint)
         if: inputs.runtime == 'node'
         run: npm run lint
-      - name: Pruebas (Jest)
+      - name: Pruebas unitarias y de integración con cobertura (Jest)
         if: inputs.runtime == 'node'
-        run: npm test -- --ci
+        run: npm test -- --ci --coverage
       - name: Build (TypeScript)
         if: inputs.runtime == 'node' && inputs.build
         run: npm run build
@@ -133,11 +137,21 @@ jobs:
       - name: Instalar FFmpeg
         if: inputs.runtime == 'python' && inputs.ffmpeg
         run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg
-      - name: Pruebas unitarias y de integración (pytest)
+      - name: Pruebas unitarias y de integración con cobertura (pytest)
         if: inputs.runtime == 'python'
         env:
           TEST_ADMIN_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-        run: pytest -v
+        run: pytest -v --cov=app --cov-report=term --cov-report=xml:coverage/coverage.xml --cov-report=html:coverage/html
+
+      # ------------------------------------------------------- Cobertura
+      - name: Subir el reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.directorio == '.' && 'cobertura' || format('cobertura-{0}', inputs.directorio) }}
+          path: ${{ inputs.directorio }}/coverage/
+          if-no-files-found: warn
+          retention-days: 14
 
   secretos:
     name: Escaneo de secretos

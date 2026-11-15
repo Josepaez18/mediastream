@@ -6,3 +6,5 @@ venv/
 samples/
 tests/
 .pytest_cache/
+.coverage
+coverage/
