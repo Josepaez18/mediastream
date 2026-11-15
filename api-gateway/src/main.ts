@@ -5,6 +5,7 @@ import * as cors from 'cors';
 import { AppModule } from './app.module';
 import { requestLogger } from './common/request-logger.middleware';
 import { corsOptions } from './cors';
+import { metricsMiddleware } from './metrics/metrics.middleware';
 import { createGateway } from './proxy/gateway.middleware';
 import { resolveTarget, ROUTES } from './proxy/routes';
 
@@ -24,6 +25,9 @@ async function bootstrap() {
   // X-Forwarded-For (la usa el rate limiting).
   app.set('trust proxy', true);
 
+  // Métricas para Prometheus (GET /metrics). Va antes del proxy: /metrics no
+  // pasa por la validación de JWT ni por el rate limiting.
+  app.use(metricsMiddleware);
   app.use(requestLogger);
   app.use(cors(corsOptions()));
   app.use(

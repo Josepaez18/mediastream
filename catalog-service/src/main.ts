@@ -7,11 +7,15 @@ import { AppModule } from './app.module';
 import { allowedCorsOrigins } from './public-urls';
 import { RequestIdMiddleware } from './common/request-id.middleware';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
+import { metricsMiddleware } from './metrics/metrics.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'error', 'warn', 'debug'],
   });
+
+  // Métricas para Prometheus (GET /metrics). Va primero para medir cada petición completa.
+  app.use(metricsMiddleware);
 
   // Sirve el frontend estático (public/index.html) en la raíz del servicio.
   app.useStaticAssets(join(__dirname, '..', 'public'));

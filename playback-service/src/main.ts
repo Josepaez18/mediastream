@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 import { allowedCorsOrigins } from './public-urls';
 import { RequestIdMiddleware } from './common/request-id.middleware';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
+import { metricsMiddleware } from './metrics/metrics.middleware';
 
 // Prisma devuelve BigInt para los ids; sin esto, JSON.stringify falla.
 (BigInt.prototype as any).toJSON = function () {
@@ -17,6 +18,9 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'error', 'warn', 'debug'],
   });
+
+  // Métricas para Prometheus (GET /metrics). Va primero para medir cada petición completa.
+  app.use(metricsMiddleware);
 
   // Sirve la consola de pruebas estática (public/index.html) en la raíz.
   app.useStaticAssets(join(__dirname, '..', 'public'));

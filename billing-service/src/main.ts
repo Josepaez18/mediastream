@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { allowedCorsOrigins } from './public-urls';
+import { metricsMiddleware } from './metrics/metrics.middleware';
 
 // Los IDs (Subscription/Payment) son BigInt, igual que en User-Service.
 // Express/JSON no serializa BigInt de forma nativa, así que se define cómo
@@ -15,6 +16,8 @@ import { allowedCorsOrigins } from './public-urls';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // Métricas para Prometheus (GET /metrics). Va primero para medir cada petición completa.
+  app.use(metricsMiddleware);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // Sirve el frontend estático (public/index.html) en la raíz del servicio,

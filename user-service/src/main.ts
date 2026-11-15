@@ -7,6 +7,7 @@ import * as cookieParser from 'cookie-parser';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { allowedCorsOrigins } from './public-urls';
+import { metricsMiddleware } from './metrics/metrics.middleware';
 
 // Los IDs de Account/Profile son BigInt (columnas "bigint" del diagrama ER).
 // Express/JSON no serializa BigInt de forma nativa, así que se define cómo
@@ -17,6 +18,8 @@ import { allowedCorsOrigins } from './public-urls';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // Métricas para Prometheus (GET /metrics). Va primero para medir cada petición completa.
+  app.use(metricsMiddleware);
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 

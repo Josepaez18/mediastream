@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { RequestIdMiddleware } from './common/request-id.middleware';
+import { metricsMiddleware } from './metrics/metrics.middleware';
 import { allowedCorsOrigins } from './public-urls';
 
 async function bootstrap() {
@@ -11,6 +12,8 @@ async function bootstrap() {
     logger: ['log', 'error', 'warn', 'debug'],
   });
 
+  // Métricas para Prometheus (GET /metrics). Va primero para medir cada petición completa.
+  app.use(metricsMiddleware);
   app.use(new RequestIdMiddleware().use);
   app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({ origin: allowedCorsOrigins() });
