@@ -55,6 +55,7 @@ docker compose exec -T billing-db psql -U billing_service -d billing_service_db 
 | GET | `/api/billing/admin/overview` | Administrador: resumen de suscripciones e ingresos |
 | POST | `/api/billing/webhook` | Administrador: simula la respuesta de la pasarela (pago fallido) |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -93,6 +94,7 @@ cp .env.example .env
 npx prisma migrate deploy
 npm run start:dev
 npm test   # pruebas
+npm run test:cov   # pruebas con reporte de cobertura (carpeta coverage/)
 ```
 
 Queda en http://localhost:3006.
@@ -284,6 +286,29 @@ curl http://localhost:3006/api/billing/history/1
 curl -X POST http://localhost:3006/api/billing/webhook \
   -H "Content-Type: application/json" \
   -d '{"subscriptionId":"1","eventType":"payment_failed"}'
+```
+
+## Pruebas y cobertura
+
+```bash
+npm run lint        # ESLint
+npm test            # pruebas unitarias (con mocks) y de integración (Jest)
+npm run test:cov    # lo mismo, con reporte de cobertura en coverage/ (abrir coverage/lcov-report/index.html)
+```
+
+- **Unitarias** (`*.spec.ts`): `BillingService` (Saga de suscripción, 201/402/202), la
+  publicación de eventos en RabbitMQ, PayPal y la pasarela simulada, con mocks.
+- **Integración** (`src/billing/billing.integration.spec.ts`): endpoints reales con supertest
+  contra un **PostgreSQL real** (base temporal con las migraciones de Prisma, que se borra al
+  terminar). Comprueba en la base la suscripción y su pago tras un cobro aprobado, el 409 por
+  suscripción duplicada, el pago `FALLIDO` guardado aunque responda 402, el historial y la
+  cancelación.
+
+La prueba de integración necesita `TEST_ADMIN_DATABASE_URL`, un PostgreSQL donde el usuario pueda
+crear bases; sin ella se omite. El pipeline de CI la define siempre.
+
+```bash
+TEST_ADMIN_DATABASE_URL=postgresql://ci:ci@localhost:5432/ci npm run test:cov
 ```
 
 ## Decisiones que quedan documentadas para la sustentación

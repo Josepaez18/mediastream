@@ -35,6 +35,7 @@ Sin base de datos (los límites de peticiones viven en memoria).
 | GET | `/health/services` | Estado de los 8 microservicios en una sola respuesta |
 | GET | `/health/headers` | Diagnóstico: cabeceras que recibe el gateway |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -78,6 +79,7 @@ npm ci
 cp .env.example .env
 npm run start:dev
 npm test   # pruebas
+npm run test:cov   # pruebas con reporte de cobertura (carpeta coverage/)
 ```
 
 Queda en http://localhost:8080.
@@ -176,6 +178,7 @@ nombres de las cabeceras que llegan (sin valores), para diagnóstico.
 docker compose up --build          # aislado, alcanza los servicios por mediastream-net
 cd .. && docker compose up -d      # con toda la plataforma
 npm run lint && npm test
+npm run test:cov                   # pruebas con reporte de cobertura en coverage/
 ```
 
 ```bash

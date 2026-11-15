@@ -53,6 +53,7 @@ docker compose exec -T catalog-db psql -U catalog_user -d catalog_db < database/
 | DELETE | `/api/catalog/titles/:id` | Administrador: elimina un título |
 | GET | `/api/catalog/admin/titles` | Administrador: todos los títulos en cualquier estado y región |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -87,6 +88,7 @@ cp .env.example .env
 npx prisma migrate deploy
 npm run start:dev
 npm test   # pruebas
+npm run test:cov   # pruebas con reporte de cobertura (carpeta coverage/)
 ```
 
 Queda en http://localhost:3002.
@@ -229,7 +231,20 @@ npm run start:dev
 ## 9. Tests
 
 ```bash
-npm test
+npm test            # pruebas unitarias (con mocks) y de integración (Jest)
+npm run test:cov    # lo mismo, con reporte de cobertura en coverage/ (abrir coverage/lcov-report/index.html)
+```
+
+La prueba de integración (`src/catalog/catalog.integration.spec.ts`) llama a los endpoints reales
+con supertest contra un **PostgreSQL real** (base temporal con las migraciones de Prisma, que se
+borra al terminar) y un **Redis real** como caché: crea, lista por región, edita las regiones y
+borra un título, y comprueba la caché y su invalidación. Necesita `TEST_ADMIN_DATABASE_URL` y
+`TEST_REDIS_URL` (usa la base lógica 15 de Redis); sin ellas se omite. El pipeline de CI las
+define siempre.
+
+```bash
+TEST_ADMIN_DATABASE_URL=postgresql://ci:ci@localhost:5432/ci \
+TEST_REDIS_URL=redis://localhost:6379 npm run test:cov
 ```
 
 ## 10. Estructura del proyecto

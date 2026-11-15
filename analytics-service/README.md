@@ -49,6 +49,7 @@ docker compose exec -T analytics-db psql -U analytics_user -d analytics_db < dat
 | GET | `/api/analytics/kpis` | Administrador: horas vistas, abandono y popularidad |
 | POST | `/api/analytics/etl/run` | Administrador: ejecuta el ETL en el momento |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -88,6 +89,7 @@ cp .env.example .env
 alembic upgrade head
 uvicorn app.main:app --reload --port 3008
 pytest   # pruebas
+pytest --cov=app   # pruebas con reporte de cobertura
 ```
 
 Queda en http://localhost:3008.
@@ -161,6 +163,7 @@ cd .. && docker compose up -d      # con toda la plataforma
 pip install -r requirements-dev.txt
 flake8 .
 pytest
+pytest --cov=app --cov-report=term --cov-report=html:coverage/html   # con reporte de cobertura
 ```
 
 La prueba de integración (migraciones, ETL contra réplicas reales, bloqueo de escrituras y

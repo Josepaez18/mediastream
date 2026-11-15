@@ -49,6 +49,7 @@ docker compose exec -T playback-db psql -U playback_user -d playback_db < databa
 | POST | `/api/playback/progress` | Guarda el progreso y publica los eventos de reproducción |
 | GET | `/api/playback/resume/:profileId` | "Seguir viendo" de un perfil |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -93,6 +94,7 @@ cp .env.example .env
 npx prisma migrate deploy
 npm run start:dev
 npm test   # pruebas
+npm run test:cov   # pruebas con reporte de cobertura (carpeta coverage/)
 ```
 
 Queda en http://localhost:3003.
@@ -279,7 +281,8 @@ listener corriendo en otra terminal verás aparecer `playback.progress` y `playb
 ## Tests
 
 ```bash
-npm test
+npm test            # pruebas (Jest)
+npm run test:cov    # lo mismo, con reporte de cobertura en coverage/ (abrir coverage/lcov-report/index.html)
 ```
 
 Cubren la emisión de tokens (título inexistente, `PENDING`, sin licencia regional), el cálculo

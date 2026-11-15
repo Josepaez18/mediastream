@@ -34,6 +34,7 @@ Redis (sin base relacional).
 | --- | --- | --- |
 | GET | `/api/notifications/:profileId` | Historial de notificaciones de un perfil |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -68,6 +69,7 @@ npm ci
 cp .env.example .env
 npm run start:dev
 npm test   # pruebas
+npm run test:cov   # pruebas con reporte de cobertura (carpeta coverage/)
 ```
 
 Queda en http://localhost:3007.
@@ -138,7 +140,19 @@ En local sin Docker: `npm ci`, copiar `.env.example` a `.env` y `npm run start:d
 
 ```bash
 npm run lint
-npm test
+npm test            # pruebas unitarias (con mocks) y de integración (Jest)
+npm run test:cov    # lo mismo, con reporte de cobertura en coverage/ (abrir coverage/lcov-report/index.html)
+```
+
+La prueba de integración (`src/notifications/notifications.integration.spec.ts`) usa un **Redis
+real**: publica `playback.completed` por Redis Pub/Sub, el suscriptor le pide el título a un
+Catalog local por HTTP, guarda el aviso en Redis y se lee con `GET /api/notifications/:profileId`;
+también comprueba la deduplicación de `payment.failed` (`SET NX`). Necesita `TEST_REDIS_URL`
+(usa la base lógica 15 y un canal propio, para no tocar los datos de desarrollo); sin ella se
+omite. El pipeline de CI la define siempre.
+
+```bash
+TEST_REDIS_URL=redis://localhost:6379 npm run test:cov
 ```
 
 ## Colaboradora

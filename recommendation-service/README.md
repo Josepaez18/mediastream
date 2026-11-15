@@ -51,6 +51,7 @@ docker compose exec -T recommendation-db psql -U reco_user -d recommendation_db 
 | GET | `/api/recommendations/debug/events` | Demo: últimos eventos consumidos |
 | POST | `/api/recommendations/debug/sync-catalog` | Demo: sincroniza ahora los títulos de Catalog |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -95,6 +96,7 @@ cp .env.example .env
 alembic upgrade head
 uvicorn app.main:app --reload --port 3005
 pytest   # pruebas
+pytest --cov=app   # pruebas con reporte de cobertura
 ```
 
 Queda en http://localhost:3005.
@@ -294,6 +296,7 @@ sus recomendaciones en http://localhost:3005 (la vista *Para ti* se actualiza so
 ```bash
 pip install -r requirements-dev.txt
 pytest
+pytest --cov=app --cov-report=term --cov-report=html:coverage/html   # con reporte de cobertura
 ```
 
 Los tests cubren el modelo de embeddings (determinismo, normalización, que la misma

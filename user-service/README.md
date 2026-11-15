@@ -57,6 +57,7 @@ docker compose exec -T user-db psql -U user_service -d user_service_db < databas
 | DELETE | `/api/users/admin/accounts/:id` | Administrador: elimina una cuenta |
 | POST | `/api/users/debug/payment-failed` | Simula el evento payment.failed (pruebas) |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -97,6 +98,7 @@ cp .env.example .env
 npx prisma migrate deploy
 npm run start:dev
 npm test   # pruebas
+npm run test:cov   # pruebas con reporte de cobertura (carpeta coverage/)
 ```
 
 Queda en http://localhost:3001.
@@ -244,6 +246,28 @@ docker compose exec user-service node scripts/simulate-payment-failed.js 1
 docker compose exec user-service node scripts/simulate-payment-failed.js 1
 docker compose exec user-service node scripts/simulate-payment-failed.js 1
 # -> ahora un nuevo login debe responder 403
+```
+
+## Pruebas y cobertura
+
+```bash
+npm run lint        # ESLint
+npm test            # pruebas unitarias (con mocks) y de integración (Jest)
+npm run test:cov    # lo mismo, con reporte de cobertura en coverage/ (abrir coverage/lcov-report/index.html)
+```
+
+- **Unitarias** (`*.spec.ts`): `AuthService`, `ProfilesService`, la restricción por pagos
+  fallidos y los consumidores de RabbitMQ, con Prisma y RabbitMQ simulados (mocks).
+- **Integración** (`src/auth/auth.integration.spec.ts`): levanta los endpoints reales con
+  supertest y usa un **PostgreSQL real**: crea una base temporal, le aplica las migraciones de
+  Prisma y la borra al terminar. Recorre registro → login (cookie de refresh) → perfiles, y
+  comprueba en la base el hash de la contraseña y el límite de perfiles del plan.
+
+La prueba de integración necesita `TEST_ADMIN_DATABASE_URL`, un PostgreSQL donde el usuario pueda
+crear bases; sin ella se omite. El pipeline de CI la define siempre.
+
+```bash
+TEST_ADMIN_DATABASE_URL=postgresql://ci:ci@localhost:5432/ci npm run test:cov
 ```
 
 ## Decisiones que quedan documentadas para la sustentación

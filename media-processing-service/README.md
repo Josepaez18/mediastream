@@ -48,6 +48,7 @@ docker compose exec -T media-db psql -U media_user -d media_processing_db < data
 | POST | `/api/media/ingest` | Recibe el archivo maestro y crea el trabajo de transcodificación |
 | GET | `/api/media/jobs/{job_id}` | Estado de un trabajo |
 | GET | `/health`, `/health/ready` | Estado del servicio y de sus dependencias |
+| GET | `/metrics` | Métricas para Prometheus: peticiones, latencia, errores y proceso (sin JWT) |
 
 ### Variables de entorno
 
@@ -92,6 +93,7 @@ cp .env.example .env
 alembic upgrade head
 uvicorn app.main:app --reload --port 3004
 pytest   # pruebas
+pytest --cov=app   # pruebas con reporte de cobertura
 ```
 
 Queda en http://localhost:3004.
@@ -219,6 +221,18 @@ en el **3004** (3003 es Playback).
 docker build -t media-processing-service .
 docker run --env-file .env -p 3004:3004 media-processing-service
 ```
+
+## Pruebas y cobertura
+```bash
+pip install -r requirements-dev.txt
+flake8 .
+pytest                                                               # pruebas
+pytest --cov=app --cov-report=term --cov-report=html:coverage/html   # con reporte de cobertura
+```
+Las pruebas que transcodifican de verdad necesitan `ffmpeg` y se omiten sin él. La de
+integración con PostgreSQL (crear la base y aplicar las migraciones) solo corre si
+`TEST_ADMIN_DATABASE_URL` apunta a un PostgreSQL; el pipeline de CI instala FFmpeg y define la
+variable.
 
 ## Colaboradora
 
