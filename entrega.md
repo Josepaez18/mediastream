@@ -156,4 +156,6 @@ Si una prueba o el lint fallan, el pipeline se detiene: no se construye la image
 
 En el plan gratis, Render duerme cada servicio tras 15 minutos sin uso y tarda cerca de un minuto en despertarlo. Unos 10 minutos antes de la revisión, en GitHub → Actions → **Render - mantener despierto** → Run workflow, indica las horas que dure la revisión. Así todos los servicios responden al instante mientras tanto.
 
+La base de datos gratis de Render vence a los 30 días de creada. Si los servicios dejan de responder con `P1001: Can't reach database server` en sus logs, en GitHub → Actions → **Render - recrear la base de datos** → Run workflow, escribe `RECREAR`: borra la base vencida, crea una nueva, apunta los 7 servicios a ella, los redespliega y vuelve a cargar los títulos de demostración. Los datos anteriores (cuentas, suscripciones, progreso) no se recuperan.
+
 Para probar las funciones de administrador, comparte en privado con el docente el correo `admin@mediastream.com` y su contraseña. La contraseña está en Render, en las variables de entorno de `mediastream-user` (`ADMIN_PASSWORD`).

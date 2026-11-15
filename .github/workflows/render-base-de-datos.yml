@@ -1,0 +1,184 @@
+# Mantenimiento: recrea la base de datos de Render (mediastream-db) cuando la
+# del plan gratis vence (Render la suspende a los 30 días y la borra 14 días
+# después; sus datos no se recuperan).
+#
+#   1. Si mediastream-db existe pero no está disponible (vencida o
+#      suspendida), la borra. Si está disponible, la reutiliza.
+#   2. Crea una nueva mediastream-db gratis (PostgreSQL 16, virginia), igual
+#      que en render.yaml, y espera a que quede disponible.
+#   3. Pone su URL interna en DATABASE_URL de los 7 servicios con base y los
+#      redespliega. Cada uno crea su propia base y aplica sus migraciones al
+#      arrancar (database-per-service).
+#   4. Espera a que los 7 respondan /health/ready y, si se pide, carga los
+#      títulos de demostración por el API Gateway con la cuenta de
+#      administrador (la que cada arranque de User crea desde ADMIN_EMAIL y
+#      ADMIN_PASSWORD).
+#
+# Ninguna credencial se imprime: la URL de la base, la contraseña del
+# administrador y el token se enmascaran en los logs.
+#
+# Se lanza a mano: Actions → "Render - recrear la base de datos" → Run
+# workflow, escribiendo RECREAR para confirmar.
+name: Render - recrear la base de datos
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: Escribe RECREAR (borra la base vencida y crea una vacía)
+        required: true
+      cargar_titulos:
+        description: Cargar los títulos de demostración al terminar
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-base-de-datos
+  cancel-in-progress: false
+
+jobs:
+  recrear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Recrear mediastream-db y apuntar los servicios a ella
+        env:
+          CONFIRMAR: ${{ inputs.confirmar }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          ID_USER: ${{ secrets.RENDER_SERVICE_ID_USER }}
+          ID_CATALOG: ${{ secrets.RENDER_SERVICE_ID_CATALOG }}
+          ID_PLAYBACK: ${{ secrets.RENDER_SERVICE_ID_PLAYBACK }}
+          ID_MEDIA: ${{ secrets.RENDER_SERVICE_ID_MEDIA }}
+          ID_RECOMMENDATION: ${{ secrets.RENDER_SERVICE_ID_RECOMMENDATION }}
+          ID_BILLING: ${{ secrets.RENDER_SERVICE_ID_BILLING }}
+          ID_ANALYTICS: ${{ secrets.RENDER_SERVICE_ID_ANALYTICS }}
+        run: |
+          set -euo pipefail
+          if [ "$CONFIRMAR" != "RECREAR" ]; then
+            echo "::error::Para confirmar hay que escribir RECREAR."
+            exit 1
+          fi
+          for v in RENDER_API_KEY ID_USER ID_CATALOG ID_PLAYBACK ID_MEDIA ID_RECOMMENDATION ID_BILLING ID_ANALYTICS; do
+            if [ -z "${!v}" ]; then echo "::error::Falta el secreto de $v"; exit 1; fi
+          done
+          API=https://api.render.com/v1
+          AUTH="Authorization: Bearer $RENDER_API_KEY"
+          OWNER=$(curl -fsS "$API/services/$ID_USER" -H "$AUTH" | jq -r .ownerId)
+
+          echo "== Bases de datos de Render"
+          curl -fsS "$API/postgres?limit=100" -H "$AUTH" > bases.json
+          jq -r '.[].postgres | "\(.name)  plan=\(.plan)  status=\(.status)  suspended=\(.suspended)  expiresAt=\(.expiresAt // "-")"' bases.json
+
+          DB_ID=""
+          for id in $(jq -r '.[].postgres | select(.name == "mediastream-db") | .id' bases.json); do
+            STATUS=$(jq -r --arg id "$id" '.[].postgres | select(.id == $id) | .status' bases.json)
+            SUSPENDED=$(jq -r --arg id "$id" '.[].postgres | select(.id == $id) | .suspended' bases.json)
+            if [ "$STATUS" = "available" ] && [ "$SUSPENDED" = "not_suspended" ]; then
+              echo "mediastream-db está disponible: se reutiliza."
+              DB_ID="$id"
+            else
+              echo "Borrando mediastream-db (status=$STATUS, $SUSPENDED)..."
+              curl -fsS -X DELETE "$API/postgres/$id" -H "$AUTH" -o /dev/null
+              for _ in $(seq 1 60); do
+                curl -fsS "$API/postgres?limit=100" -H "$AUTH" | jq -e --arg id "$id" 'any(.[].postgres; .id == $id)' >/dev/null || break
+                sleep 5
+              done
+            fi
+          done
+
+          if [ -z "$DB_ID" ]; then
+            echo "== Creando mediastream-db (free, PostgreSQL 16, virginia)"
+            DB_ID=$(curl -fsS -X POST "$API/postgres" -H "$AUTH" -H "Content-Type: application/json" \
+              -d "$(jq -n --arg owner "$OWNER" '{name: "mediastream-db", plan: "free", region: "virginia", version: "16", ownerId: $owner, databaseName: "mediastream", databaseUser: "mediastream", ipAllowList: []}')" \
+              | jq -r '.id')
+          fi
+          for _ in $(seq 1 90); do
+            STATUS=$(curl -fsS "$API/postgres/$DB_ID" -H "$AUTH" | jq -r .status)
+            echo "  status=$STATUS"
+            [ "$STATUS" = "available" ] && break
+            sleep 10
+          done
+          if [ "$STATUS" != "available" ]; then echo "::error::mediastream-db no quedó disponible"; exit 1; fi
+
+          URL=$(curl -fsS "$API/postgres/$DB_ID/connection-info" -H "$AUTH" | jq -r .internalConnectionString)
+          echo "::add-mask::$URL"
+          echo "mediastream-db lista ($(echo "$URL" | sed -E 's#^([a-z]+://)[^@]*@([^/:]+).*#\1\2#'))" | tee -a "$GITHUB_STEP_SUMMARY"
+
+          for s in USER CATALOG PLAYBACK MEDIA RECOMMENDATION BILLING ANALYTICS; do
+            var="ID_$s"
+            curl -fsS -X PUT "$API/services/${!var}/env-vars/DATABASE_URL" -H "$AUTH" \
+              -H "Content-Type: application/json" -d "$(jq -n --arg v "$URL" '{value: $v}')" -o /dev/null
+            curl -fsS -X POST "$API/services/${!var}/deploys" -H "$AUTH" \
+              -H "Content-Type: application/json" -d '{}' -o /dev/null
+            echo "DATABASE_URL actualizada y redespliegue solicitado: $s" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Esperar a que los 7 servicios respondan /health/ready
+        run: |
+          set -u
+          SERVICIOS="user-3um7 catalog-t9f9 playback-0ciy media-zadq recommendation-rvk4 billing-c7bf analytics"
+          for s in $SERVICIOS; do
+            code=000
+            for _ in $(seq 1 60); do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "https://mediastream-$s.onrender.com/health/ready")
+              [ "$code" = "200" ] && break
+              sleep 15
+            done
+            echo "$code  mediastream-$s/health/ready" | tee -a "$GITHUB_STEP_SUMMARY"
+            if [ "$code" != "200" ]; then echo "::error::mediastream-$s no quedó listo"; exit 1; fi
+          done
+
+      - name: Cargar los títulos de demostración por el API Gateway
+        if: inputs.cargar_titulos
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          ID_USER: ${{ secrets.RENDER_SERVICE_ID_USER }}
+        run: |
+          set -euo pipefail
+          API=https://api.render.com/v1
+          AUTH="Authorization: Bearer $RENDER_API_KEY"
+          GATEWAY=https://mediastream-gateway-5wjw.onrender.com
+          curl -fsS "$API/services/$ID_USER/env-vars?limit=100" -H "$AUTH" > vars.json
+          EMAIL=$(jq -r '.[].envVar | select(.key == "ADMIN_EMAIL") | .value' vars.json)
+          PASSWORD=$(jq -r '.[].envVar | select(.key == "ADMIN_PASSWORD") | .value' vars.json)
+          rm vars.json
+          echo "::add-mask::$PASSWORD"
+
+          # Despierta el Gateway (plan gratis) antes de usarlo.
+          for _ in $(seq 1 20); do
+            [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$GATEWAY/health")" = "200" ] && break
+            sleep 10
+          done
+          TOKEN=$(curl -fsS -X POST "$GATEWAY/api/users/login" -H "Content-Type: application/json" \
+            -d "$(jq -n --arg e "$EMAIL" --arg p "$PASSWORD" '{email: $e, password: $p}')" | jq -r .accessToken)
+          echo "::add-mask::$TOKEN"
+
+          # Idempotente: no vuelve a crear los títulos que ya existen (por nombre).
+          curl -fsS "$GATEWAY/api/catalog/admin/titles" -H "Authorization: Bearer $TOKEN" | jq -r '.[].name' > existentes.txt
+          creados=0; omitidos=0
+          while IFS= read -r t; do
+            name=$(echo "$t" | jq -r .name)
+            if grep -Fxq "$name" existentes.txt; then omitidos=$((omitidos + 1)); continue; fi
+            body=$(echo "$t" | jq --arg from "$(date -u -d 'yesterday' +%Y-%m-%dT%H:%M:%SZ)" '
+              {name, synopsis, type, category, ageRating, isFree, posterUrl, publishImmediately: true,
+               availabilities: [(.regions // ["CO", "MX"])[] | {region: ., availableFrom: $from}]}
+              + (if .trailerUrl then {trailerUrl} else {} end)
+              + (if .seasons then {seasons} else {} end)')
+            for intento in 1 2 3; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$GATEWAY/api/catalog/titles" \
+                -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "$body")
+              [ "$code" = "429" ] && { sleep 30; continue; }
+              break
+            done
+            if [ "$code" != "201" ]; then echo "::error::$name → HTTP $code"; exit 1; fi
+            creados=$((creados + 1))
+            sleep 0.6
+          done < <(jq -c '.[]' catalog-service/scripts/titulos-demo.json)
+          echo "Títulos de demostración: $creados creados, $omitidos ya existían" | tee -a "$GITHUB_STEP_SUMMARY"
