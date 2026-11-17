@@ -125,7 +125,7 @@ jobs:
         env:
           TEST_ADMIN_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
           TEST_REDIS_URL: redis://localhost:6379
-        run: npm test -- --ci --coverage
+        run: npm test -- --ci --coverage --verbose
       - name: Build (TypeScript)
         if: inputs.runtime == 'node' && inputs.build
         run: npm run build
