@@ -39,8 +39,8 @@ describe('NotificationsService: payment.failed sin eventId', () => {
     const segundo = await service.onPaymentFailed({ accountId: '2' });
 
     expect(store.claim).toHaveBeenCalledTimes(2);
-    expect(store.claim).toHaveBeenNthCalledWith(1, 'payment.failed:2:30000000', 24 * 60 * 60);
-    expect(store.claim).toHaveBeenNthCalledWith(2, 'payment.failed:2:30000000', 24 * 60 * 60);
+    expect(store.claim).toHaveBeenNthCalledWith(1, 'payment.failed:2:30000000', 7 * 24 * 60 * 60);
+    expect(store.claim).toHaveBeenNthCalledWith(2, 'payment.failed:2:30000000', 7 * 24 * 60 * 60);
 
     expect(primero).toMatchObject({
       type: 'PAYMENT_FAILED',
