@@ -1,0 +1,34 @@
+# Entrega continua de este microservicio: en cada push a main corre el CI
+# (lint, pruebas con cobertura y escaneo de secretos), construye la imagen
+# Docker, la publica en GHCR y la despliega en Render. Cada paso depende del
+# anterior (needs): si una prueba falla, no se construye ni se despliega nada.
+# Los pasos están en el workflow reutilizable del repositorio de la plataforma:
+# https://github.com/Josepaez18/mediastream/blob/v1/.github/workflows/_pipeline-servicio.yml
+# Usa los secretos RENDER_API_KEY y RENDER_SERVICE_ID de este repositorio.
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Un deploy a la vez: el siguiente espera en vez de cancelar el que está en curso.
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    uses: Josepaez18/mediastream/.github/workflows/_pipeline-servicio.yml@v1
+    permissions:
+      contents: read
+      packages: write
+    with:
+      service: media-processing-service
+      directorio: "."
+      runtime: python
+      secret_suffix: MEDIA
+      ffmpeg: true
+    secrets:
+      render_api_key: ${{ secrets.RENDER_API_KEY }}
+      render_service_id: ${{ secrets.RENDER_SERVICE_ID }}
