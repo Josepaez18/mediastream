@@ -324,6 +324,34 @@ Cada servicio se prueba solo, desde su carpeta:
 Las pruebas de integración de los servicios Python (migraciones contra un PostgreSQL
 real) solo corren si `TEST_ADMIN_DATABASE_URL` está definida; el pipeline la define.
 
+## Monitoreo y alertas
+
+Los 9 servicios exponen `GET /metrics`. Prometheus las consulta cada 15 s, Grafana
+las muestra en el tablero *MediaStream — Servicios* (estado, peticiones por segundo,
+latencia p95, errores 5xx y memoria por servicio) y Prometheus evalúa las reglas de
+`monitoring/alerts.yml`:
+
+| Alerta | Se dispara cuando | Durante | Severidad |
+|---|---|---|---|
+| `ServicioCaido` | `up == 0` (no responde `/metrics`) | 2 min | critical |
+| `TasaErroresAlta` | más del 5 % de respuestas 5xx (ventana de 5 min) | 5 min | warning |
+| `LatenciaAlta` | p95 de `http_request_duration_seconds` > 1 s (ventana de 5 min) | 5 min | warning |
+
+| | Local (`docker compose up -d`) | Render |
+|---|---|---|
+| Prometheus | http://localhost:9090/targets y `/alerts` | https://mediastream-prometheus.onrender.com/alerts |
+| Alertmanager | http://localhost:9093 | no se despliega: las alertas solo se ven en `/alerts` |
+| Grafana | http://localhost:3030 | https://mediastream-grafana.onrender.com |
+
+En local, Alertmanager solo muestra las alertas en su interfaz. Para recibirlas por
+Slack o correo, sigue los pasos comentados en `monitoring/alertmanager.yml`: la
+credencial va en una variable de entorno, nunca en el repositorio. En el plan
+gratis de Render, `ServicioCaido` queda en *firing* para cada servicio dormido.
+
+Para ver una alerta en vivo: `docker compose stop notification-service`; unos
+2 minutos después `ServicioCaido` está en *firing* en Prometheus y en Alertmanager.
+`docker compose start notification-service` la resuelve.
+
 ## Pipeline CI/CD y despliegue en Render
 
 Secciones 7 y 8 del documento de arquitectura. El CI está escrito una sola vez y lo

@@ -515,13 +515,17 @@ services:
   # interna, con el nombre de cada contenedor) y Grafana dibuja con esos datos
   # el tablero "MediaStream — Servicios": estado UP/DOWN, peticiones por
   # segundo, latencia p95 y tasa de errores, con un selector de servicio.
-  # Ninguno de los dos afecta a la plataforma: si se apagan, todo sigue igual.
+  # Prometheus también evalúa las reglas de monitoring/alerts.yml (servicio
+  # caído, tasa de errores y latencia altas) y se las envía a Alertmanager.
+  # Ninguno afecta a la plataforma: si se apagan, todo sigue igual.
   #
-  #   Prometheus  http://localhost:9090/targets
-  #   Grafana     http://localhost:3030   (el 3000 del host lo usa el frontend)
+  #   Prometheus    http://localhost:9090/targets   y   /alerts
+  #   Alertmanager  http://localhost:9093
+  #   Grafana       http://localhost:3030   (el 3000 del host lo usa el frontend)
   #
   # Toda la configuración está versionada en monitoring/. En Render se
-  # despliegan con esos mismos archivos (ver render.yaml).
+  # despliegan Prometheus y Grafana con esos mismos archivos (ver render.yaml);
+  # Alertmanager solo corre en local.
 
   prometheus:
     image: prom/prometheus:v3.16.0
@@ -531,6 +535,25 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    depends_on:
+      - alertmanager
+    networks:
+      - mediastream-net
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.2
+    container_name: mediastream-alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    # Para avisos por Slack o correo (ver monitoring/alertmanager.yml),
+    # descomenta esto y el bloque `secrets:` del final del archivo:
+    # secrets:
+    #   - slack_webhook_url
+    #   - smtp_password
     networks:
       - mediastream-net
 
@@ -568,3 +591,13 @@ networks:
   mediastream-net:
     name: mediastream-net
     driver: bridge
+
+# Credenciales de Alertmanager (opcional). Cada secret se toma de una variable
+# de entorno de tu máquina y llega al contenedor como un archivo en
+# /run/secrets/<nombre>, que Alertmanager lee con api_url_file o
+# auth_password_file. Nada de esto se guarda en el repositorio.
+# secrets:
+#   slack_webhook_url:
+#     environment: SLACK_WEBHOOK_URL
+#   smtp_password:
+#     environment: SMTP_PASSWORD

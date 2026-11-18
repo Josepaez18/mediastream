@@ -10,11 +10,20 @@
 #
 # Plan gratis: un servicio dormido (15 min sin tráfico) responde 502 a este
 # scrape y aparece como DOWN hasta que alguien lo despierta desde fuera
-# (workflow "Render - mantener despierto").
+# (workflow "Render - mantener despierto"). Por lo mismo, ServicioCaido queda
+# en FIRING para cada servicio dormido.
+#
+# Alertas: las mismas reglas de alerts.yml, en /alerts. En Render no hay
+# Alertmanager: Prometheus las evalúa y las muestra, pero no envía avisos.
 # =============================================================================
 global:
   scrape_interval: 15s
   scrape_timeout: 10s
+  # Cada cuánto se evalúan las reglas de alerts.yml (por defecto, 1 min).
+  evaluation_interval: 15s
+
+rule_files:
+  - alerts.yml
 
 scrape_configs:
   - job_name: user-service
