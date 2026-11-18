@@ -18,6 +18,12 @@
 #
 # Recibe solo los tres secretos de Render que necesita el deploy, nombrados
 # uno por uno por cada workflow de servicio (nada de `secrets: inherit`).
+#
+# Lo llaman los workflows de servicio de este repositorio (el código está en la
+# carpeta <service>) y el cd.yml de cada repositorio de servicio
+# (Josepaez18/mediastream-<servicio>), que lo usa con @v1 y directorio: "."
+# porque ahí el código está en la raíz. Los dos publican la misma imagen
+# ghcr.io/<dueño>/mediastream-<service>, que es la que tiene configurada Render.
 # =============================================================================
 name: Pipeline de un microservicio
 
@@ -28,6 +34,11 @@ on:
         description: Carpeta del microservicio (p. ej. user-service)
         required: true
         type: string
+      directorio:
+        description: Carpeta del código dentro del repositorio. Vacío = la carpeta `service` (monorepo); "." en los repositorios de servicio
+        required: false
+        type: string
+        default: ""
       runtime:
         description: node | python
         required: true
@@ -75,7 +86,7 @@ jobs:
       contents: read
     with:
       runtime: ${{ inputs.runtime }}
-      directorio: ${{ inputs.service }}
+      directorio: ${{ inputs.directorio || inputs.service }}
       base_datos: ${{ inputs.database }}
       postgres_image: ${{ inputs.postgres_image }}
       prisma: ${{ inputs.prisma }}
@@ -112,7 +123,7 @@ jobs:
       - name: Construir y publicar la imagen
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
-          context: ${{ inputs.service }}
+          context: ${{ inputs.directorio || inputs.service }}
           push: true
           # SHA del commit (para desplegar y hacer rollback) + nombre de la rama.
           tags: |

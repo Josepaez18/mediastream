@@ -1,14 +1,15 @@
 # Integración continua de este microservicio: lint, pruebas y escaneo de
-# secretos en cada push y Pull Request. Los pasos están en un único workflow
-# reutilizable del repositorio de la plataforma, el mismo que corre antes de
-# construir la imagen y desplegar en Render:
+# secretos en cada Pull Request y en push a develop. En main las mismas
+# pruebas corren dentro de cd.yml, antes de construir la imagen y desplegar.
+# Los pasos están en un único workflow reutilizable del repositorio de la
+# plataforma:
 # https://github.com/Josepaez18/mediastream/blob/v1/.github/workflows/ci-servicio.yml
 # Aquí solo se indica qué necesita este servicio. No usa ningún secreto.
 name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [develop]
   pull_request:
   workflow_dispatch:
 
