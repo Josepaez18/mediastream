@@ -11,10 +11,22 @@
 #
 #   Targets:   http://localhost:9090/targets
 #   Consulta:  up            → 1 si el servicio respondió su último scrape
+#   Alertas:   http://localhost:9090/alerts  (reglas en alerts.yml), que
+#              Prometheus envía a Alertmanager: http://localhost:9093
 # =============================================================================
 global:
   scrape_interval: 15s
   scrape_timeout: 10s
+  # Cada cuánto se evalúan las reglas de alerts.yml (por defecto, 1 min).
+  evaluation_interval: 15s
+
+rule_files:
+  - alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
 
 scrape_configs:
   - job_name: user-service

@@ -1,0 +1,53 @@
+# =============================================================================
+# Reglas de alerta de MediaStream (Prometheus)
+#
+# Las carga prometheus.yml (local) y prometheus.render.yml (Render) con
+# rule_files. Usan solo las métricas que ya exponen los 9 servicios en
+# GET /metrics; cada servicio es un job.
+#
+#   Ver las alertas:  http://localhost:9090/alerts   (local)
+#                     https://mediastream-prometheus.onrender.com/alerts
+#   En local, Prometheus las envía a Alertmanager: http://localhost:9093
+#
+# Sin tráfico, la división y el percentil dan NaN y no disparan nada: las
+# alertas de errores y latencia solo se evalúan cuando hay peticiones.
+# =============================================================================
+groups:
+  - name: mediastream
+    rules:
+      # Prometheus no pudo leer /metrics del servicio durante 2 minutos.
+      - alert: ServicioCaido
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} no responde"
+          description: "Prometheus no pudo leer /metrics de {{ $labels.job }} ({{ $labels.instance }}) durante 2 minutos."
+
+      # Más del 5 % de las respuestas del servicio son 5xx (ventana de 5 minutos).
+      - alert: TasaErroresAlta
+        expr: |
+          sum by (job) (rate(http_requests_total{status=~"5.."}[5m]))
+            /
+          sum by (job) (rate(http_requests_total[5m]))
+            > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }}: {{ $value | humanizePercentage }} de respuestas 5xx"
+          description: "Más del 5 % de las respuestas de {{ $labels.job }} fueron 5xx durante 5 minutos."
+
+      # El percentil 95 del tiempo de respuesta supera 1 s (ventana de 5 minutos).
+      - alert: LatenciaAlta
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le, job) (rate(http_request_duration_seconds_bucket[5m]))
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }}: latencia p95 de {{ $value | humanizeDuration }}"
+          description: "El p95 del tiempo de respuesta de {{ $labels.job }} superó 1 s durante 5 minutos."

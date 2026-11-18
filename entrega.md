@@ -82,7 +82,7 @@ pytest --cov=app      # Python: con reporte de cobertura
 
 Las pruebas de integración necesitan `TEST_ADMIN_DATABASE_URL` (PostgreSQL donde se puedan crear bases) y, en Catalog y Notification, `TEST_REDIS_URL`; sin ellas se omiten. En GitHub Actions el job *Lint y pruebas* levanta PostgreSQL y Redis efímeros, define esas variables y publica el reporte como artefacto `cobertura-<servicio>`.
 
-## Monitoreo (Prometheus y Grafana)
+## Monitoreo (Prometheus, Grafana y alertas)
 
 Los 9 servicios exponen `GET /metrics` (sin JWT y, en el Gateway, sin rate limiting) con:
 
@@ -94,7 +94,20 @@ Los 9 servicios exponen `GET /metrics` (sin JWT y, en el Gateway, sin rate limit
 | `http_requests_total{status=~"5.."}` | Tasa de errores |
 | `process_*`, `nodejs_*`, `python_*` | Métricas por defecto del proceso (CPU, memoria) |
 
-Prometheus las consulta cada 15 s y Grafana las muestra en el tablero **MediaStream — Servicios**, con paneles de estado UP/DOWN por servicio, peticiones por segundo, latencia p95 y tasa de errores 5xx, más un selector de servicio. La configuración está versionada en `monitoring/`: `prometheus.yml` (local), `prometheus.render.yml` (Render), el datasource y el tablero JSON en `monitoring/grafana/`.
+Prometheus las consulta cada 15 s y Grafana las muestra en el tablero **MediaStream — Servicios**, con paneles de estado UP/DOWN por servicio, peticiones por segundo, latencia p95, tasa de errores 5xx y memoria por servicio (saturación: `process_resident_memory_bytes`, en MB), más un selector de servicio. La configuración está versionada en `monitoring/`: `prometheus.yml` (local), `prometheus.render.yml` (Render), las reglas de alerta en `alerts.yml`, `alertmanager.yml` (local), y el datasource y el tablero JSON en `monitoring/grafana/`.
+
+**Alertas** (`monitoring/alerts.yml`): Prometheus evalúa estas reglas cada 15 s, por servicio (`job`).
+
+| Alerta | Condición | Durante | Severidad |
+| --- | --- | --- | --- |
+| `ServicioCaido` | `up == 0`: Prometheus no puede leer `/metrics` del servicio | 2 min | critical |
+| `TasaErroresAlta` | Más del 5 % de las respuestas son 5xx (ventana de 5 min) | 5 min | warning |
+| `LatenciaAlta` | El p95 de `http_request_duration_seconds` supera 1 s (ventana de 5 min) | 5 min | warning |
+
+Sin tráfico, `TasaErroresAlta` y `LatenciaAlta` no se disparan: la división y el percentil quedan sin valor. Una alerta pasa a *pending* cuando se cumple la condición y a *firing* cuando se mantiene el tiempo de la columna "Durante".
+
+- **Local:** Prometheus las muestra en http://localhost:9090/alerts y se las envía a Alertmanager (http://localhost:9093), que las agrupa por alerta y servicio. El receptor por defecto no envía avisos a ningún lado, solo las muestra en esa interfaz. Para recibirlas por Slack o correo sin subir credenciales, `monitoring/alertmanager.yml` y `docker-compose.yml` traen los pasos comentados: la credencial va en una variable de entorno (`SLACK_WEBHOOK_URL`, `SMTP_PASSWORD`), que docker compose monta como secret.
+- **Render:** las mismas reglas, en `https://mediastream-prometheus.onrender.com/alerts`. Allí no hay Alertmanager: Prometheus las evalúa y las muestra, pero no envía avisos. En el plan gratis, cada servicio dormido responde 502, así que `ServicioCaido` queda en *firing* para los servicios dormidos hasta que se despiertan; si el que duerme es Prometheus, no evalúa nada.
 
 **En Render** (`render.yaml`): dos Web Services gratis, `mediastream-prometheus` y `mediastream-grafana`, que Render construye desde `monitoring/` al sincronizar el Blueprint. Prometheus consulta la URL pública de cada servicio.
 
@@ -106,11 +119,13 @@ Prometheus las consulta cada 15 s y Grafana las muestra en el tablero **MediaStr
 **En local:**
 
 ```bash
-docker compose up -d --build     # los 9 servicios + Prometheus + Grafana
+docker compose up -d --build     # los 9 servicios + Prometheus + Alertmanager + Grafana
 ```
 
-- Prometheus: http://localhost:9090/targets (los 9 targets deben estar en UP).
+- Prometheus: http://localhost:9090/targets (los 9 targets deben estar en UP) y http://localhost:9090/alerts.
+- Alertmanager: http://localhost:9093.
 - Grafana: http://localhost:3030 (el 3000 lo usa el frontend). Se ve sin iniciar sesión; para editar, `admin` / `admin`.
+- Para ver una alerta en vivo: `docker compose stop notification-service`. Unos 2 minutos después, `ServicioCaido` pasa a *firing* en Prometheus y aparece en Alertmanager. Se resuelve sola con `docker compose start notification-service`.
 
 ## Estrategia de ramas
 

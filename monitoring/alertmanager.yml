@@ -1,0 +1,50 @@
+# =============================================================================
+# Alertmanager — MediaStream en local (docker compose)
+#
+# Recibe las alertas que dispara Prometheus (reglas en alerts.yml), las agrupa
+# por alerta y servicio, y las muestra en http://localhost:9093.
+#
+# En el repositorio no hay credenciales: el receptor por defecto no envía
+# avisos a ningún lado, solo deja las alertas en la interfaz.
+# =============================================================================
+route:
+  receiver: solo-interfaz
+  group_by: [alertname, job]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  # Sin integraciones: las alertas solo se ven en la interfaz de Alertmanager.
+  - name: solo-interfaz
+
+# -----------------------------------------------------------------------------
+# Avisos por Slack o correo, sin subir credenciales
+#
+# Alertmanager no lee variables de entorno en este archivo. La credencial va
+# en una variable de entorno de tu máquina; docker compose la convierte en un
+# secret (un archivo en /run/secrets/) y Alertmanager lee ese archivo con las
+# opciones *_file:
+#
+#   1. En docker-compose.yml, descomenta `secrets:` del servicio alertmanager
+#      y el bloque `secrets:` del final del archivo.
+#   2. Descomenta aquí abajo el receptor que quieras, completa los valores
+#      entre < > y pon su nombre en route.receiver.
+#   3. Define la variable al levantar, por ejemplo en Git Bash:
+#        SLACK_WEBHOOK_URL='<url del webhook>' docker compose up -d alertmanager
+#
+#  - name: slack
+#    slack_configs:
+#      - api_url_file: /run/secrets/slack_webhook_url
+#        channel: "<canal>"
+#        send_resolved: true
+#
+#  - name: correo
+#    email_configs:
+#      - to: "<correo-del-equipo>"
+#        from: "<correo-remitente>"
+#        smarthost: "<servidor-smtp>:587"
+#        auth_username: "<usuario-smtp>"
+#        auth_password_file: /run/secrets/smtp_password
+#        send_resolved: true
+# -----------------------------------------------------------------------------
